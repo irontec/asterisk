@@ -1,0 +1,20 @@
+diff --git a/main/manager.c b/main/manager.c
+index d834f04099..0a972064e5 100644
+--- a/main/manager.c
++++ b/main/manager.c
+@@ -5870,6 +5870,15 @@ static int action_originate(struct mansession *s, const struct message *m)
+ 		}
+ 	}
+ 
++	/* Add additional variable with dialed extension */
++	if (exten && context && pi) {
++		struct ast_variable *v, *extenvar;
++		extenvar = ast_variable_new("ORIGINATE_EXTEN", exten, "");
++		/* Append at the end of the list */
++		for (v = vars; v->next; v = v->next );
++		v->next = extenvar;
++	}
++
+ 	/* For originate async - we can bridge in early media stage */
+ 	bridge_early = ast_true(early_media);
+ 
