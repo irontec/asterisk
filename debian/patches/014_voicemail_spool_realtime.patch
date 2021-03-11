@@ -1,0 +1,122 @@
+diff --git a/apps/app_voicemail.c b/apps/app_voicemail.c
+index 2929cf2cda..27f94cfff0 100644
+--- a/apps/app_voicemail.c
++++ b/apps/app_voicemail.c
+@@ -495,6 +495,10 @@ static AST_LIST_HEAD_STATIC(vmstates, vmstate);
+ 
+ #endif
+ 
++/* Forward declarations for mixed ODBC spool */
++static void copy_plain_file(char *frompath, char *topath);
++static int vm_delete(char *file);
++
+ #define SMDI_MWI_WAIT_TIMEOUT 1000 /* 1 second */
+ 
+ #define COMMAND_TIMEOUT 5000
+@@ -837,13 +841,13 @@ struct vm_state {
+ #ifdef ODBC_STORAGE
+ static char odbc_database[80] = "asterisk";
+ static char odbc_table[80] = "voicemessages";
+-#define RETRIEVE(a,b,c,d) retrieve_file(a,b)
+-#define DISPOSE(a,b) remove_file(a,b)
++#define RETRIEVE(a,b,c,d) vm_odbc_retrieve_file(a,b)
++#define DISPOSE(a,b) vm_odbc_remove_file(a,b)
+ #define STORE(a,b,c,d,e,f,g,h,i,j,k) store_file(a,b,c,d)
+ #define EXISTS(a,b,c,d) (message_exists(a,b))
+-#define RENAME(a,b,c,d,e,f,g,h) (rename_file(a,b,c,d,e,f))
+-#define COPY(a,b,c,d,e,f,g,h) (copy_file(a,b,c,d,e,f))
+-#define DELETE(a,b,c,d) (delete_file(a,b))
++#define RENAME(a,b,c,d,e,f,g,h) (vm_odbc_rename_file(a,b,c,d,e,f,g,h))
++#define COPY(a,b,c,d,e,f,g,h) (vm_odbc_copy_file(a,b,c,d,e,f,g,h))
++#define DELETE(a,b,c,d) (vm_odbc_delete_file(a,b,c))
+ #define UPDATE_MSG_ID(a, b, c, d, e, f) (odbc_update_msg_id((a), (b), (c)))
+ #else
+ #ifdef IMAP_STORAGE
+@@ -4315,8 +4319,6 @@ static int store_file(const char *dir, const char *mailboxuser, const char *mail
+ {
+ 	int res = 0;
+ 	int fd = -1;
+-	void *fdm = MAP_FAILED;
+-	off_t fdlen = -1;
+ 	SQLHSTMT stmt;
+ 	char sql[PATH_MAX];
+ 	char msgnums[20];
+@@ -4385,20 +4387,6 @@ static int store_file(const char *dir, const char *mailboxuser, const char *mail
+ 				idata.msg_id = "";
+ 			}
+ 		}
+-		fdlen = lseek(fd, 0, SEEK_END);
+-		if (fdlen < 0 || lseek(fd, 0, SEEK_SET) < 0) {
+-			ast_log(AST_LOG_WARNING, "Failed to process sound file '%s': %s\n", full_fn, strerror(errno));
+-			res = -1;
+-			break;
+-		}
+-		fdm = mmap(NULL, fdlen, PROT_READ | PROT_WRITE, MAP_SHARED, fd, 0);
+-		if (fdm == MAP_FAILED) {
+-			ast_log(AST_LOG_WARNING, "Memory map failed for sound file '%s'!\n", full_fn);
+-			res = -1;
+-			break;
+-		}
+-		idata.data = fdm;
+-		idata.datalen = idata.indlen = fdlen;
+ 
+ 		if (!ast_strlen_zero(idata.category))
+ 			snprintf(sql, sizeof(sql), "INSERT INTO %s (dir,msgnum,recording,context,macrocontext,callerid,origtime,duration,mailboxuser,mailboxcontext,flag,msg_id,category) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?)", odbc_table);
+@@ -4425,8 +4413,6 @@ static int store_file(const char *dir, const char *mailboxuser, const char *mail
+ 
+ 	if (valid_config(cfg))
+ 		ast_config_destroy(cfg);
+-	if (fdm != MAP_FAILED)
+-		munmap(fdm, fdlen);
+ 	if (fd > -1)
+ 		close(fd);
+ 	return res;
+@@ -4502,6 +4488,48 @@ static int remove_file(char *dir, int msgnum)
+ 	unlink(full_fn);
+ 	return 0;
+ }
++
++static int vm_odbc_retrieve_file(char *dir, int msgnum)
++{
++    // Voicemail file already in spool
++    return 0;
++}
++
++static int vm_odbc_remove_file(char *dir, int msgnum)
++{
++    // Do not remove retrieved file from spool
++    return 0;
++}
++
++static void vm_odbc_rename_file(char *sdir, int smsg, char *mailboxuser, char *mailboxcontext, char *ddir, int dmsg, char *sfn, char *dfn)
++{
++    // Rename realtime file from db
++    rename_file(sdir, smsg, mailboxuser, mailboxcontext, ddir, dmsg);
++
++    // Rename file from spool
++    char stxt[PATH_MAX];
++    char dtxt[PATH_MAX];
++    ast_filerename(sfn, dfn, NULL);
++    snprintf(stxt, sizeof(stxt), "%s.txt", sfn);
++    snprintf(dtxt, sizeof(dtxt), "%s.txt", dfn);
++    if (ast_check_realtime("voicemail_data")) {
++        ast_update_realtime("voicemail_data", "filename", sfn, "filename", dfn, SENTINEL);
++    }
++    rename(stxt, dtxt);
++}
++
++static void vm_odbc_copy_file(char *sdir, int smsg, char *ddir, int dmsg, char *dmailboxuser, char *dmailboxcontext, char *frompath, char *topath)
++{
++    copy_file(sdir, smsg, ddir, dmsg, dmailboxuser, dmailboxcontext);
++    copy_plain_file(frompath, topath);
++}
++
++static int vm_odbc_delete_file(const char *sdir, int smsg, char *file)
++{
++    delete_file(sdir, smsg);
++    return vm_delete(file);
++}
++
+ #else
+ #ifndef IMAP_STORAGE
+ /*!
