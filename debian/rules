@@ -8,6 +8,7 @@ override_dh_auto_build:
 	${MAKE} menuselect.makeopts
 	menuselect/menuselect --enable format_mp3 menuselect.makeopts
 	menuselect/menuselect --enable codec_opus menuselect.makeopts
+	menuselect/menuselect --enable app_voicemail_odbc menuselect.makeopts
 	menuselect/menuselect --disable res_srtp menuselect.makeopts
 	menuselect/menuselect --disable CORE-SOUNDS-EN-GSM menuselect.makeopts
 	menuselect/menuselect --disable CORE-SOUNDS-EN-G729 menuselect.makeopts
