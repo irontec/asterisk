@@ -1,7 +1,7 @@
 Source: ivozprovider-asterisk
 Section: comm
 Priority: optional
-Build-Depends: debhelper, dh-systemd, quilt, libncurses5-dev, libxml2-dev, wget,
+Build-Depends: debhelper, quilt, libncurses5-dev, libxml2-dev, wget,
     libjansson-dev, libssl-dev, libsrtp2-dev, uuid-dev, libsqlite3-dev, subversion,
     libopus-dev, pkg-config, build-essential, git, libmyodbc, libedit-dev,
     odbcinst, unixodbc-dev, autoconf, libspeex-dev, libspeexdsp-dev, libgsm1-dev,
