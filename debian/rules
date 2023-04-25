@@ -10,6 +10,7 @@ override_dh_auto_build:
 	menuselect/menuselect --enable codec_opus menuselect.makeopts
 	menuselect/menuselect --enable app_voicemail_odbc menuselect.makeopts
 	menuselect/menuselect --disable res_srtp menuselect.makeopts
+	menuselect/menuselect --disable BUILD_NATIVE menuselect.makeopts
 	menuselect/menuselect --disable CORE-SOUNDS-EN-GSM menuselect.makeopts
 	menuselect/menuselect --disable CORE-SOUNDS-EN-G729 menuselect.makeopts
 	menuselect/menuselect --disable CORE-SOUNDS-ES-G729 menuselect.makeopts
