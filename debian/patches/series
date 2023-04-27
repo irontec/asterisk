@@ -12,3 +12,4 @@
 013_disable_queue_member_congestion.patch
 014_voicemail_spool_realtime.patch
 015_agi_log_colors.patch
+016_manager_originate_extension_vars.patch
