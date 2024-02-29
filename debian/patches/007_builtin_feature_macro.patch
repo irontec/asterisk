@@ -8,7 +8,7 @@ index d09a7a2..adce1c0 100644
  
 +static int feature_automixmacro(struct ast_bridge_channel *bridge_channel, void *hook_pvt)
 +{
-+    ast_bridge_channel_run_app(bridge_channel, "macro", "demand-record", NULL);
++    ast_bridge_channel_run_app(bridge_channel, "gosub", "demand-record,s,1", NULL);
 +    return 0;
 +}
 +
