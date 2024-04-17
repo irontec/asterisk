@@ -1,0 +1,132 @@
+diff --git a/include/asterisk/pbx.h b/include/asterisk/pbx.h
+index 7ef0dc79487..2aa67bf2e28 100644
+--- a/include/asterisk/pbx.h
++++ b/include/asterisk/pbx.h
+@@ -52,6 +52,7 @@ extern "C" {
+ /*! @} */
+ 
+ #define PRIORITY_HINT	-1	/*!< Special Priority for a hint */
++#define MAX_HINT_WATCHERS 	50
+ 
+ /*!
+  * \brief Extension states
+@@ -756,6 +765,18 @@ int ast_get_hint(char *hint, int hintsize, char *name, int namesize,
+ int ast_str_get_hint(struct ast_str **hint, ssize_t hintsize, struct ast_str **name, ssize_t namesize,
+ 	struct ast_channel *c, const char *context, const char *exten);
+ 
++/*!
++ * \brief Check if a hint extension has reached watchers limit
++ *
++ * \param c this is not important
++ * \param context which context to look in
++ * \param exten which extension to search for
++ *
++ *
++ * \return If the hint has reached the configured watchers limit, 1 is returned. Otherwise, 0 is returned.
++ */
++int ast_hint_check_watchers_limit_reached(struct ast_channel *c, const char *context, const char *exten);
++
+ /*!
+  * \brief Determine whether an extension exists
+  *
+diff --git a/main/pbx.c b/main/pbx.c
+index a641fcbd08a..7f57f00e3d8 100644
+--- a/main/pbx.c
++++ b/main/pbx.c
+@@ -338,6 +338,7 @@ struct ast_hint {
+ 	 */
+ 	struct ast_exten *exten;
+ 	struct ao2_container *callbacks; /*!< Device state callback container for this extension */
++	int max_callbacks;
+ 
+ 	/*! Dev state variables */
+ 	int laststate;			/*!< Last known device state */
+@@ -3732,6 +3743,7 @@ static int extension_state_add_destroy(const char *context, const char *exten,
+ 	struct ast_state_cb *state_cb;
+ 	struct ast_exten *e;
+ 	int id;
++	int watchers;
+ 
+ 	/* If there's no context and extension:  add callback to statecbs list */
+ 	if (!context && !exten) {
+@@ -3791,6 +3803,13 @@ static int extension_state_add_destroy(const char *context, const char *exten,
+ 		return -1;
+ 	}
+ 
++	watchers = ao2_container_count(hint->callbacks);
++	if (hint->max_callbacks && watchers >= hint->max_callbacks) {
++		ao2_ref(hint, -1);
++		ao2_unlock(hints);
++		return -1;
++	}
++
+ 	/* Now insert the callback in the callback list  */
+ 	if (!(state_cb = ao2_alloc(sizeof(*state_cb), destroy_state_cb))) {
+ 		ao2_ref(hint, -1);
+@@ -4006,6 +4025,7 @@ static int ast_add_hint(struct ast_exten *e)
+ 		return -1;
+ 	}
+ 	hint_new->exten = e;
++	hint_new->max_callbacks = MAX_HINT_WATCHERS;
+ 	if (strstr(e->app, "${") && e->exten[0] == '_') {
+ 		/* The hint is dynamic and hasn't been evaluated yet */
+ 		hint_new->laststate = AST_DEVICE_INVALID;
+@@ -4173,6 +4193,40 @@ int ast_str_get_hint(struct ast_str **hint, ssize_t hintsize, struct ast_str **n
+ 	return -1;
+ }
+ 
++/*! \brief Check if watchers limit has been reached for a hint */
++int ast_hint_check_watchers_limit_reached(struct ast_channel *c, const char *context, const char *exten)
++{
++	struct ast_exten *e;
++	struct ast_hint *hint;
++	int watchers;
++	int limit_reached = 0;
++
++	/* Prevent accessing the list while hints are added or removed */
++	ao2_lock(hints);
++
++	/* Find hint extension */
++	e = ast_hint_extension(c, context, exten);
++	if (!e) {
++		ao2_unlock(hints);
++		return 1;
++	}
++
++	/* Search if hint exists, do nothing */
++	hint = ao2_find(hints, e, 0);
++
++	/* Check watchers limit has been reached */
++	watchers = ao2_container_count(hint->callbacks);
++	if (hint->max_callbacks && watchers >= hint->max_callbacks) {
++		limit_reached = 1;
++	}
++
++	/* Unlock hint and list */
++	ao2_ref(hint, -1);
++	ao2_unlock(hints);
++
++	return limit_reached;
++}
++
+ int ast_exists_extension(struct ast_channel *c, const char *context, const char *exten, int priority, const char *callerid)
+ {
+ 	return pbx_extension_helper(c, NULL, context, exten, priority, NULL, callerid, E_MATCH, 0, 0);
+diff --git a/res/res_pjsip_exten_state.c b/res/res_pjsip_exten_state.c
+index 1b29091849a..76d4414446c 100644
+--- a/res/res_pjsip_exten_state.c
++++ b/res/res_pjsip_exten_state.c
+@@ -432,6 +432,13 @@ static int new_subscribe(struct ast_sip_endpoint *endpoint,
+ 		return 404;
+ 	}
+ 
++	if (ast_hint_check_watchers_limit_reached(NULL, context, resource) != 0) {
++		ast_log(LOG_NOTICE, "Endpoint '%s' state subscription failed: "
++				"Extension '%s' in context '%s' has reached max subscriptions limit\n",
++				ast_sorcery_object_get_id(endpoint), resource, context);
++		return 403;
++	}
++
+ 	return 200;
+ }
+ 
