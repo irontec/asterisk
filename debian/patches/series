@@ -13,3 +13,4 @@
 014_voicemail_spool_realtime.patch
 015_agi_log_colors.patch
 016_manager_originate_extension_vars.patch
+017_max_hint_watchers.patch
