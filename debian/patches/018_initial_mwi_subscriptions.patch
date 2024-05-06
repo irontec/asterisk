@@ -1,0 +1,16 @@
+diff --git a/res/res_pjsip_mwi.c b/res/res_pjsip_mwi.c
+index dfe5481f334..8c02573e226 100644
+--- a/res/res_pjsip_mwi.c
++++ b/res/res_pjsip_mwi.c
+@@ -1599,8 +1599,10 @@ static int load_module(void)
+ 	ast_sorcery_observer_add(ast_sip_get_sorcery(), "global", &global_observer);
+ 	ast_sorcery_reload_object(ast_sip_get_sorcery(), "global");
+ 
++	// Create subscriptions even when initial unsolicited MWI is disabled
++	create_mwi_subscriptions();
++
+ 	if (!ast_sip_get_mwi_disable_initial_unsolicited()) {
+-		create_mwi_subscriptions();
+ 		if (ast_test_flag(&ast_options, AST_OPT_FLAG_FULLY_BOOTED)) {
+ 			ast_sip_push_task(ast_serializer_pool_get(mwi_serializer_pool),
+ 				send_initial_notify_all, NULL);
