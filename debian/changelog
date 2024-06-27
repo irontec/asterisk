@@ -1,4 +1,10 @@
-ivozprovider-asterisk (4.0~20.8.0) UNRELEASED; urgency=medium
+ivozprovider-asterisk (4.1~20.8.0) UNRELEASED; urgency=medium
+
+  * Version bump to 4.1
+
+ -- Irontec IvozProvider Team <ivozprovider@irontec.com>  Thu, 27 Jun 2024 11:50:24 +0200
+
+ivozprovider-asterisk (4.0~20.8.0) unstable; urgency=medium
 
   * Version bump to 4.0.0
 
