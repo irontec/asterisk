@@ -596,6 +596,7 @@ static char *handle_show_settings(struct ast_cli_entry *e, int cmd, struct ast_c
 	ast_cli(a->fd, "  ASTDB:                       %s\n", ast_config_AST_DB);
 	ast_cli(a->fd, "  IAX2 Keys directory:         %s\n", ast_config_AST_KEY_DIR);
 	ast_cli(a->fd, "  AGI Scripts directory:       %s\n", ast_config_AST_AGI_DIR);
+	ast_cli(a->fd, "  Cache directory:             %s\n", ast_config_AST_CACHE_DIR);
 	ast_cli(a->fd, "\n\n");
 	return CLI_SUCCESS;
 }
@@ -1117,6 +1118,10 @@ void ast_unreplace_sigchld(void)
 	unsigned int level;
 
 	ast_mutex_lock(&safe_system_lock);
+
+	/* Wrapping around here is an error */
+	ast_assert(safe_system_level > 0);
+
 	level = --safe_system_level;
 
 	/* only restore the handler if we are the last one */
@@ -3182,7 +3187,12 @@ static int ast_el_read_history(const char *filename)
 		ast_el_initialize();
 	}
 
-	return history(el_hist, &ev, H_LOAD, filename);
+	if (access(filename, F_OK) == 0) {
+		return history(el_hist, &ev, H_LOAD, filename);
+	}
+
+	/* If the history file doesn't exist, failing to read it is unremarkable. */
+	return 0;
 }
 
 static void process_histfile(int (*readwrite)(const char *filename))
@@ -4334,7 +4344,7 @@ static void asterisk_daemon(int isroot, const char *runuser, const char *rungrou
 	if (ast_opt_console) {
 		/* Console stuff now... */
 		/* Register our quit function */
-		char title[256];
+		char title[296];
 		char hostname[MAXHOSTNAMELEN] = "";
 
 		if (gethostname(hostname, sizeof(hostname) - 1)) {

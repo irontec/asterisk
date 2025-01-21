@@ -88,10 +88,7 @@
  * \param _dest The destination buffer of at least IP6ADDR_COLON_PORT_BUFLEN bytes
  */
 #define AST_SIP_MAKE_REMOTE_IPADDR_PORT_STR(_transport, _dest) \
-	snprintf(_dest, IP6ADDR_COLON_PORT_BUFLEN, \
-		PJSTR_PRINTF_SPEC ":%d", \
-		PJSTR_PRINTF_VAR(_transport->remote_name.host), \
-		_transport->remote_name.port);
+	pj_sockaddr_print(&_transport->key.rem_addr, _dest, sizeof(_dest), 1);
 
 /* Forward declarations of PJSIP stuff */
 struct pjsip_rx_data;
@@ -617,8 +614,6 @@ enum ast_sip_endpoint_identifier_type {
 	AST_SIP_ENDPOINT_IDENTIFY_BY_HEADER = (1 << 3),
 	/*! Identify based on request uri */
 	AST_SIP_ENDPOINT_IDENTIFY_BY_REQUEST_URI = (1 << 4),
-	/*! Identify based on bound (local) IP address */
-	AST_SIP_ENDPOINT_IDENTIFY_BY_TRANSPORT = (1 << 5),
 };
 AST_VECTOR(ast_sip_identify_by_vector, enum ast_sip_endpoint_identifier_type);
 
@@ -1072,6 +1067,10 @@ struct ast_sip_endpoint {
 	enum ast_sip_100rel_mode rel100;
 	/*! Send Advice-of-Charge messages */
 	unsigned int send_aoc;
+	/*! Tenant ID for the endpoint */
+	AST_STRING_FIELD_EXTENDED(tenantid);
+	/*! Ignore remote hold requests */
+	int suppress_moh_on_sendonly;
 };
 
 /*! URI parameter for symmetric transport */

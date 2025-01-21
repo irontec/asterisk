@@ -110,10 +110,10 @@ generate_enum_string_prototypes(endpoint_behavior,
 
 generate_enum_string_prototypes(attest_level,
 	attest_level_UNKNOWN = -1,
-	attest_level_A = 0,
+	attest_level_NOT_SET = 0,
+	attest_level_A,
 	attest_level_B,
 	attest_level_C,
-	attest_level_NOT_SET,
 );
 
 /*
@@ -334,6 +334,8 @@ struct verification_cfg_common {
 		AST_STRING_FIELD(ca_path);
 		AST_STRING_FIELD(crl_file);
 		AST_STRING_FIELD(crl_path);
+		AST_STRING_FIELD(untrusted_cert_file);
+		AST_STRING_FIELD(untrusted_cert_path);
 		AST_STRING_FIELD(cert_cache_dir);
 	);
 	unsigned int curl_timeout;
@@ -414,7 +416,9 @@ struct profile_cfg {
 };
 
 struct profile_cfg *profile_get_cfg(const char *id);
+struct ao2_container *profile_get_all(void);
 struct profile_cfg *eprofile_get_cfg(const char *id);
+struct ao2_container *eprofile_get_all(void);
 int profile_load(void);
 int profile_reload(void);
 int profile_unload(void);
@@ -496,6 +500,8 @@ int tn_config_unload(void);
 	stringfield_option_register(sorcery, CONFIG_TYPE, object, ca_path, vcfg_common.ca_path, nodoc); \
 	stringfield_option_register(sorcery, CONFIG_TYPE, object, crl_file, vcfg_common.crl_file, nodoc); \
 	stringfield_option_register(sorcery, CONFIG_TYPE, object, crl_path, vcfg_common.crl_path, nodoc); \
+	stringfield_option_register(sorcery, CONFIG_TYPE, object, untrusted_cert_file, vcfg_common.untrusted_cert_file, nodoc); \
+	stringfield_option_register(sorcery, CONFIG_TYPE, object, untrusted_cert_path, vcfg_common.untrusted_cert_path, nodoc); \
 	stringfield_option_register(sorcery, CONFIG_TYPE, object, cert_cache_dir, vcfg_common.cert_cache_dir, nodoc); \
 \
 	uint_option_register(sorcery, CONFIG_TYPE, object, curl_timeout, vcfg_common.curl_timeout, nodoc);\

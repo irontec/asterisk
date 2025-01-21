@@ -608,14 +608,14 @@ static int contact_has_security_mechanisms(void *obj, void *arg, int flags)
 	struct ast_sip_contact_status *contact_status = ast_sip_get_contact_status(contact);
 
 	if (!contact_status) {
-		return -1;
+		return 0;
 	}
 	if (!AST_VECTOR_SIZE(&contact_status->security_mechanisms)) {
 		ao2_cleanup(contact_status);
-		return -1;
+		return 0;
 	}
 	*ret = contact_status;
-	return 0;
+	return CMP_MATCH | CMP_STOP;
 }
 
 static int contact_add_security_headers_to_status(void *obj, void *arg, int flags)
@@ -625,7 +625,7 @@ static int contact_add_security_headers_to_status(void *obj, void *arg, int flag
 	struct ast_sip_contact_status *contact_status = ast_sip_get_contact_status(contact);
 
 	if (!contact_status) {
-		return -1;
+		return 0;
 	}
 	if (AST_VECTOR_SIZE(&contact_status->security_mechanisms)) {
 		goto out;
@@ -644,8 +644,6 @@ out:
 static void add_security_headers(struct sip_outbound_registration_client_state *client_state,
 	pjsip_tx_data *tdata)
 {
-	int add_require_header = 1;
-	int add_proxy_require_header = 1;
 	int add_sec_client_header = 0;
 	struct sip_outbound_registration *reg = NULL;
 	struct ast_sip_endpoint *endpt = NULL;
@@ -654,8 +652,6 @@ static void add_security_headers(struct sip_outbound_registration_client_state *
 	struct ast_sip_security_mechanism_vector *sec_mechs = NULL;
 	static const pj_str_t security_verify = { "Security-Verify", 15 };
 	static const pj_str_t security_client = { "Security-Client", 15 };
-	static const pj_str_t proxy_require = { "Proxy-Require", 13 };
-	static const pj_str_t require = { "Require", 7 };
 
 	if (client_state->security_negotiation != AST_SIP_SECURITY_NEG_MEDIASEC) {
 		return;
@@ -668,7 +664,7 @@ static void add_security_headers(struct sip_outbound_registration_client_state *
 		/* Retrieve all contacts associated with aors from this endpoint
 		 * and find the first one that has security mechanisms.
 		 */
-		ao2_callback(contact_container, 0, contact_has_security_mechanisms, &contact_status);
+		ao2_callback(contact_container, OBJ_NODATA, contact_has_security_mechanisms, &contact_status);
 		if (contact_status) {
 			ao2_lock(contact_status);
 			sec_mechs = &contact_status->security_mechanisms;
@@ -689,20 +685,10 @@ static void add_security_headers(struct sip_outbound_registration_client_state *
 			/* necessary if a retry occures */
 			add_sec_client_header = (pjsip_msg_find_hdr_by_name(tdata->msg, &security_client, NULL) == NULL) ? 1 : 0;
 		}
-		add_require_header =
-			(pjsip_msg_find_hdr_by_name(tdata->msg, &require, NULL) == NULL) ? 1 : 0;
-		add_proxy_require_header =
-			(pjsip_msg_find_hdr_by_name(tdata->msg, &proxy_require, NULL) == NULL) ? 1 : 0;
 	} else {
 		ast_sip_add_security_headers(&client_state->security_mechanisms, "Security-Client", 0, tdata);
 	}
 
-	if (add_require_header) {
-		ast_sip_add_header(tdata, "Require", "mediasec");
-	}
-	if (add_proxy_require_header) {
-		ast_sip_add_header(tdata, "Proxy-Require", "mediasec");
-	}
 	if (add_sec_client_header) {
 		ast_sip_add_security_headers(&client_state->security_mechanisms, "Security-Client", 0, tdata);
 	}
@@ -1131,6 +1117,7 @@ static int monitor_matcher(void *a, void *b)
 static void registration_transport_monitor_setup(const char *transport_key, const char *registration_name)
 {
 	char *monitor;
+	enum ast_transport_monitor_reg monitor_res;
 
 	monitor = ao2_alloc_options(strlen(registration_name) + 1, NULL,
 		AO2_ALLOC_OPT_LOCK_NOLOCK);
@@ -1144,8 +1131,10 @@ static void registration_transport_monitor_setup(const char *transport_key, cons
 	 * register the monitor.  We might get into a message spamming infinite
 	 * loop of registration, shutdown, reregistration...
 	 */
-	ast_sip_transport_monitor_register_replace_key(transport_key, registration_transport_shutdown_cb,
-		monitor, monitor_matcher);
+	if((monitor_res = ast_sip_transport_monitor_register_replace_key(transport_key, registration_transport_shutdown_cb,
+		monitor, monitor_matcher))) {
+		ast_log(LOG_NOTICE, "Failed to register transport monitor for regisration %s: %d\n", registration_name, monitor_res);
+	}
 	ao2_ref(monitor, -1);
 }
 

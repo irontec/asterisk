@@ -103,1467 +103,6 @@
 #include "asterisk/taskprocessor.h"
 #include "asterisk/message.h"
 
-/*** DOCUMENTATION
-	<manager name="Ping" language="en_US">
-		<synopsis>
-			Keepalive command.
-		</synopsis>
-		<syntax>
-			<xi:include xpointer="xpointer(/docs/manager[@name='Login']/syntax/parameter[@name='ActionID'])" />
-		</syntax>
-		<description>
-			<para>A 'Ping' action will elicit a 'Pong' response. Used to keep the
-			manager connection open.</para>
-		</description>
-	</manager>
-	<manager name="Events" language="en_US">
-		<synopsis>
-			Control Event Flow.
-		</synopsis>
-		<syntax>
-			<xi:include xpointer="xpointer(/docs/manager[@name='Login']/syntax/parameter[@name='ActionID'])" />
-			<parameter name="EventMask" required="true">
-				<enumlist>
-					<enum name="on">
-						<para>If all events should be sent.</para>
-					</enum>
-					<enum name="off">
-						<para>If no events should be sent.</para>
-					</enum>
-					<enum name="system,call,log,...">
-						<para>To select which flags events should have to be sent.</para>
-					</enum>
-				</enumlist>
-			</parameter>
-		</syntax>
-		<description>
-			<para>Enable/Disable sending of events to this manager client.</para>
-		</description>
-	</manager>
-	<manager name="Logoff" language="en_US">
-		<synopsis>
-			Logoff Manager.
-		</synopsis>
-		<syntax>
-			<xi:include xpointer="xpointer(/docs/manager[@name='Login']/syntax/parameter[@name='ActionID'])" />
-		</syntax>
-		<description>
-			<para>Logoff the current manager session.</para>
-		</description>
-		<see-also>
-			<ref type="manager">Login</ref>
-		</see-also>
-	</manager>
-	<manager name="Login" language="en_US">
-		<synopsis>
-			Login Manager.
-		</synopsis>
-		<syntax>
-			<parameter name="ActionID">
-				<para>ActionID for this transaction. Will be returned.</para>
-			</parameter>
-			<parameter name="Username" required="true">
-				<para>Username to login with as specified in manager.conf.</para>
-			</parameter>
-			<parameter name="AuthType">
-				<para>Authorization type. Valid values are:</para>
-				<enumlist>
-					<enum name="plain"><para>Plain text secret. (default)</para></enum>
-					<enum name="MD5"><para>MD5 hashed secret.</para></enum>
-				</enumlist>
-			</parameter>
-			<parameter name="Secret">
-				<para>Plain text secret to login with as specified in manager.conf.</para>
-			</parameter>
-			<parameter name="Key">
-				<para>Key to use with MD5 authentication.  To create the key, you must
-				initialize a new MD5 hash, call the <literal>Challenge</literal> AMI action,
-				update the hash with the response, then update the hash with the secret as specified
-				in manager.conf.  The key value must be the final result of the hash
-				as a 32 character lower-case hex string without any "0x" prepended.
-				See the description for an example of creating a key in Python.</para>
-			</parameter>
-			<parameter name="Events">
-				<xi:include xpointer="xpointer(/docs/manager[@name='Events']/syntax/parameter[@name='EventMask']/enumlist)" />
-			</parameter>
-		</syntax>
-		<description>
-			<para>Login Manager.</para>
-			<example title="Create an MD5 Key in Python">
-				import hashlib
-				m = hashlib.md5()
-				m.update(response_from_challenge)
-				m.update(your_secret)
-				key = m.hexdigest()
-				## '031edd7d41651593c5fe5c006fa5752b'
-			</example>
-		</description>
-		<see-also>
-			<ref type="manager">Challenge</ref>
-			<ref type="manager">Logoff</ref>
-		</see-also>
-	</manager>
-	<manager name="Challenge" language="en_US">
-		<synopsis>
-			Generate Challenge for MD5 Auth.
-		</synopsis>
-		<syntax>
-			<xi:include xpointer="xpointer(/docs/manager[@name='Login']/syntax/parameter[@name='ActionID'])" />
-			<parameter name="AuthType" required="true">
-				<para>Digest algorithm to use in the challenge. Valid values are:</para>
-				<enumlist>
-					<enum name="MD5" />
-				</enumlist>
-			</parameter>
-		</syntax>
-		<description>
-			<para>Generate a challenge for MD5 authentication.</para>
-		</description>
-	</manager>
-	<manager name="Hangup" language="en_US">
-		<synopsis>
-			Hangup channel.
-		</synopsis>
-		<syntax>
-			<xi:include xpointer="xpointer(/docs/manager[@name='Login']/syntax/parameter[@name='ActionID'])" />
-			<parameter name="Channel" required="true">
-				<para>The exact channel name to be hungup, or to use a regular expression, set this parameter to: /regex/</para>
-				<para>Example exact channel: SIP/provider-0000012a</para>
-				<para>Example regular expression: /^SIP/provider-.*$/</para>
-			</parameter>
-			<parameter name="Cause">
-				<para>Numeric hangup cause.</para>
-			</parameter>
-		</syntax>
-		<description>
-			<para>Hangup a channel.</para>
-		</description>
-	</manager>
-	<manager name="Status" language="en_US">
-		<synopsis>
-			List channel status.
-		</synopsis>
-		<syntax>
-			<xi:include xpointer="xpointer(/docs/manager[@name='Login']/syntax/parameter[@name='ActionID'])" />
-			<parameter name="Channel" required="false">
-				<para>The name of the channel to query for status.</para>
-			</parameter>
-			<parameter name="Variables">
-				<para>Comma <literal>,</literal> separated list of variable to include.</para>
-			</parameter>
-			<parameter name="AllVariables">
-				<para>If set to "true", the Status event will include all channel variables for
-				the requested channel(s).</para>
-				<enumlist>
-					<enum name="true"/>
-					<enum name="false"/>
-				</enumlist>
-			</parameter>
-		</syntax>
-		<description>
-			<para>Will return the status information of each channel along with the
-			value for the specified channel variables.</para>
-		</description>
-		<responses>
-			<list-elements>
-				<xi:include xpointer="xpointer(/docs/managerEvent[@name='Status'])" />
-			</list-elements>
-			<xi:include xpointer="xpointer(/docs/managerEvent[@name='StatusComplete'])" />
-		</responses>
-	</manager>
-	<managerEvent language="en_US" name="Status">
-		<managerEventInstance class="EVENT_FLAG_CALL">
-			<synopsis>Raised in response to a Status command.</synopsis>
-			<syntax>
-				<parameter name="ActionID" required="false"/>
-				<channel_snapshot/>
-				<parameter name="Type">
-					<para>Type of channel</para>
-				</parameter>
-				<parameter name="DNID">
-					<para>Dialed number identifier</para>
-				</parameter>
-				<parameter name="EffectiveConnectedLineNum">
-				</parameter>
-				<parameter name="EffectiveConnectedLineName">
-				</parameter>
-				<parameter name="TimeToHangup">
-					<para>Absolute lifetime of the channel</para>
-				</parameter>
-				<parameter name="BridgeID">
-					<para>Identifier of the bridge the channel is in, may be empty if not in one</para>
-				</parameter>
-				<parameter name="Application">
-					<para>Application currently executing on the channel</para>
-				</parameter>
-				<parameter name="Data">
-					<para>Data given to the currently executing channel</para>
-				</parameter>
-				<parameter name="Nativeformats">
-					<para>Media formats the connected party is willing to send or receive</para>
-				</parameter>
-				<parameter name="Readformat">
-					<para>Media formats that frames from the channel are received in</para>
-				</parameter>
-				<parameter name="Readtrans">
-					<para>Translation path for media received in native formats</para>
-				</parameter>
-				<parameter name="Writeformat">
-					<para>Media formats that frames to the channel are accepted in</para>
-				</parameter>
-				<parameter name="Writetrans">
-					<para>Translation path for media sent to the connected party</para>
-				</parameter>
-				<parameter name="Callgroup">
-					<para>Configured call group on the channel</para>
-				</parameter>
-				<parameter name="Pickupgroup">
-					<para>Configured pickup group on the channel</para>
-				</parameter>
-				<parameter name="Seconds">
-					<para>Number of seconds the channel has been active</para>
-				</parameter>
-			</syntax>
-			<see-also>
-				<ref type="manager">Status</ref>
-			</see-also>
-		</managerEventInstance>
-	</managerEvent>
-	<managerEvent language="en_US" name="StatusComplete">
-		<managerEventInstance class="EVENT_FLAG_CALL">
-			<synopsis>Raised in response to a Status command.</synopsis>
-			<syntax>
-				<parameter name="Items">
-					<para>Number of Status events returned</para>
-				</parameter>
-			</syntax>
-			<see-also>
-				<ref type="manager">Status</ref>
-			</see-also>
-		</managerEventInstance>
-	</managerEvent>
-	<manager name="Setvar" language="en_US">
-		<synopsis>
-			Sets a channel variable or function value.
-		</synopsis>
-		<syntax>
-			<xi:include xpointer="xpointer(/docs/manager[@name='Login']/syntax/parameter[@name='ActionID'])" />
-			<parameter name="Channel">
-				<para>Channel to set variable for.</para>
-			</parameter>
-			<parameter name="Variable" required="true">
-				<para>Variable name, function or expression.</para>
-			</parameter>
-			<parameter name="Value" required="true">
-				<para>Variable or function value.</para>
-			</parameter>
-		</syntax>
-		<description>
-			<para>This command can be used to set the value of channel variables or dialplan
-			functions.</para>
-			<note>
-				<para>If a channel name is not provided then the variable is considered global.</para>
-			</note>
-		</description>
-		<see-also>
-			<ref type="manager">Getvar</ref>
-		</see-also>
-	</manager>
-	<manager name="Getvar" language="en_US">
-		<synopsis>
-			Gets a channel variable or function value.
-		</synopsis>
-		<syntax>
-			<xi:include xpointer="xpointer(/docs/manager[@name='Login']/syntax/parameter[@name='ActionID'])" />
-			<parameter name="Channel">
-				<para>Channel to read variable from.</para>
-			</parameter>
-			<parameter name="Variable" required="true">
-				<para>Variable name, function or expression.</para>
-			</parameter>
-		</syntax>
-		<description>
-			<para>Get the value of a channel variable or function return.</para>
-			<note>
-				<para>If a channel name is not provided then the variable is considered global.</para>
-			</note>
-		</description>
-		<see-also>
-			<ref type="manager">Setvar</ref>
-		</see-also>
-	</manager>
-	<manager name="GetConfig" language="en_US">
-		<synopsis>
-			Retrieve configuration.
-		</synopsis>
-		<syntax>
-			<xi:include xpointer="xpointer(/docs/manager[@name='Login']/syntax/parameter[@name='ActionID'])" />
-			<parameter name="Filename" required="true">
-				<para>Configuration filename (e.g. <filename>foo.conf</filename>).</para>
-			</parameter>
-			<parameter name="Category">
-				<para>Category in configuration file.</para>
-			</parameter>
-			<parameter name="Filter">
-				<para>A comma separated list of
-				<replaceable>name_regex</replaceable>=<replaceable>value_regex</replaceable>
-				expressions which will cause only categories whose variables match all expressions
-				to be considered.  The special variable name <literal>TEMPLATES</literal>
-				can be used to control whether templates are included.  Passing
-				<literal>include</literal> as the value will include templates
-				along with normal categories. Passing
-				<literal>restrict</literal> as the value will restrict the operation to
-				ONLY templates.  Not specifying a <literal>TEMPLATES</literal> expression
-				results in the default behavior which is to not include templates.</para>
-			</parameter>
-		</syntax>
-		<description>
-			<para>This action will dump the contents of a configuration
-			file by category and contents or optionally by specified category only.
-			In the case where a category name is non-unique, a filter may be specified
-			to match only categories with matching variable values.</para>
-		</description>
-		<see-also>
-			<ref type="manager">GetConfigJSON</ref>
-			<ref type="manager">UpdateConfig</ref>
-			<ref type="manager">CreateConfig</ref>
-			<ref type="manager">ListCategories</ref>
-		</see-also>
-	</manager>
-	<manager name="GetConfigJSON" language="en_US">
-		<synopsis>
-			Retrieve configuration (JSON format).
-		</synopsis>
-		<syntax>
-			<xi:include xpointer="xpointer(/docs/manager[@name='Login']/syntax/parameter[@name='ActionID'])" />
-			<parameter name="Filename" required="true">
-				<para>Configuration filename (e.g. <filename>foo.conf</filename>).</para>
-			</parameter>
-			<parameter name="Category">
-				<para>Category in configuration file.</para>
-			</parameter>
-			<parameter name="Filter">
-				<xi:include xpointer="xpointer(/docs/manager[@name='GetConfig']/syntax/parameter[@name='Filter']/para[1])" />
-			</parameter>
-		</syntax>
-		<description>
-			<para>This action will dump the contents of a configuration file by category
-			and contents in JSON format or optionally by specified category only.
-			This only makes sense to be used using rawman over the HTTP interface.
-			In the case where a category name is non-unique, a filter may be specified
-			to match only categories with matching variable values.</para>
-		</description>
-		<see-also>
-			<ref type="manager">GetConfig</ref>
-			<ref type="manager">UpdateConfig</ref>
-			<ref type="manager">CreateConfig</ref>
-			<ref type="manager">ListCategories</ref>
-		</see-also>
-	</manager>
-	<manager name="UpdateConfig" language="en_US">
-		<synopsis>
-			Update basic configuration.
-		</synopsis>
-		<syntax>
-			<xi:include xpointer="xpointer(/docs/manager[@name='Login']/syntax/parameter[@name='ActionID'])" />
-			<parameter name="SrcFilename" required="true">
-				<para>Configuration filename to read (e.g. <filename>foo.conf</filename>).</para>
-			</parameter>
-			<parameter name="DstFilename" required="true">
-				<para>Configuration filename to write (e.g. <filename>foo.conf</filename>)</para>
-			</parameter>
-			<parameter name="Reload">
-				<para>Whether or not a reload should take place (or name of specific module).</para>
-			</parameter>
-			<parameter name="PreserveEffectiveContext">
-				<para>Whether the effective category contents should be preserved on template change. Default is true (pre 13.2 behavior).</para>
-			</parameter>
-			<parameter name="Action-000000">
-				<para>Action to take.</para>
-				<para>0's represent 6 digit number beginning with 000000.</para>
-				<enumlist>
-					<enum name="NewCat" />
-					<enum name="RenameCat" />
-					<enum name="DelCat" />
-					<enum name="EmptyCat" />
-					<enum name="Update" />
-					<enum name="Delete" />
-					<enum name="Append" />
-					<enum name="Insert" />
-				</enumlist>
-			</parameter>
-			<parameter name="Cat-000000">
-				<para>Category to operate on.</para>
-				<xi:include xpointer="xpointer(/docs/manager[@name='UpdateConfig']/syntax/parameter[@name='Action-000000']/para[2])" />
-			</parameter>
-			<parameter name="Var-000000">
-				<para>Variable to work on.</para>
-				<xi:include xpointer="xpointer(/docs/manager[@name='UpdateConfig']/syntax/parameter[@name='Action-000000']/para[2])" />
-			</parameter>
-			<parameter name="Value-000000">
-				<para>Value to work on.</para>
-				<xi:include xpointer="xpointer(/docs/manager[@name='UpdateConfig']/syntax/parameter[@name='Action-000000']/para[2])" />
-			</parameter>
-			<parameter name="Match-000000">
-				<para>Extra match required to match line.</para>
-				<xi:include xpointer="xpointer(/docs/manager[@name='UpdateConfig']/syntax/parameter[@name='Action-000000']/para[2])" />
-			</parameter>
-			<parameter name="Line-000000">
-				<para>Line in category to operate on (used with delete and insert actions).</para>
-				<xi:include xpointer="xpointer(/docs/manager[@name='UpdateConfig']/syntax/parameter[@name='Action-000000']/para[2])" />
-			</parameter>
-			<parameter name="Options-000000">
-				<para>A comma separated list of action-specific options.</para>
-					<enumlist>
-						<enum name="NewCat"><para>One or more of the following... </para>
-							<enumlist>
-								<enum name="allowdups"><para>Allow duplicate category names.</para></enum>
-								<enum name="template"><para>This category is a template.</para></enum>
-								<enum name="inherit=&quot;template[,...]&quot;"><para>Templates from which to inherit.</para></enum>
-							</enumlist>
-						</enum>
-					</enumlist>
-					<para> </para>
-						<para>The following actions share the same options...</para>
-					<enumlist>
-						<enum name="RenameCat"/>
-						<enum name="DelCat"/>
-						<enum name="EmptyCat"/>
-						<enum name="Update"/>
-						<enum name="Delete"/>
-						<enum name="Append"/>
-						<enum name="Insert"><para> </para>
-							<enumlist>
-								<enum name="catfilter=&quot;&lt;expression&gt;[,...]&quot;"><para> </para>
-									<xi:include xpointer="xpointer(/docs/manager[@name='GetConfig']/syntax/parameter[@name='Filter']/para[1])" />
-									<para><literal>catfilter</literal> is most useful when a file
-									contains multiple categories with the same name and you wish to
-									operate on specific ones instead of all of them.</para>
-								</enum>
-							</enumlist>
-						</enum>
-					</enumlist>
-				<xi:include xpointer="xpointer(/docs/manager[@name='UpdateConfig']/syntax/parameter[@name='Action-000000']/para[2])" />
-			</parameter>
-		</syntax>
-		<description>
-			<para>This action will modify, create, or delete configuration elements
-			in Asterisk configuration files.</para>
-		</description>
-		<see-also>
-			<ref type="manager">GetConfig</ref>
-			<ref type="manager">GetConfigJSON</ref>
-			<ref type="manager">CreateConfig</ref>
-			<ref type="manager">ListCategories</ref>
-		</see-also>
-	</manager>
-	<manager name="CreateConfig" language="en_US">
-		<synopsis>
-			Creates an empty file in the configuration directory.
-		</synopsis>
-		<syntax>
-			<xi:include xpointer="xpointer(/docs/manager[@name='Login']/syntax/parameter[@name='ActionID'])" />
-			<parameter name="Filename" required="true">
-				<para>The configuration filename to create (e.g. <filename>foo.conf</filename>).</para>
-			</parameter>
-		</syntax>
-		<description>
-			<para>This action will create an empty file in the configuration
-			directory. This action is intended to be used before an UpdateConfig
-			action.</para>
-		</description>
-		<see-also>
-			<ref type="manager">GetConfig</ref>
-			<ref type="manager">GetConfigJSON</ref>
-			<ref type="manager">UpdateConfig</ref>
-			<ref type="manager">ListCategories</ref>
-		</see-also>
-	</manager>
-	<manager name="ListCategories" language="en_US">
-		<synopsis>
-			List categories in configuration file.
-		</synopsis>
-		<syntax>
-			<xi:include xpointer="xpointer(/docs/manager[@name='Login']/syntax/parameter[@name='ActionID'])" />
-			<parameter name="Filename" required="true">
-				<para>Configuration filename (e.g. <filename>foo.conf</filename>).</para>
-			</parameter>
-		</syntax>
-		<description>
-			<para>This action will dump the categories in a given file.</para>
-		</description>
-		<see-also>
-			<ref type="manager">GetConfig</ref>
-			<ref type="manager">GetConfigJSON</ref>
-			<ref type="manager">UpdateConfig</ref>
-			<ref type="manager">CreateConfig</ref>
-		</see-also>
-	</manager>
-	<manager name="Redirect" language="en_US">
-		<synopsis>
-			Redirect (transfer) a call.
-		</synopsis>
-		<syntax>
-			<xi:include xpointer="xpointer(/docs/manager[@name='Login']/syntax/parameter[@name='ActionID'])" />
-			<parameter name="Channel" required="true">
-				<para>Channel to redirect.</para>
-			</parameter>
-			<parameter name="ExtraChannel">
-				<para>Second call leg to transfer (optional).</para>
-			</parameter>
-			<parameter name="Exten" required="true">
-				<para>Extension to transfer to.</para>
-			</parameter>
-			<parameter name="ExtraExten">
-				<para>Extension to transfer extrachannel to (optional).</para>
-			</parameter>
-			<parameter name="Context" required="true">
-				<para>Context to transfer to.</para>
-			</parameter>
-			<parameter name="ExtraContext">
-				<para>Context to transfer extrachannel to (optional).</para>
-			</parameter>
-			<parameter name="Priority" required="true">
-				<para>Priority to transfer to.</para>
-			</parameter>
-			<parameter name="ExtraPriority">
-				<para>Priority to transfer extrachannel to (optional).</para>
-			</parameter>
-		</syntax>
-		<description>
-			<para>Redirect (transfer) a call.</para>
-		</description>
-		<see-also>
-			<ref type="manager">BlindTransfer</ref>
-		</see-also>
-	</manager>
-	<manager name="Atxfer" language="en_US">
-		<synopsis>
-			Attended transfer.
-		</synopsis>
-		<syntax>
-			<xi:include xpointer="xpointer(/docs/manager[@name='Login']/syntax/parameter[@name='ActionID'])" />
-			<parameter name="Channel" required="true">
-				<para>Transferer's channel.</para>
-			</parameter>
-			<parameter name="Exten" required="true">
-				<para>Extension to transfer to.</para>
-			</parameter>
-			<parameter name="Context">
-				<para>Context to transfer to.</para>
-			</parameter>
-		</syntax>
-		<description>
-			<para>Attended transfer.</para>
-		</description>
-		<see-also>
-			<ref type="managerEvent">AttendedTransfer</ref>
-		</see-also>
-	</manager>
-	<manager name="CancelAtxfer" language="en_US">
-		<since>
-			<version>13.18.0</version>
-			<version>14.7.0</version>
-			<version>15.1.0</version>
-			<version>16.0.0</version>
-		</since>
-		<synopsis>
-			Cancel an attended transfer.
-		</synopsis>
-		<syntax>
-			<xi:include xpointer="xpointer(/docs/manager[@name='Login']/syntax/parameter[@name='ActionID'])" />
-			<parameter name="Channel" required="true">
-				<para>The transferer channel.</para>
-			</parameter>
-		</syntax>
-		<description>
-			<para>Cancel an attended transfer. Note, this uses the configured cancel attended transfer
-			feature option (atxferabort) to cancel the transfer. If not available this action will fail.
-			</para>
-		</description>
-		<see-also>
-			<ref type="managerEvent">AttendedTransfer</ref>
-		</see-also>
-	</manager>
-	<manager name="Originate" language="en_US">
-		<synopsis>
-			Originate a call.
-		</synopsis>
-		<syntax>
-			<xi:include xpointer="xpointer(/docs/manager[@name='Login']/syntax/parameter[@name='ActionID'])" />
-			<parameter name="Channel" required="true">
-				<para>Channel name to call.</para>
-			</parameter>
-			<parameter name="Exten">
-				<para>Extension to use (requires <literal>Context</literal> and
-				<literal>Priority</literal>)</para>
-			</parameter>
-			<parameter name="Context">
-				<para>Context to use (requires <literal>Exten</literal> and
-				<literal>Priority</literal>)</para>
-			</parameter>
-			<parameter name="Priority">
-				<para>Priority to use (requires <literal>Exten</literal> and
-				<literal>Context</literal>)</para>
-			</parameter>
-			<parameter name="Application">
-				<para>Application to execute.</para>
-			</parameter>
-			<parameter name="Data">
-				<para>Data to use (requires <literal>Application</literal>).</para>
-			</parameter>
-			<parameter name="Timeout" default="30000">
-				<para>How long to wait for call to be answered (in ms.).</para>
-			</parameter>
-			<parameter name="CallerID">
-				<para>Caller ID to be set on the outgoing channel.</para>
-			</parameter>
-			<parameter name="Variable">
-				<para>Channel variable to set, multiple Variable: headers are allowed.</para>
-			</parameter>
-			<parameter name="Account">
-				<para>Account code.</para>
-			</parameter>
-			<parameter name="EarlyMedia">
-				<para>Set to <literal>true</literal> to force call bridge on early media..</para>
-			</parameter>
-			<parameter name="Async">
-				<para>Set to <literal>true</literal> for fast origination.</para>
-			</parameter>
-			<parameter name="Codecs">
-				<para>Comma-separated list of codecs to use for this call.</para>
-			</parameter>
-			<parameter name="ChannelId">
-				<para>Channel UniqueId to be set on the channel.</para>
-			</parameter>
-			<parameter name="OtherChannelId">
-				<para>Channel UniqueId to be set on the second local channel.</para>
-			</parameter>
-			<parameter name="PreDialGoSub">
-				<para>PreDialGoSub Context,Extension,Priority to set options/headers needed before start the outgoing extension</para>
-			</parameter>
-		</syntax>
-		<description>
-			<para>Generates an outgoing call to a
-			<replaceable>Extension</replaceable>/<replaceable>Context</replaceable>/<replaceable>Priority</replaceable>
-			or <replaceable>Application</replaceable>/<replaceable>Data</replaceable></para>
-		</description>
-		<see-also>
-			<ref type="managerEvent">OriginateResponse</ref>
-		</see-also>
-	</manager>
-	<managerEvent language="en_US" name="OriginateResponse">
-		<managerEventInstance class="EVENT_FLAG_CALL">
-			<synopsis>Raised in response to an Originate command.</synopsis>
-			<syntax>
-				<parameter name="ActionID" required="false"/>
-				<parameter name="Response">
-					<enumlist>
-						<enum name="Failure"/>
-						<enum name="Success"/>
-					</enumlist>
-				</parameter>
-				<parameter name="Channel"/>
-				<parameter name="Context"/>
-				<parameter name="Exten"/>
-				<parameter name="Application"/>
-				<parameter name="Data"/>
-				<parameter name="Reason"/>
-				<parameter name="Uniqueid"/>
-				<parameter name="CallerIDNum"/>
-				<parameter name="CallerIDName"/>
-			</syntax>
-			<see-also>
-				<ref type="manager">Originate</ref>
-			</see-also>
-		</managerEventInstance>
-	</managerEvent>
-	<manager name="Command" language="en_US">
-		<synopsis>
-			Execute Asterisk CLI Command.
-		</synopsis>
-		<syntax>
-			<xi:include xpointer="xpointer(/docs/manager[@name='Login']/syntax/parameter[@name='ActionID'])" />
-			<parameter name="Command" required="true">
-				<para>Asterisk CLI command to run.</para>
-			</parameter>
-		</syntax>
-		<description>
-			<para>Run a CLI command.</para>
-		</description>
-	</manager>
-	<manager name="ExtensionState" language="en_US">
-		<synopsis>
-			Check Extension Status.
-		</synopsis>
-		<syntax>
-			<xi:include xpointer="xpointer(/docs/manager[@name='Login']/syntax/parameter[@name='ActionID'])" />
-			<parameter name="Exten" required="true">
-				<para>Extension to check state on.</para>
-			</parameter>
-			<parameter name="Context" required="true">
-				<para>Context for extension.</para>
-			</parameter>
-		</syntax>
-		<description>
-			<para>Report the extension state for given extension. If the extension has a hint,
-			will use devicestate to check the status of the device connected to the extension.</para>
-			<para>Will return an <literal>Extension Status</literal> message. The response will include
-			the hint for the extension and the status.</para>
-		</description>
-		<see-also>
-			<ref type="managerEvent">ExtensionStatus</ref>
-		</see-also>
-	</manager>
-	<manager name="PresenceState" language="en_US">
-		<synopsis>
-			Check Presence State
-		</synopsis>
-		<syntax>
-			<xi:include xpointer="xpointer(/docs/manager[@name='Login']/syntax/parameter[@name='ActionID'])" />
-			<parameter name="Provider" required="true">
-				<para>Presence Provider to check the state of</para>
-			</parameter>
-		</syntax>
-		<description>
-			<para>Report the presence state for the given presence provider.</para>
-			<para>Will return a <literal>Presence State</literal> message. The response will include the
-			presence state and, if set, a presence subtype and custom message.</para>
-		</description>
-		<see-also>
-			<ref type="managerEvent">PresenceStatus</ref>
-		</see-also>
-	</manager>
-	<manager name="AbsoluteTimeout" language="en_US">
-		<synopsis>
-			Set absolute timeout.
-		</synopsis>
-		<syntax>
-			<xi:include xpointer="xpointer(/docs/manager[@name='Login']/syntax/parameter[@name='ActionID'])" />
-			<parameter name="Channel" required="true">
-				<para>Channel name to hangup.</para>
-			</parameter>
-			<parameter name="Timeout" required="true">
-				<para>Maximum duration of the call (sec).</para>
-			</parameter>
-		</syntax>
-		<description>
-			<para>Hangup a channel after a certain time. Acknowledges set time with
-			<literal>Timeout Set</literal> message.</para>
-		</description>
-	</manager>
-	<manager name="MailboxStatus" language="en_US">
-		<synopsis>
-			Check mailbox.
-		</synopsis>
-		<syntax>
-			<xi:include xpointer="xpointer(/docs/manager[@name='Login']/syntax/parameter[@name='ActionID'])" />
-			<parameter name="Mailbox" required="true">
-				<para>Full mailbox ID <replaceable>mailbox</replaceable>@<replaceable>vm-context</replaceable>.</para>
-			</parameter>
-		</syntax>
-		<description>
-			<para>Checks a voicemail account for status.</para>
-			<para>Returns whether there are messages waiting.</para>
-			<para>Message: Mailbox Status.</para>
-			<para>Mailbox: <replaceable>mailboxid</replaceable>.</para>
-			<para>Waiting: <literal>0</literal> if messages waiting, <literal>1</literal>
-			if no messages waiting.</para>
-		</description>
-		<see-also>
-			<ref type="manager">MailboxCount</ref>
-		</see-also>
-	</manager>
-	<manager name="MailboxCount" language="en_US">
-		<synopsis>
-			Check Mailbox Message Count.
-		</synopsis>
-		<syntax>
-			<xi:include xpointer="xpointer(/docs/manager[@name='Login']/syntax/parameter[@name='ActionID'])" />
-			<parameter name="Mailbox" required="true">
-				<para>Full mailbox ID <replaceable>mailbox</replaceable>@<replaceable>vm-context</replaceable>.</para>
-			</parameter>
-		</syntax>
-		<description>
-			<para>Checks a voicemail account for new messages.</para>
-			<para>Returns number of urgent, new and old messages.</para>
-			<para>Message: Mailbox Message Count</para>
-			<para>Mailbox: <replaceable>mailboxid</replaceable></para>
-			<para>UrgentMessages: <replaceable>count</replaceable></para>
-			<para>NewMessages: <replaceable>count</replaceable></para>
-			<para>OldMessages: <replaceable>count</replaceable></para>
-		</description>
-		<see-also>
-			<ref type="manager">MailboxStatus</ref>
-		</see-also>
-	</manager>
-	<manager name="ListCommands" language="en_US">
-		<synopsis>
-			List available manager commands.
-		</synopsis>
-		<syntax>
-			<xi:include xpointer="xpointer(/docs/manager[@name='Login']/syntax/parameter[@name='ActionID'])" />
-		</syntax>
-		<description>
-			<para>Returns the action name and synopsis for every action that
-			is available to the user.</para>
-		</description>
-	</manager>
-	<manager name="SendText" language="en_US">
-		<synopsis>
-			Sends a text message to channel. A content type	can be optionally specified. If not set
-			it is set to an empty string allowing a custom handler to default it as it sees fit.
-		</synopsis>
-		<syntax>
-			<xi:include xpointer="xpointer(/docs/manager[@name='Login']/syntax/parameter[@name='ActionID'])" />
-			<parameter name="Channel" required="true">
-				<para>Channel to send message to.</para>
-			</parameter>
-			<parameter name="Message" required="true">
-				<para>Message to send.</para>
-			</parameter>
-			<parameter name="Content-Type" required="false" default="">
-				<para>The type of content in the message</para>
-			</parameter>
-		</syntax>
-		<description>
-			<para>Sends A Text Message to a channel while in a call.</para>
-		</description>
-		<see-also>
-			<ref type="application">SendText</ref>
-		</see-also>
-	</manager>
-	<manager name="UserEvent" language="en_US">
-		<synopsis>
-			Send an arbitrary event.
-		</synopsis>
-		<syntax>
-			<xi:include xpointer="xpointer(/docs/manager[@name='Login']/syntax/parameter[@name='ActionID'])" />
-			<parameter name="UserEvent" required="true">
-				<para>Event string to send.</para>
-			</parameter>
-			<parameter name="Header1">
-				<para>Content1.</para>
-			</parameter>
-			<parameter name="HeaderN">
-				<para>ContentN.</para>
-			</parameter>
-		</syntax>
-		<description>
-			<para>Send an event to manager sessions.</para>
-		</description>
-		<see-also>
-			<ref type="managerEvent">UserEvent</ref>
-			<ref type="application">UserEvent</ref>
-		</see-also>
-	</manager>
-	<manager name="WaitEvent" language="en_US">
-		<synopsis>
-			Wait for an event to occur.
-		</synopsis>
-		<syntax>
-			<xi:include xpointer="xpointer(/docs/manager[@name='Login']/syntax/parameter[@name='ActionID'])" />
-			<parameter name="Timeout" required="true">
-				<para>Maximum time (in seconds) to wait for events, <literal>-1</literal> means forever.</para>
-			</parameter>
-		</syntax>
-		<description>
-			<para>This action will elicit a <literal>Success</literal> response. Whenever
-			a manager event is queued. Once WaitEvent has been called on an HTTP manager
-			session, events will be generated and queued.</para>
-		</description>
-	</manager>
-	<manager name="CoreSettings" language="en_US">
-		<synopsis>
-			Show PBX core settings (version etc).
-		</synopsis>
-		<syntax>
-			<xi:include xpointer="xpointer(/docs/manager[@name='Login']/syntax/parameter[@name='ActionID'])" />
-		</syntax>
-		<description>
-			<para>Query for Core PBX settings.</para>
-		</description>
-	</manager>
-	<manager name="CoreStatus" language="en_US">
-		<synopsis>
-			Show PBX core status variables.
-		</synopsis>
-		<syntax>
-			<xi:include xpointer="xpointer(/docs/manager[@name='Login']/syntax/parameter[@name='ActionID'])" />
-		</syntax>
-		<description>
-			<para>Query for Core PBX status.</para>
-		</description>
-	</manager>
-	<manager name="Reload" language="en_US">
-		<synopsis>
-			Send a reload event.
-		</synopsis>
-		<syntax>
-			<xi:include xpointer="xpointer(/docs/manager[@name='Login']/syntax/parameter[@name='ActionID'])" />
-			<parameter name="Module">
-				<para>Name of the module to reload.</para>
-			</parameter>
-		</syntax>
-		<description>
-			<para>Send a reload event.</para>
-		</description>
-		<see-also>
-			<ref type="manager">ModuleLoad</ref>
-		</see-also>
-	</manager>
-	<managerEvent language="en_US" name="CoreShowChannel">
-		<managerEventInstance class="EVENT_FLAG_CALL">
-			<synopsis>Raised in response to a CoreShowChannels command.</synopsis>
-			<syntax>
-				<xi:include xpointer="xpointer(/docs/manager[@name='Login']/syntax/parameter[@name='ActionID'])" />
-				<channel_snapshot/>
-				<parameter name="BridgeId">
-					<para>Identifier of the bridge the channel is in, may be empty if not in one</para>
-				</parameter>
-				<parameter name="Application">
-					<para>Application currently executing on the channel</para>
-				</parameter>
-				<parameter name="ApplicationData">
-					<para>Data given to the currently executing application</para>
-				</parameter>
-				<parameter name="Duration">
-					<para>The amount of time the channel has existed</para>
-				</parameter>
-			</syntax>
-			<see-also>
-				<ref type="manager">CoreShowChannels</ref>
-				<ref type="managerEvent">CoreShowChannelsComplete</ref>
-			</see-also>
-		</managerEventInstance>
-	</managerEvent>
-	<managerEvent language="en_US" name="CoreShowChannelsComplete">
-		<managerEventInstance class="EVENT_FLAG_CALL">
-			<synopsis>Raised at the end of the CoreShowChannel list produced by the CoreShowChannels command.</synopsis>
-			<syntax>
-				<xi:include xpointer="xpointer(/docs/manager[@name='Login']/syntax/parameter[@name='ActionID'])" />
-				<parameter name="EventList">
-					<para>Conveys the status of the command reponse list</para>
-				</parameter>
-				<parameter name="ListItems">
-					<para>The total number of list items produced</para>
-				</parameter>
-			</syntax>
-			<see-also>
-				<ref type="manager">CoreShowChannels</ref>
-				<ref type="managerEvent">CoreShowChannel</ref>
-			</see-also>
-		</managerEventInstance>
-	</managerEvent>
-	<manager name="CoreShowChannels" language="en_US">
-		<synopsis>
-			List currently active channels.
-		</synopsis>
-		<syntax>
-			<xi:include xpointer="xpointer(/docs/manager[@name='Login']/syntax/parameter[@name='ActionID'])" />
-		</syntax>
-		<description>
-			<para>List currently defined channels and some information about them.</para>
-		</description>
-		<responses>
-			<list-elements>
-				<xi:include xpointer="xpointer(/docs/managerEvent[@name='CoreShowChannel'])" />
-			</list-elements>
-			<xi:include xpointer="xpointer(/docs/managerEvent[@name='CoreShowChannelsComplete'])" />
-		</responses>
-	</manager>
-	<managerEvent language="en_US" name="CoreShowChannelMapComplete">
-		<managerEventInstance class="EVENT_FLAG_CALL">
-			<synopsis>Raised at the end of the CoreShowChannelMap list produced by the CoreShowChannelMap command.</synopsis>
-			<syntax>
-				<parameter name="EventList">
-					<para>Conveys the status of the command response list</para>
-				</parameter>
-				<parameter name="ListItems">
-					<para>The total number of list items produced</para>
-				</parameter>
-			</syntax>
-		</managerEventInstance>
-	</managerEvent>
-	<manager name="CoreShowChannelMap" language="en_US">
-		<synopsis>
-			List all channels connected to the specified channel.
-		</synopsis>
-		<syntax>
-			<parameter name="Channel">
-				<para>The channel to get the mapping for. Requires a channel name.</para>
-			</parameter>
-		</syntax>
-		<description>
-			<para>List all channels currently connected to the specified channel. This can be any channel, including
-			Local channels, and Local channels will be followed through to their other half.</para>
-		</description>
-	</manager>
-	<manager name="LoggerRotate" language="en_US">
-		<synopsis>
-			Reload and rotate the Asterisk logger.
-		</synopsis>
-		<syntax>
-			<xi:include xpointer="xpointer(/docs/manager[@name='Login']/syntax/parameter[@name='ActionID'])" />
-		</syntax>
-		<description>
-			<para>Reload and rotate the logger. Analogous to the CLI command 'logger rotate'.</para>
-		</description>
-	</manager>
-	<manager name="ModuleLoad" language="en_US">
-		<synopsis>
-			Module management.
-		</synopsis>
-		<syntax>
-			<xi:include xpointer="xpointer(/docs/manager[@name='Login']/syntax/parameter[@name='ActionID'])" />
-			<parameter name="Module">
-				<para>Asterisk module name (including .so extension) or subsystem identifier:</para>
-				<enumlist>
-					<enum name="cdr" />
-					<enum name="dnsmgr" />
-					<enum name="extconfig" />
-					<enum name="enum" />
-					<enum name="acl" />
-					<enum name="manager" />
-					<enum name="http" />
-					<enum name="logger" />
-					<enum name="features" />
-					<enum name="dsp" />
-					<enum name="udptl" />
-					<enum name="indications" />
-					<enum name="cel" />
-					<enum name="plc" />
-				</enumlist>
-			</parameter>
-			<parameter name="LoadType" required="true">
-				<para>The operation to be done on module. Subsystem identifiers may only
-				be reloaded.</para>
-				<enumlist>
-					<enum name="load" />
-					<enum name="unload" />
-					<enum name="reload" />
-					<enum name="refresh">
-						<para>Completely unload and load again a specified module.</para>
-					</enum>
-				</enumlist>
-				<para>If no module is specified for a <literal>reload</literal> loadtype,
-				all modules are reloaded.</para>
-			</parameter>
-			<parameter name="Recursive" required="false">
-				<para>For <literal>refresh</literal> operations, attempt to recursively
-				unload any other modules that are dependent on this module, if that would
-				allow it to successfully unload, and load them again afterwards.</para>
-			</parameter>
-		</syntax>
-		<description>
-			<para>Loads, unloads or reloads an Asterisk module in a running system.</para>
-		</description>
-		<see-also>
-			<ref type="manager">Reload</ref>
-			<ref type="manager">ModuleCheck</ref>
-		</see-also>
-	</manager>
-	<manager name="ModuleCheck" language="en_US">
-		<synopsis>
-			Check if module is loaded.
-		</synopsis>
-		<syntax>
-			<xi:include xpointer="xpointer(/docs/manager[@name='Login']/syntax/parameter[@name='ActionID'])" />
-			<parameter name="Module" required="true">
-				<para>Asterisk module name (not including extension).</para>
-			</parameter>
-		</syntax>
-		<description>
-			<para>Checks if Asterisk module is loaded. Will return Success/Failure.
-			An empty Version header is also returned (which doesn't contain
-			the module revision number).</para>
-		</description>
-		<see-also>
-			<ref type="manager">ModuleLoad</ref>
-		</see-also>
-	</manager>
-	<manager name="AOCMessage" language="en_US">
-		<synopsis>
-			Generate an Advice of Charge message on a channel.
-		</synopsis>
-		<syntax>
-			<xi:include xpointer="xpointer(/docs/manager[@name='Login']/syntax/parameter[@name='ActionID'])" />
-			<parameter name="Channel">
-				<para>Channel name to generate the AOC message on.
-				This value is required unless ChannelPrefix is given.</para>
-			</parameter>
-			<parameter name="ChannelPrefix">
-				<para>Partial channel prefix.  By using this option one can match the beginning part
-				of a channel name without having to put the entire name in.  For example
-				if a channel name is SIP/snom-00000001 and this value is set to SIP/snom, then
-				that channel matches and the message will be sent.  Note however that only
-				the first matched channel has the message sent on it. </para>
-			</parameter>
-			<parameter name="MsgType" required="true">
-				<para>Defines what type of AOC message to create, AOC-S, AOC-D or AOC-E</para>
-				<enumlist>
-					<enum name="S" />
-					<enum name="D" />
-					<enum name="E" />
-				</enumlist>
-			</parameter>
-			<parameter name="ChargeType">
-				<para>Defines what kind of charge this message represents for AOC-D and AOC-E.</para>
-				<enumlist>
-					<enum name="NA" />
-					<enum name="FREE" />
-					<enum name="Currency" />
-					<enum name="Unit" />
-				</enumlist>
-			</parameter>
-			<parameter name="UnitAmount(0)">
-				<para>This represents the amount of units charged. The ETSI AOC standard specifies that
-				this value along with the optional UnitType value are entries in a list.  To accommodate this
-				these values take an index value starting at 0 which can be used to generate this list of
-				unit entries.  For Example, If two unit entires were required this could be achieved by setting the
-				paramter UnitAmount(0)=1234 and UnitAmount(1)=5678.  Note that UnitAmount at index 0 is
-				required when ChargeType=Unit, all other entries in the list are optional.
-				</para>
-			</parameter>
-			<parameter name="UnitType(0)">
-				<para>Defines the type of unit.  ETSI AOC standard specifies this as an integer
-				value between 1 and 16, but this value is left open to accept any positive
-				integer.  Like the UnitAmount parameter, this value represents a list entry
-				and has an index parameter that starts at 0.
-				</para>
-			</parameter>
-			<parameter name="CurrencyName">
-				<para>Specifies the currency's name.  Note that this value is truncated after 10 characters.</para>
-			</parameter>
-			<parameter name="CurrencyAmount">
-				<para>Specifies the charge unit amount as a positive integer.
-				This value is required when ChargeType==Currency (AOC-D or AOC-E) or
-				RateType==Duration/Flat/Volume (AOC-S).</para>
-			</parameter>
-			<parameter name="CurrencyMultiplier">
-				<para>Specifies the currency multiplier.
-				This value is required when CurrencyAmount is given.</para>
-				<enumlist>
-					<enum name="OneThousandth" />
-					<enum name="OneHundredth" />
-					<enum name="OneTenth" />
-					<enum name="One" />
-					<enum name="Ten" />
-					<enum name="Hundred" />
-					<enum name="Thousand" />
-				</enumlist>
-			</parameter>
-			<parameter name="TotalType" default="Total">
-				<para>Defines what kind of AOC-D total is represented.</para>
-				<enumlist>
-					<enum name="Total" />
-					<enum name="SubTotal" />
-				</enumlist>
-			</parameter>
-			<parameter name="AOCBillingId">
-				<para>Represents a billing ID associated with an AOC-D or AOC-E message. Note
-				that only the first 3 items of the enum are valid AOC-D billing IDs</para>
-				<enumlist>
-					<enum name="Normal" />
-					<enum name="ReverseCharge" />
-					<enum name="CreditCard" />
-					<enum name="CallFwdUnconditional" />
-					<enum name="CallFwdBusy" />
-					<enum name="CallFwdNoReply" />
-					<enum name="CallDeflection" />
-					<enum name="CallTransfer" />
-				</enumlist>
-			</parameter>
-			<parameter name="ChargingAssociationId">
-				<para>Charging association identifier.  This is optional for AOC-E and can be
-				set to any value between -32768 and 32767</para>
-			</parameter>
-			<parameter name="ChargingAssociationNumber">
-				<para>Represents the charging association party number.  This value is optional
-				for AOC-E.</para>
-			</parameter>
-			<parameter name="ChargingAssociationPlan">
-				<para>Integer representing the charging plan associated with the ChargingAssociationNumber.
-				The value is bits 7 through 1 of the Q.931 octet containing the type-of-number and
-				numbering-plan-identification fields.</para>
-			</parameter>
-			<parameter name="ChargedItem">
-				<para>Defines what part of the call is charged in AOC-S. Usually this is set to
-				BasicCommunication, which refers to the time after the call is answered, but establishment
-				(CallAttempt) or successful establishment (CallSetup) of a call can also be used.
-				Other options are available, but these generally do not carry enough information to actually
-				calculate the price of a call.
-				It is possible to have multiple ChargedItem entries for a single call -- for example to
-				charge for both the establishment of the call and the actual call. In this case, each
-				ChargedItem is described by a ChargedItem: header and all other headers that follow it up to
-				the next ChargedItem: header.</para>
-				<enumlist>
-					<enum name="NA" />
-					<enum name="SpecialArrangement" />
-					<enum name="BasicCommunication" />
-					<enum name="CallAttempt" />
-					<enum name="CallSetup" />
-					<enum name="UserUserInfo" />
-					<enum name="SupplementaryService" />
-				</enumlist>
-			</parameter>
-			<parameter name="RateType">
-				<para>Defines how an AOC-S ChargedItem is charged.
-				The Duration option is only available when ChargedItem==BasicCommunication.</para>
-				<enumlist>
-					<enum name="NA" />
-					<enum name="Free" />
-					<enum name="FreeFromBeginning" />
-					<enum name="Duration" />
-					<enum name="Flat" />
-					<enum name="Volume" />
-					<enum name="SpecialCode" />
-				</enumlist>
-			</parameter>
-			<parameter name="Time">
-				<para>Specifies a positive integer which is the amount of time is paid for by one
-				CurrencyAmount.
-				This value is required when RateType==Duration.</para>
-			</parameter>
-			<parameter name="TimeScale">
-				<para>Specifies the time multiplier.
-				This value is required when Time is given.</para>
-				<enumlist>
-					<enum name="OneHundredthSecond" />
-					<enum name="OneTenthSecond" />
-					<enum name="Second" />
-					<enum name="TenSeconds" />
-					<enum name="Minute" />
-					<enum name="Hour" />
-					<enum name="Day" />
-				</enumlist>
-			</parameter>
-			<parameter name="Granularity">
-				<para>Specifies a positive integer which is the size of the charged time increments.
-				This value is optional when RateType==Duration and ChargingType==StepFunction.</para>
-			</parameter>
-			<parameter name="GranularityTimeScale">
-				<para>Specifies the granularity time multiplier.
-				This value is required when Granularity is given.</para>
-				<enumlist>
-					<enum name="OneHundredthSecond" />
-					<enum name="OneTenthSecond" />
-					<enum name="Second" />
-					<enum name="TenSeconds" />
-					<enum name="Minute" />
-					<enum name="Hour" />
-					<enum name="Day" />
-				</enumlist>
-			</parameter>
-			<parameter name="ChargingType">
-				<para>Specifies whether the charge increases continuously with time or in increments of
-				Time or, if provided, Granularity.
-				This value is required when RateType==Duration.</para>
-				<enumlist>
-					<enum name="ContinuousCharging" />
-					<enum name="StepFunction" />
-				</enumlist>
-			</parameter>
-			<parameter name="VolumeUnit">
-				<para>Specifies the quantity of which one unit is paid for by one CurrencyAmount.
-				This value is required when RateType==Volume.</para>
-				<enumlist>
-					<enum name="Octet" />
-					<enum name="Segment" />
-					<enum name="Message" />
-				</enumlist>
-			</parameter>
-			<parameter name="Code">
-				<para>Specifies the charging code, which can be set to a value between 1 and 10.
-				This value is required when ChargedItem==SpecialArrangement or RateType==SpecialCode.</para>
-			</parameter>
-		</syntax>
-		<description>
-			<para>Generates an AOC-S, AOC-D or AOC-E message on a channel.</para>
-		</description>
-		<see-also>
-			<ref type="managerEvent">AOC-S</ref>
-			<ref type="managerEvent">AOC-D</ref>
-			<ref type="managerEvent">AOC-E</ref>
-		</see-also>
-	</manager>
-	<function name="AMI_CLIENT" language="en_US">
-		<synopsis>
-			Checks attributes of manager accounts
-		</synopsis>
-		<syntax>
-			<parameter name="loginname" required="true">
-				<para>Login name, specified in manager.conf</para>
-			</parameter>
-			<parameter name="field" required="true">
-				<para>The manager account attribute to return</para>
-				<enumlist>
-					<enum name="sessions"><para>The number of sessions for this AMI account</para></enum>
-				</enumlist>
-			</parameter>
-		</syntax>
-		<description>
-			<para>
-				Currently, the only supported  parameter is "sessions" which will return the current number of
-				active sessions for this AMI account.
-			</para>
-		</description>
-	</function>
-	<manager name="Filter" language="en_US">
-		<synopsis>
-			Dynamically add filters for the current manager session.
-		</synopsis>
-		<syntax>
-			<xi:include xpointer="xpointer(/docs/manager[@name='Login']/syntax/parameter[@name='ActionID'])" />
-			<parameter name="Operation">
-				<enumlist>
-					<enum name="Add">
-						<para>Add a filter.</para>
-					</enum>
-				</enumlist>
-			</parameter>
-			<parameter name="Filter">
-				<para>Filters can be whitelist or blacklist</para>
-				<para>Example whitelist filter: "Event: Newchannel"</para>
-				<para>Example blacklist filter: "!Channel: DAHDI.*"</para>
-				<para>This filter option is used to whitelist or blacklist events per user to be
-				reported with regular expressions and are allowed if both the regex matches
-				and the user has read access as defined in manager.conf. Filters are assumed to be for whitelisting
-				unless preceeded by an exclamation point, which marks it as being black.
-				Evaluation of the filters is as follows:</para>
-				<para>- If no filters are configured all events are reported as normal.</para>
-				<para>- If there are white filters only: implied black all filter processed first, then white filters.</para>
-				<para>- If there are black filters only: implied white all filter processed first, then black filters.</para>
-				<para>- If there are both white and black filters: implied black all filter processed first, then white
-				filters, and lastly black filters.</para>
-			</parameter>
-		</syntax>
-		<description>
-			<para>The filters added are only used for the current session.
-			Once the connection is closed the filters are removed.</para>
-			<para>This comand requires the system permission because
-			this command can be used to create filters that may bypass
-			filters defined in manager.conf</para>
-		</description>
-	</manager>
-	<manager name="BlindTransfer" language="en_US">
-		<synopsis>
-			Blind transfer channel(s) to the given destination
-		</synopsis>
-		<syntax>
-			<parameter name="Channel" required="true">
-			</parameter>
-			<parameter name="Context">
-			</parameter>
-			<parameter name="Exten">
-			</parameter>
-		</syntax>
-		<description>
-			<para>Redirect all channels currently bridged to the specified channel to the specified destination.</para>
-		</description>
-		<see-also>
-			<ref type="manager">Redirect</ref>
-			<ref type="managerEvent">BlindTransfer</ref>
-		</see-also>
-	</manager>
-	<managerEvent name="ExtensionStatus" language="en_US">
-		<managerEventInstance class="EVENT_FLAG_CALL">
-			<synopsis>Raised when a hint changes due to a device state change.</synopsis>
-			<syntax>
-				<parameter name="Exten">
-					<para>Name of the extension.</para>
-				</parameter>
-				<parameter name="Context">
-					<para>Context that owns the extension.</para>
-				</parameter>
-				<parameter name="Hint">
-					<para>Hint set for the extension</para>
-				</parameter>
-				<parameter name="Status">
-					<para>Numerical value of the extension status. Extension
-					status is determined by the combined device state of all items
-					contained in the hint.</para>
-					<enumlist>
-						<enum name="-2">
-							<para>The extension was removed from the dialplan.</para>
-						</enum>
-						<enum name="-1">
-							<para>The extension's hint was removed from the dialplan.</para>
-						</enum>
-						<enum name="0">
-							<para><literal>Idle</literal> - Related device(s) are in an idle
-							state.</para>
-						</enum>
-						<enum name="1">
-							<para><literal>InUse</literal> - Related device(s) are in active
-							calls but may take more calls.</para>
-						</enum>
-						<enum name="2">
-							<para><literal>Busy</literal> - Related device(s) are in active
-							calls and may not take any more calls.</para>
-						</enum>
-						<enum name="4">
-							<para><literal>Unavailable</literal> - Related device(s) are
-							not reachable.</para>
-						</enum>
-						<enum name="8">
-							<para><literal>Ringing</literal> - Related device(s) are
-							currently ringing.</para>
-						</enum>
-						<enum name="9">
-							<para><literal>InUse&amp;Ringing</literal> - Related device(s)
-							are currently ringing and in active calls.</para>
-						</enum>
-						<enum name="16">
-							<para><literal>Hold</literal> - Related device(s) are
-							currently on hold.</para>
-						</enum>
-						<enum name="17">
-							<para><literal>InUse&amp;Hold</literal> - Related device(s)
-							are currently on hold and in active calls.</para>
-						</enum>
-					</enumlist>
-				</parameter>
-				<parameter name="StatusText">
-					<para>Text representation of <literal>Status</literal>.</para>
-					<enumlist>
-						<enum name="Idle" />
-						<enum name="InUse" />
-						<enum name="Busy" />
-						<enum name="Unavailable" />
-						<enum name="Ringing" />
-						<enum name="InUse&amp;Ringing" />
-						<enum name="Hold" />
-						<enum name="InUse&amp;Hold" />
-						<enum name="Unknown">
-							<para>Status does not match any of the above values.</para>
-						</enum>
-					</enumlist>
-				</parameter>
-			</syntax>
-			<see-also>
-				<ref type="manager">ExtensionState</ref>
-			</see-also>
-		</managerEventInstance>
-	</managerEvent>
-	<managerEvent name="PresenceStatus" language="en_US">
-		<managerEventInstance class="EVENT_FLAG_CALL">
-			<synopsis>Raised when a hint changes due to a presence state change.</synopsis>
-			<syntax>
-				<parameter name="Exten" />
-				<parameter name="Context" />
-				<parameter name="Hint" />
-				<parameter name="Status" />
-				<parameter name="Subtype" />
-				<parameter name="Message" />
-			</syntax>
-			<see-also>
-				<ref type="manager">PresenceState</ref>
-			</see-also>
-		</managerEventInstance>
-	</managerEvent>
- ***/
-
 /*! \addtogroup Group_AMI AMI functions
 */
 /*! @{
@@ -1585,9 +124,10 @@ enum error_type {
 };
 
 enum add_filter_result {
-	FILTER_SUCCESS,
+	FILTER_SUCCESS = 0,
 	FILTER_ALLOC_FAILED,
 	FILTER_COMPILE_FAIL,
+	FILTER_FORMAT_ERROR,
 };
 
 /*!
@@ -1614,6 +154,7 @@ struct eventqent {
 	int category;
 	unsigned int seq;	/*!< sequence number */
 	struct timeval tv;  /*!< When event was allocated */
+	int event_name_hash;
 	AST_RWLIST_ENTRY(eventqent) eq_next;
 	char eventdata[1];	/*!< really variable size, allocated by append_event() */
 };
@@ -1755,8 +296,8 @@ struct mansession_session {
 	int writeperm;		/*!< Authorization for writing */
 	char inbuf[1025];	/*!< Buffer -  we use the extra byte to add a '\\0' and simplify parsing */
 	int inlen;		/*!< number of buffered bytes */
-	struct ao2_container *whitefilters;	/*!< Manager event filters - white list */
-	struct ao2_container *blackfilters;	/*!< Manager event filters - black list */
+	struct ao2_container *includefilters;	/*!< Manager event filters - include list */
+	struct ao2_container *excludefilters;	/*!< Manager event filters - exclude list */
 	struct ast_variable *chanvars;  /*!< Channel variables to set for originate */
 	int send_events;	/*!<  XXX what ? */
 	struct eventqent *last_ev;	/*!< last event processed. */
@@ -1810,8 +351,8 @@ struct ast_manager_user {
 	int displayconnects;		/*!< XXX unused */
 	int allowmultiplelogin; /*!< Per user option*/
 	int keep;			/*!< mark entries created on a reload */
-	struct ao2_container *whitefilters; /*!< Manager event filters - white list */
-	struct ao2_container *blackfilters; /*!< Manager event filters - black list */
+	struct ao2_container *includefilters; /*!< Manager event filters - include list */
+	struct ao2_container *excludefilters; /*!< Manager event filters - exclude list */
 	struct ast_acl_list *acl;       /*!< ACL setting */
 	char *a1_hash;			/*!< precalculated A1 for Digest auth */
 	struct ast_variable *chanvars;  /*!< Channel variables to set for originate */
@@ -1843,9 +384,41 @@ static int __attribute__((format(printf, 9, 0))) __manager_event_sessions(
 	const char *func,
 	const char *fmt,
 	...);
-static enum add_filter_result manager_add_filter(const char *filter_pattern, struct ao2_container *whitefilters, struct ao2_container *blackfilters);
 
-static int match_filter(struct mansession *s, char *eventdata);
+enum event_filter_match_type {
+	FILTER_MATCH_REGEX = 0,
+	FILTER_MATCH_EXACT,
+	FILTER_MATCH_STARTS_WITH,
+	FILTER_MATCH_ENDS_WITH,
+	FILTER_MATCH_CONTAINS,
+	FILTER_MATCH_NONE,
+};
+
+static char *match_type_names[] = {
+	[FILTER_MATCH_REGEX] = "regex",
+	[FILTER_MATCH_EXACT] = "exact",
+	[FILTER_MATCH_STARTS_WITH] = "starts_with",
+	[FILTER_MATCH_ENDS_WITH] = "ends_with",
+	[FILTER_MATCH_CONTAINS] = "contains",
+	[FILTER_MATCH_NONE] = "none",
+};
+
+struct event_filter_entry {
+	enum event_filter_match_type match_type;
+	regex_t *regex_filter;
+	char *string_filter;
+	char *event_name;
+	unsigned int event_name_hash;
+	char *header_name;
+	int is_excludefilter;
+};
+
+static enum add_filter_result manager_add_filter(const char *criteria,
+	const char *filter_pattern, struct ao2_container *includefilters,
+	struct ao2_container *excludefilters);
+
+static int should_send_event(struct ao2_container *includefilters,
+	struct ao2_container *excludefilters, struct eventqent *eqe);
 
 /*!
  * @{ \brief Define AMI message types.
@@ -2054,6 +627,7 @@ static void manager_generic_msg_cb(void *data, struct stasis_subscription *sub,
 		ao2_cleanup(sessions);
 		return;
 	}
+
 	manager_event_sessions(sessions, class_type, type,
 		"%s", ast_str_buffer(event_buffer));
 	ast_free(event_buffer);
@@ -2351,8 +925,14 @@ static struct mansession_session *unref_mansession(struct mansession_session *s)
 
 static void event_filter_destructor(void *obj)
 {
-	regex_t *regex_filter = obj;
-	regfree(regex_filter);
+	struct event_filter_entry *entry = obj;
+	if (entry->regex_filter) {
+		regfree(entry->regex_filter);
+		ast_free(entry->regex_filter);
+	}
+	ast_free(entry->event_name);
+	ast_free(entry->header_name);
+	ast_free(entry->string_filter);
 }
 
 static void session_destructor(void *obj)
@@ -2374,12 +954,12 @@ static void session_destructor(void *obj)
 		ast_variables_destroy(session->chanvars);
 	}
 
-	if (session->whitefilters) {
-		ao2_t_ref(session->whitefilters, -1, "decrement ref for white container, should be last one");
+	if (session->includefilters) {
+		ao2_t_ref(session->includefilters, -1, "decrement ref for include container, should be last one");
 	}
 
-	if (session->blackfilters) {
-		ao2_t_ref(session->blackfilters, -1, "decrement ref for black container, should be last one");
+	if (session->excludefilters) {
+		ao2_t_ref(session->excludefilters, -1, "decrement ref for exclude container, should be last one");
 	}
 
 	ast_mutex_destroy(&session->notify_lock);
@@ -2396,9 +976,9 @@ static struct mansession_session *build_mansession(const struct ast_sockaddr *ad
 		return NULL;
 	}
 
-	newsession->whitefilters = ao2_container_alloc_list(AO2_ALLOC_OPT_LOCK_MUTEX, 0, NULL, NULL);
-	newsession->blackfilters = ao2_container_alloc_list(AO2_ALLOC_OPT_LOCK_MUTEX, 0, NULL, NULL);
-	if (!newsession->whitefilters || !newsession->blackfilters) {
+	newsession->includefilters = ao2_container_alloc_list(AO2_ALLOC_OPT_LOCK_MUTEX, 0, NULL, NULL);
+	newsession->excludefilters = ao2_container_alloc_list(AO2_ALLOC_OPT_LOCK_MUTEX, 0, NULL, NULL);
+	if (!newsession->includefilters || !newsession->excludefilters) {
 		ao2_ref(newsession, -1);
 		return NULL;
 	}
@@ -3805,16 +2385,16 @@ static int authenticate(struct mansession *s, const struct message *m)
 		s->session->chanvars = ast_variables_dup(user->chanvars);
 	}
 
-	filter_iter = ao2_iterator_init(user->whitefilters, 0);
+	filter_iter = ao2_iterator_init(user->includefilters, 0);
 	while ((regex_filter = ao2_iterator_next(&filter_iter))) {
-		ao2_t_link(s->session->whitefilters, regex_filter, "add white user filter to session");
+		ao2_t_link(s->session->includefilters, regex_filter, "add include user filter to session");
 		ao2_t_ref(regex_filter, -1, "remove iterator ref");
 	}
 	ao2_iterator_destroy(&filter_iter);
 
-	filter_iter = ao2_iterator_init(user->blackfilters, 0);
+	filter_iter = ao2_iterator_init(user->excludefilters, 0);
 	while ((regex_filter = ao2_iterator_next(&filter_iter))) {
-		ao2_t_link(s->session->blackfilters, regex_filter, "add black user filter to session");
+		ao2_t_link(s->session->excludefilters, regex_filter, "add exclude user filter to session");
 		ao2_t_ref(regex_filter, -1, "remove iterator ref");
 	}
 	ao2_iterator_destroy(&filter_iter);
@@ -4605,7 +3185,7 @@ static int action_waitevent(struct mansession *s, const struct message *m)
 		while ((eqe = advance_event(eqe))) {
 			if (((s->session->readperm & eqe->category) == eqe->category)
 				&& ((s->session->send_events & eqe->category) == eqe->category)
-				&& match_filter(s, eqe->eventdata)) {
+				&& should_send_event(s->session->includefilters, s->session->excludefilters, eqe)) {
 				astman_append(s, "%s", eqe->eventdata);
 			}
 			s->session->last_ev = eqe;
@@ -6325,6 +4905,240 @@ aocmessage_cleanup:
 	return 0;
 }
 
+struct originate_permissions_entry {
+	const char *search;
+	int permission;
+	int (*searchfn)(const char *app, const char *data, const char *search);
+};
+
+/*!
+ * \internal
+ * \brief Check if the application is allowed for Originate
+ *
+ * \param app The "app" parameter
+ * \param data The "appdata" parameter (ignored)
+ * \param search The search string
+ * \retval 1 Match
+ * \retval 0 No match
+ */
+static int app_match(const char *app, const char *data, const char *search)
+{
+	/*
+	 * We use strcasestr so we don't have to trim any blanks
+	 * from the front or back of the string.
+	 */
+	return !!(strcasestr(app, search));
+}
+
+/*!
+ * \internal
+ * \brief Check if the appdata is allowed for Originate
+ *
+ * \param app The "app" parameter (ignored)
+ * \param data The "appdata" parameter
+ * \param search The search string
+ * \retval 1 Match
+ * \retval 0 No match
+ */
+static int appdata_match(const char *app, const char *data, const char *search)
+{
+	if (ast_strlen_zero(data)) {
+		return 0;
+	}
+	return !!(strstr(data, search));
+}
+
+/*!
+ * \internal
+ * \brief Check if the Queue application is allowed for Originate
+ *
+ * It's only allowed if there's no AGI parameter set
+ *
+ * \param app The "app" parameter
+ * \param data The "appdata" parameter
+ * \param search The search string
+ * \retval 1 Match
+ * \retval 0 No match
+ */
+static int queue_match(const char *app, const char *data, const char *search)
+{
+	char *parse;
+	AST_DECLARE_APP_ARGS(args,
+		AST_APP_ARG(queuename);
+		AST_APP_ARG(options);
+		AST_APP_ARG(url);
+		AST_APP_ARG(announceoverride);
+		AST_APP_ARG(queuetimeoutstr);
+		AST_APP_ARG(agi);
+		AST_APP_ARG(gosub);
+		AST_APP_ARG(rule);
+		AST_APP_ARG(position);
+	);
+
+	if (!strcasestr(app, "queue") || ast_strlen_zero(data)) {
+		return 0;
+	}
+
+	parse = ast_strdupa(data);
+	AST_STANDARD_APP_ARGS(args, parse);
+
+	/*
+	 * The Queue application is fine unless the AGI parameter is set.
+	 * If it is, we need to check the user's permissions.
+	 */
+	return !ast_strlen_zero(args.agi);
+}
+
+/*
+ * The Originate application and application data are passed
+ * to each searchfn in the list.  If a searchfn returns true
+ * and the user's permissions don't include the permissions specified
+ * in the list entry, the Originate action will be denied.
+ *
+ * If no searchfn returns true, the Originate action is allowed.
+ */
+static struct originate_permissions_entry originate_app_permissions[] = {
+	/*
+	 * The app_match function checks if the search string is
+	 * anywhere in the app parameter.  The check is case-insensitive.
+	 */
+	{ "agi", EVENT_FLAG_SYSTEM, app_match },
+	{ "dbdeltree", EVENT_FLAG_SYSTEM, app_match },
+	{ "exec", EVENT_FLAG_SYSTEM, app_match },
+	{ "externalivr", EVENT_FLAG_SYSTEM, app_match },
+	{ "mixmonitor", EVENT_FLAG_SYSTEM, app_match },
+	{ "originate", EVENT_FLAG_SYSTEM, app_match },
+	{ "reload", EVENT_FLAG_SYSTEM, app_match },
+	{ "system", EVENT_FLAG_SYSTEM, app_match },
+	/*
+	 * Since the queue_match function specifically checks
+	 * for the presence of the AGI parameter, we'll allow
+	 * the call if the user has either the AGI or SYSTEM
+	 * permission.
+	 */
+	{ "queue", EVENT_FLAG_AGI | EVENT_FLAG_SYSTEM, queue_match },
+	/*
+	 * The appdata_match function checks if the search string is
+	 * anywhere in the appdata parameter.  Unlike app_match,
+	 * the check is case-sensitive.  These are generally
+	 * dialplan functions.
+	 */
+	{ "CURL", EVENT_FLAG_SYSTEM, appdata_match },
+	{ "DB", EVENT_FLAG_SYSTEM, appdata_match },
+	{ "EVAL", EVENT_FLAG_SYSTEM, appdata_match },
+	{ "FILE", EVENT_FLAG_SYSTEM, appdata_match },
+	{ "ODBC", EVENT_FLAG_SYSTEM, appdata_match },
+	{ "REALTIME", EVENT_FLAG_SYSTEM, appdata_match },
+	{ "SHELL", EVENT_FLAG_SYSTEM, appdata_match },
+	{ NULL, 0 },
+};
+
+static int is_originate_app_permitted(const char *app, const char *data,
+	int permission)
+{
+	int i;
+
+	for (i = 0; originate_app_permissions[i].search; i++) {
+		if (originate_app_permissions[i].searchfn(app, data, originate_app_permissions[i].search)) {
+			return !!(permission & originate_app_permissions[i].permission);
+		}
+	}
+
+	return 1;
+}
+
+#ifdef TEST_FRAMEWORK
+#define ALL_PERMISSIONS (INT_MAX)
+#define NO_PERMISSIONS (0)
+AST_TEST_DEFINE(originate_permissions_test)
+{
+	enum ast_test_result_state res = AST_TEST_PASS;
+
+	switch (cmd) {
+	case TEST_INIT:
+		info->name = "originate_permissions_test";
+		info->category = "/main/manager/";
+		info->summary = "Test permissions for originate action";
+		info->description =
+			"Make sure that dialplan apps/functions that need special "
+			"permissions are prohibited if the user doesn't have the permission.";
+		return AST_TEST_NOT_RUN;
+	case TEST_EXECUTE:
+		break;
+	}
+
+	/*
+	 * Check application matching. We don't need to check every one.
+	 * The code is the same.
+	 */
+
+	ast_test_validate(test, is_originate_app_permitted("exec",
+		NULL, EVENT_FLAG_SYSTEM), "exec permission check failed");
+	ast_test_validate(test, is_originate_app_permitted("exec",
+		NULL, EVENT_FLAG_SYSTEM | EVENT_FLAG_AGI), "exec check permission failed");
+	ast_test_validate(test, is_originate_app_permitted("exec",
+		NULL, ALL_PERMISSIONS), "exec check permission failed");
+	ast_test_validate(test, !is_originate_app_permitted("exec",
+		NULL, EVENT_FLAG_AGI), "exec permission check failed");
+	ast_test_validate(test, !is_originate_app_permitted("exec",
+		NULL, EVENT_FLAG_VERBOSE), "exec permission check failed");
+	ast_test_validate(test, !is_originate_app_permitted("exec",
+		NULL, NO_PERMISSIONS), "exec permission check failed");
+
+	/*
+	 * If queue is used with the AGI parameter but without the SYSTEM or AGI
+	 * permission, it should be denied. Queue param order:
+	 * queuename,options,url,announceoverride,queuetimeoutstr,AGI,gosub,rule,position
+	 * The values of the options aren't checked. They just have to be present.
+	 */
+
+	/* AGI not specified should always be allowed */
+	ast_test_validate(test, is_originate_app_permitted("queue",
+		NULL, NO_PERMISSIONS), "Queue permission check failed");
+	ast_test_validate(test, is_originate_app_permitted("queue",
+		"somequeue,CcdHh,someURL,tt-monkeys,100,,gosub,rule,666",
+		EVENT_FLAG_ORIGINATE | EVENT_FLAG_HOOKRESPONSE ), "Queue permission check failed");
+
+	/* AGI specified with SYSTEM or AGI permission should be allowed */
+	ast_test_validate(test, is_originate_app_permitted("queue",
+		"somequeue,CcdHh,someURL,tt-monkeys,100,SomeAGIScript,gosub,rule,666",
+		EVENT_FLAG_SYSTEM | EVENT_FLAG_HOOKRESPONSE ), "Queue permission check failed");
+	ast_test_validate(test, is_originate_app_permitted("queue",
+		"somequeue,CcdHh,someURL,tt-monkeys,100,SomeAGIScript,gosub,rule,666",
+		EVENT_FLAG_AGI | EVENT_FLAG_HOOKRESPONSE ), "Queue permission check failed");
+	ast_test_validate(test, is_originate_app_permitted("queue",
+		"somequeue,CcdHh,someURL,tt-monkeys,100,SomeAGIScript,gosub,rule,666",
+		ALL_PERMISSIONS), "Queue permission check failed");
+
+	/* AGI specified without SYSTEM or AGI permission should be denied */
+	ast_test_validate(test, !is_originate_app_permitted("queue",
+		"somequeue,CcdHh,someURL,tt-monkeys,100,SomeAGIScript,gosub,rule,666",
+		NO_PERMISSIONS), "Queue permission check failed");
+	ast_test_validate(test, !is_originate_app_permitted("queue",
+		"somequeue,CcdHh,someURL,tt-monkeys,100,SomeAGIScript,gosub,rule,666",
+		EVENT_FLAG_ORIGINATE | EVENT_FLAG_HOOKRESPONSE ), "Queue permission check failed");
+
+	/*
+	 * Check appdata.  The function name can appear anywhere in appdata.
+	 */
+	ast_test_validate(test, is_originate_app_permitted("someapp",
+		"aaaDBbbb", EVENT_FLAG_SYSTEM), "exec permission check failed");
+	ast_test_validate(test, is_originate_app_permitted("someapp",
+		"aaa DB bbb", ALL_PERMISSIONS), "exec permission check failed");
+	ast_test_validate(test, !is_originate_app_permitted("someapp",
+		"aaaDBbbb", NO_PERMISSIONS), "exec permission check failed");
+	ast_test_validate(test, !is_originate_app_permitted("someapp",
+		"aaa DB bbb", NO_PERMISSIONS), "exec permission check failed");
+	/* The check is case-sensitive so although DB is a match, db isn't. */
+	ast_test_validate(test, is_originate_app_permitted("someapp",
+		"aaa db bbb", NO_PERMISSIONS), "exec permission check failed");
+
+	return res;
+}
+#undef ALL_PERMISSIONS
+#undef NO_PERMISSIONS
+#endif
+
 static int action_originate(struct mansession *s, const struct message *m)
 {
 	const char *name = astman_get_header(m, "Channel");
@@ -6418,26 +5232,8 @@ static int action_originate(struct mansession *s, const struct message *m)
 	}
 
 	if (!ast_strlen_zero(app) && s->session) {
-		int bad_appdata = 0;
-		/* To run the System application (or anything else that goes to
-		 * shell), you must have the additional System privilege */
-		if (!(s->session->writeperm & EVENT_FLAG_SYSTEM)
-			&& (
-				strcasestr(app, "system") ||      /* System(rm -rf /)
-				                                     TrySystem(rm -rf /)       */
-				strcasestr(app, "exec") ||        /* Exec(System(rm -rf /))
-				                                     TryExec(System(rm -rf /)) */
-				strcasestr(app, "agi") ||         /* AGI(/bin/rm,-rf /)
-				                                     EAGI(/bin/rm,-rf /)       */
-				strcasestr(app, "mixmonitor") ||  /* MixMonitor(blah,,rm -rf)  */
-				strcasestr(app, "externalivr") || /* ExternalIVR(rm -rf)       */
-				strcasestr(app, "originate") ||   /* Originate(Local/1234,app,System,rm -rf) */
-				(strstr(appdata, "SHELL") && (bad_appdata = 1)) ||       /* NoOp(${SHELL(rm -rf /)})  */
-				(strstr(appdata, "EVAL") && (bad_appdata = 1))           /* NoOp(${EVAL(${some_var_containing_SHELL})}) */
-				)) {
-			char error_buf[64];
-			snprintf(error_buf, sizeof(error_buf), "Originate Access Forbidden: %s", bad_appdata ? "Data" : "Application");
-			astman_send_error(s, m, error_buf);
+		if (!is_originate_app_permitted(app, appdata, s->session->writeperm)) {
+			astman_send_error(s, m, "Originate Access Forbidden: app or data blacklisted");
 			res = 0;
 			goto fast_orig_cleanup;
 		}
@@ -6680,33 +5476,118 @@ static int action_timeout(struct mansession *s, const struct message *m)
 	return 0;
 }
 
-static int whitefilter_cmp_fn(void *obj, void *arg, void *data, int flags)
+/*!
+ * \brief Test eventdata against a filter entry
+ *
+ * \param entry The event_filter entry to match with
+ * \param eventdata  The data to match against
+ * \retval 0 if no match
+ * \retval 1 if match
+ */
+static int match_eventdata(struct event_filter_entry *entry, const char *eventdata)
 {
-	regex_t *regex_filter = obj;
-	const char *eventdata = arg;
-	int *result = data;
-
-	if (!regexec(regex_filter, eventdata, 0, NULL, 0)) {
-		*result = 1;
-		return (CMP_MATCH | CMP_STOP);
+	switch(entry->match_type) {
+	case FILTER_MATCH_REGEX:
+		return regexec(entry->regex_filter, eventdata, 0, NULL, 0) == 0;
+	case FILTER_MATCH_STARTS_WITH:
+		return ast_begins_with(eventdata, entry->string_filter);
+	case FILTER_MATCH_ENDS_WITH:
+		return ast_ends_with(eventdata, entry->string_filter);
+	case FILTER_MATCH_CONTAINS:
+		return strstr(eventdata, entry->string_filter) != NULL;
+	case FILTER_MATCH_EXACT:
+		return strcmp(eventdata, entry->string_filter) == 0;
+	case FILTER_MATCH_NONE:
+		return 1;
 	}
 
 	return 0;
 }
 
-static int blackfilter_cmp_fn(void *obj, void *arg, void *data, int flags)
+static int filter_cmp_fn(void *obj, void *arg, void *data, int flags)
 {
-	regex_t *regex_filter = obj;
-	const char *eventdata = arg;
+	struct eventqent *eqe = arg;
+	struct event_filter_entry *filter_entry = obj;
+	char *line_buffer_start = NULL;
+	char *line_buffer = NULL;
+	char *line = NULL;
+	int match = 0;
 	int *result = data;
 
-	if (!regexec(regex_filter, eventdata, 0, NULL, 0)) {
-		*result = 0;
-		return (CMP_MATCH | CMP_STOP);
+	if (filter_entry->event_name_hash) {
+		if (eqe->event_name_hash != filter_entry->event_name_hash) {
+			goto done;
+		}
 	}
 
-	*result = 1;
-	return 0;
+	/* We're looking at the entire event data */
+	if (!filter_entry->header_name) {
+		match = match_eventdata(filter_entry, eqe->eventdata);
+		goto done;
+	}
+
+	/* We're looking at a specific header */
+	line_buffer_start = ast_strdup(eqe->eventdata);
+	line_buffer = line_buffer_start;
+	if (!line_buffer_start) {
+		goto done;
+	}
+
+	while ((line = ast_read_line_from_buffer(&line_buffer))) {
+		if (ast_begins_with(line, filter_entry->header_name)) {
+			line += strlen(filter_entry->header_name);
+			line = ast_skip_blanks(line);
+			if (ast_strlen_zero(line)) {
+				continue;
+			}
+			match = match_eventdata(filter_entry, line);
+			if (match) {
+				ast_free(line_buffer_start);
+				line_buffer_start = NULL;
+				break;
+			}
+		}
+	}
+
+	ast_free(line_buffer_start);
+
+done:
+
+	*result = match;
+	return match ? CMP_MATCH | CMP_STOP : 0;
+}
+
+static int should_send_event(struct ao2_container *includefilters,
+	struct ao2_container *excludefilters, struct eventqent *eqe)
+{
+	int result = 0;
+
+	if (manager_debug) {
+		ast_verbose("<-- Examining AMI event (%u): -->\n%s\n", eqe->event_name_hash, eqe->eventdata);
+	} else {
+		ast_debug(4, "Examining AMI event (%u):\n%s\n", eqe->event_name_hash, eqe->eventdata);
+	}
+	if (!ao2_container_count(includefilters) && !ao2_container_count(excludefilters)) {
+		return 1; /* no filtering means match all */
+	} else if (ao2_container_count(includefilters) && !ao2_container_count(excludefilters)) {
+		/* include filters only: implied exclude all filter processed first, then include filters */
+		ao2_t_callback_data(includefilters, OBJ_NODATA, filter_cmp_fn, eqe, &result, "find filter in includefilters container");
+		return result;
+	} else if (!ao2_container_count(includefilters) && ao2_container_count(excludefilters)) {
+		/* exclude filters only: implied include all filter processed first, then exclude filters */
+		ao2_t_callback_data(excludefilters, OBJ_NODATA, filter_cmp_fn, eqe, &result, "find filter in excludefilters container");
+		return !result;
+	} else {
+		/* include and exclude filters: implied exclude all filter processed first, then include filters, and lastly exclude filters */
+		ao2_t_callback_data(includefilters, OBJ_NODATA, filter_cmp_fn, eqe, &result, "find filter in session filter container");
+		if (result) {
+			result = 0;
+			ao2_t_callback_data(excludefilters, OBJ_NODATA, filter_cmp_fn, eqe, &result, "find filter in session filter container");
+			return !result;
+		}
+	}
+
+	return result;
 }
 
 /*!
@@ -6715,24 +5596,44 @@ static int blackfilter_cmp_fn(void *obj, void *arg, void *data, int flags)
  */
 static int action_filter(struct mansession *s, const struct message *m)
 {
+	const char *match_criteria = astman_get_header(m, "MatchCriteria");
 	const char *filter = astman_get_header(m, "Filter");
 	const char *operation = astman_get_header(m, "Operation");
 	int res;
 
 	if (!strcasecmp(operation, "Add")) {
-		res = manager_add_filter(filter, s->session->whitefilters, s->session->blackfilters);
+		char *criteria;
+		int have_match = !ast_strlen_zero(match_criteria);
 
-	        if (res != FILTER_SUCCESS) {
-		        if (res == FILTER_ALLOC_FAILED) {
+		/* Create an eventfilter expression.
+		 * eventfilter[(match_criteria)]
+		 */
+		res = ast_asprintf(&criteria, "eventfilter%s%s%s",
+			S_COR(have_match, "(", ""), S_OR(match_criteria, ""),
+			S_COR(have_match, ")", ""));
+		if (res <= 0) {
+			astman_send_error(s, m, "Internal Error. Failed to allocate storage for filter type");
+			return 0;
+		}
+
+		res = manager_add_filter(criteria, filter, s->session->includefilters, s->session->excludefilters);
+		ast_std_free(criteria);
+		if (res != FILTER_SUCCESS) {
+			if (res == FILTER_ALLOC_FAILED) {
 				astman_send_error(s, m, "Internal Error. Failed to allocate regex for filter");
-		                return 0;
-		        } else if (res == FILTER_COMPILE_FAIL) {
-				astman_send_error(s, m, "Filter did not compile.  Check the syntax of the filter given.");
-		                return 0;
-		        } else {
+				return 0;
+			} else if (res == FILTER_COMPILE_FAIL) {
+				astman_send_error(s, m,
+					"Filter did not compile.  Check the syntax of the filter given.");
+				return 0;
+			} else if (res == FILTER_FORMAT_ERROR) {
+				astman_send_error(s, m,
+					"Filter was formatted incorrectly.  Check the syntax of the filter given.");
+				return 0;
+			} else {
 				astman_send_error(s, m, "Internal Error. Failed adding filter.");
-		                return 0;
-	                }
+				return 0;
+			}
 		}
 
 		astman_send_ack(s, m, "Success");
@@ -6746,84 +5647,675 @@ static int action_filter(struct mansession *s, const struct message *m)
 /*!
  * \brief Add an event filter to a manager session
  *
- * \param filter_pattern  Filter syntax to add, see below for syntax
- * \param whitefilters, blackfilters
+ * \param criteria See examples in manager.conf.sample
+ * \param filter_pattern  Filter pattern
+ * \param includefilters, excludefilters
  *
  * \return FILTER_ALLOC_FAILED   Memory allocation failure
  * \return FILTER_COMPILE_FAIL   If the filter did not compile
+ * \return FILTER_FORMAT_ERROR   If the criteria weren't formatted correctly
  * \return FILTER_SUCCESS        Success
  *
- * Filter will be used to match against each line of a manager event
- * Filter can be any valid regular expression
- * Filter can be a valid regular expression prefixed with !, which will add the filter as a black filter
  *
  * Examples:
- * \code
- *   filter_pattern = "Event: Newchannel"
- *   filter_pattern = "Event: New.*"
- *   filter_pattern = "!Channel: DAHDI.*"
- * \endcode
+ * See examples in manager.conf.sample
  *
  */
-static enum add_filter_result manager_add_filter(const char *filter_pattern, struct ao2_container *whitefilters, struct ao2_container *blackfilters) {
-	regex_t *new_filter = ao2_t_alloc(sizeof(*new_filter), event_filter_destructor, "event_filter allocation");
-	int is_blackfilter;
-
-	if (!new_filter) {
-		return FILTER_ALLOC_FAILED;
-	}
-
-	if (filter_pattern[0] == '!') {
-		is_blackfilter = 1;
-		filter_pattern++;
-	} else {
-		is_blackfilter = 0;
-	}
-
-	if (regcomp(new_filter, filter_pattern, REG_EXTENDED | REG_NOSUB)) {
-		ao2_t_ref(new_filter, -1, "failed to make regex");
-		return FILTER_COMPILE_FAIL;
-	}
-
-	if (is_blackfilter) {
-		ao2_t_link(blackfilters, new_filter, "link new filter into black user container");
-	} else {
-		ao2_t_link(whitefilters, new_filter, "link new filter into white user container");
-	}
-
-	ao2_ref(new_filter, -1);
-
-	return FILTER_SUCCESS;
-}
-
-static int match_filter(struct mansession *s, char *eventdata)
+static enum add_filter_result manager_add_filter(
+	const char *criteria, const char *filter_pattern,
+	struct ao2_container *includefilters, struct ao2_container *excludefilters)
 {
-	int result = 0;
+	RAII_VAR(struct event_filter_entry *, filter_entry,
+		ao2_t_alloc(sizeof(*filter_entry), event_filter_destructor, "event_filter allocation"),
+		ao2_cleanup);
+	char *options_start = NULL;
+	SCOPE_ENTER(3, "manager_add_filter(%s, %s, %p, %p)", criteria, filter_pattern, includefilters, excludefilters);
 
-	if (manager_debug) {
-		ast_verbose("<-- Examining AMI event: -->\n%s\n", eventdata);
-	} else {
-		ast_debug(4, "Examining AMI event:\n%s\n", eventdata);
+	if (!filter_entry) {
+		SCOPE_EXIT_LOG_RTN_VALUE(FILTER_ALLOC_FAILED, LOG_WARNING, "Unable to allocate filter_entry");
 	}
-	if (!ao2_container_count(s->session->whitefilters) && !ao2_container_count(s->session->blackfilters)) {
-		return 1; /* no filtering means match all */
-	} else if (ao2_container_count(s->session->whitefilters) && !ao2_container_count(s->session->blackfilters)) {
-		/* white filters only: implied black all filter processed first, then white filters */
-		ao2_t_callback_data(s->session->whitefilters, OBJ_NODATA, whitefilter_cmp_fn, eventdata, &result, "find filter in session filter container");
-	} else if (!ao2_container_count(s->session->whitefilters) && ao2_container_count(s->session->blackfilters)) {
-		/* black filters only: implied white all filter processed first, then black filters */
-		ao2_t_callback_data(s->session->blackfilters, OBJ_NODATA, blackfilter_cmp_fn, eventdata, &result, "find filter in session filter container");
-	} else {
-		/* white and black filters: implied black all filter processed first, then white filters, and lastly black filters */
-		ao2_t_callback_data(s->session->whitefilters, OBJ_NODATA, whitefilter_cmp_fn, eventdata, &result, "find filter in session filter container");
-		if (result) {
-			result = 0;
-			ao2_t_callback_data(s->session->blackfilters, OBJ_NODATA, blackfilter_cmp_fn, eventdata, &result, "find filter in session filter container");
+
+	/*
+	 * At a minimum, criteria must be "eventfilter" but may contain additional
+	 * constraints.
+	 */
+	if (ast_strlen_zero(criteria)) {
+		SCOPE_EXIT_LOG_RTN_VALUE(FILTER_FORMAT_ERROR, LOG_WARNING, "Missing criteria");
+	}
+
+	/*
+	 * filter_pattern could be empty but it should never be NULL.
+	 */
+	if (!filter_pattern) {
+		SCOPE_EXIT_LOG_RTN_VALUE(FILTER_FORMAT_ERROR, LOG_WARNING, "Filter pattern was NULL");
+	}
+
+	/*
+	 * For a legacy filter, if the first character of filter_pattern is
+	 * '!' then it's an exclude filter.  It's also accepted as an alternative
+	 * to specifying "action(exclude)" for an advanced filter.  If
+	 * "action" is specified however, it will take precedence.
+	 */
+	if (filter_pattern[0] == '!') {
+		filter_entry->is_excludefilter = 1;
+		filter_pattern++;
+	}
+
+	/*
+	 * This is the default
+	 */
+	filter_entry->match_type = FILTER_MATCH_REGEX;
+
+	/*
+	 * If the criteria has a '(' in it, then it's an advanced filter.
+	 */
+	options_start = strstr(criteria, "(");
+
+	/*
+	 * If it's a legacy filter, there MUST be a filter pattern.
+	 */
+	if (!options_start && ast_strlen_zero(filter_pattern)) {
+		SCOPE_EXIT_LOG_RTN_VALUE(FILTER_FORMAT_ERROR, LOG_WARNING,
+			"'%s = %s': Legacy filter with no filter pattern specified\n",
+			criteria, filter_pattern);
+	}
+
+	if (options_start) {
+		/*
+		 * This is an advanced filter
+		 */
+		char *temp = ast_strdupa(options_start + 1); /* skip over the leading '(' */
+		char *saveptr = NULL;
+		char *option = NULL;
+		enum found_options {
+			action_found = (1 << 0),
+			name_found = (1 << 1),
+			header_found = (1 << 2),
+			method_found = (1 << 3),
+		};
+		enum found_options options_found = 0;
+
+		filter_entry->match_type = FILTER_MATCH_NONE;
+
+		ast_strip(temp);
+		if (ast_strlen_zero(temp) || !ast_ends_with(temp, ")")) {
+			SCOPE_EXIT_LOG_RTN_VALUE(FILTER_FORMAT_ERROR, LOG_WARNING,
+				"'%s = %s': Filter options not formatted correctly\n",
+				criteria, filter_pattern);
+		}
+
+		/*
+		 * These can actually be in any order...
+		 * action(include|exclude),name(<event_name>),header(<header_name>),method(<match_method>)
+		 * At least one of action, name, or header is required.
+		 */
+		while ((option = strtok_r(temp, " ,)", &saveptr))) {
+			if (!strncmp(option, "action", 6)) {
+				char *method = strstr(option, "(");
+				if (ast_strlen_zero(method)) {
+					SCOPE_EXIT_LOG_RTN_VALUE(FILTER_FORMAT_ERROR, LOG_WARNING, "'%s = %s': 'action' parameter not formatted correctly\n",
+						criteria, filter_pattern);
+				}
+				method++;
+				ast_strip(method);
+				if (!strcmp(method, "include")) {
+					filter_entry->is_excludefilter = 0;
+				} else if (!strcmp(method, "exclude")) {
+					filter_entry->is_excludefilter = 1;
+				} else {
+					SCOPE_EXIT_LOG_RTN_VALUE(FILTER_FORMAT_ERROR, LOG_WARNING, "'%s = %s': 'action' option '%s' is unknown\n",
+						criteria, filter_pattern, method);
+				}
+				options_found |= action_found;
+			} else if (!strncmp(option, "name", 4)) {
+				char *event_name = strstr(option, "(");
+				event_name++;
+				ast_strip(event_name);
+				if (ast_strlen_zero(event_name)) {
+					SCOPE_EXIT_LOG_RTN_VALUE(FILTER_FORMAT_ERROR, LOG_WARNING, "'%s = %s': 'name' parameter not formatted correctly\n",
+						criteria, filter_pattern);
+				}
+				filter_entry->event_name = ast_strdup(event_name);
+				filter_entry->event_name_hash = ast_str_hash(event_name);
+				options_found |= name_found;
+			} else if (!strncmp(option, "header", 6)) {
+				char *header_name = strstr(option, "(");
+				header_name++;
+				ast_strip(header_name);
+				if (ast_strlen_zero(header_name)) {
+					SCOPE_EXIT_LOG_RTN_VALUE(FILTER_FORMAT_ERROR, LOG_WARNING, "'%s = %s': 'header' parameter not formatted correctly\n",
+						criteria, filter_pattern);
+				}
+				if (!ast_ends_with(header_name, ":")) {
+					filter_entry->header_name = ast_malloc(strlen(header_name) + 2);
+					if (!filter_entry->header_name) {
+						SCOPE_EXIT_LOG_RTN_VALUE(FILTER_ALLOC_FAILED, LOG_ERROR, "Unable to allocate memory for header_name");
+					}
+					sprintf(filter_entry->header_name, "%s:", header_name); /* Safe */
+				} else {
+					filter_entry->header_name = ast_strdup(header_name);
+				}
+				options_found |= header_found;
+			} else if (!strncmp(option, "method", 6)) {
+				char *method = strstr(option, "(");
+				method++;
+				ast_strip(method);
+				if (ast_strlen_zero(method)) {
+					SCOPE_EXIT_LOG_RTN_VALUE(FILTER_FORMAT_ERROR, LOG_WARNING, "'%s = %s': 'method' parameter not formatted correctly\n",
+						criteria, filter_pattern);
+				}
+				if (!strcmp(method, "regex")) {
+					filter_entry->match_type = FILTER_MATCH_REGEX;
+				} else if (!strcmp(method, "exact")) {
+					filter_entry->match_type = FILTER_MATCH_EXACT;
+				} else if (!strcmp(method, "starts_with")) {
+					filter_entry->match_type = FILTER_MATCH_STARTS_WITH;
+				} else if (!strcmp(method, "ends_with")) {
+					filter_entry->match_type = FILTER_MATCH_ENDS_WITH;
+				} else if (!strcmp(method, "contains")) {
+					filter_entry->match_type = FILTER_MATCH_CONTAINS;
+				} else if (!strcmp(method, "none")) {
+					filter_entry->match_type = FILTER_MATCH_NONE;
+				} else {
+					SCOPE_EXIT_LOG_RTN_VALUE(FILTER_FORMAT_ERROR, LOG_WARNING, "'%s = %s': 'method' option '%s' is unknown\n",
+						criteria, filter_pattern, method);
+				}
+				options_found |= method_found;
+			} else {
+				SCOPE_EXIT_LOG_RTN_VALUE(FILTER_FORMAT_ERROR, LOG_WARNING, "'%s = %s': Filter option '%s' is unknown\n",
+					criteria, filter_pattern, option);
+			}
+			temp = NULL;
+		}
+		if (!options_found) {
+			SCOPE_EXIT_LOG_RTN_VALUE(FILTER_FORMAT_ERROR, LOG_WARNING,
+				"'%s = %s': No action, name, header, or method option found\n",
+				criteria, filter_pattern);
+		}
+		if (ast_strlen_zero(filter_pattern) && filter_entry->match_type != FILTER_MATCH_NONE) {
+			SCOPE_EXIT_LOG_RTN_VALUE(FILTER_FORMAT_ERROR, LOG_WARNING,
+				"'%s = %s': method can't be '%s' with no filter pattern\n",
+				criteria, filter_pattern, match_type_names[filter_entry->match_type]);
+		}
+		if (!ast_strlen_zero(filter_pattern) && filter_entry->match_type == FILTER_MATCH_NONE) {
+			SCOPE_EXIT_LOG_RTN_VALUE(FILTER_FORMAT_ERROR, LOG_WARNING,
+				"'%s = %s': method can't be 'none' with a filter pattern\n",
+				criteria, filter_pattern);
+		}
+		if (!(options_found & name_found) && !(options_found & header_found) &&
+			filter_entry->match_type == FILTER_MATCH_NONE) {
+			SCOPE_EXIT_LOG_RTN_VALUE(FILTER_FORMAT_ERROR, LOG_WARNING,
+				"'%s = %s': No name or header option found and no filter pattern\n",
+				criteria, filter_pattern);
 		}
 	}
 
-	return result;
+	if (!ast_strlen_zero(filter_pattern)) {
+		if (filter_entry->match_type == FILTER_MATCH_REGEX) {
+			filter_entry->regex_filter = ast_calloc(1, sizeof(regex_t));
+			if (!filter_entry->regex_filter) {
+				SCOPE_EXIT_LOG_RTN_VALUE(FILTER_ALLOC_FAILED, LOG_ERROR, "Unable to allocate memory for regex_filter");
+			}
+			if (regcomp(filter_entry->regex_filter, filter_pattern, REG_EXTENDED | REG_NOSUB)) {
+				SCOPE_EXIT_LOG_RTN_VALUE(FILTER_COMPILE_FAIL, LOG_WARNING, "Unable to compile regex filter for '%s'", filter_pattern);
+			}
+		} else {
+			filter_entry->string_filter = ast_strdup(filter_pattern);
+		}
+	}
+
+	ast_debug(2, "Event filter:\n"
+		"conf entry: %s = %s\n"
+		"event_name: %s (hash: %d)\n"
+		"test_header:  %s\n"
+		"match_type: %s\n"
+		"regex_filter: %p\n"
+		"string filter: %s\n"
+		"is excludefilter: %d\n",
+		criteria, filter_pattern,
+		S_OR(filter_entry->event_name, "<not used>"),
+		filter_entry->event_name_hash,
+		S_OR(filter_entry->header_name, "<not used>"),
+		match_type_names[filter_entry->match_type],
+		filter_entry->regex_filter,
+		filter_entry->string_filter,
+		filter_entry->is_excludefilter);
+
+	if (filter_entry->is_excludefilter) {
+		ao2_t_link(excludefilters, filter_entry, "link new filter into exclude user container");
+	} else {
+		ao2_t_link(includefilters, filter_entry, "link new filter into include user container");
+	}
+
+	SCOPE_EXIT_RTN_VALUE(FILTER_SUCCESS, "Filter added successfully");
 }
+
+#ifdef TEST_FRAMEWORK
+
+struct test_filter_data {
+	const char *criteria;
+	const char *filter;
+	enum add_filter_result expected_add_filter_result;
+	struct event_filter_entry expected_filter_entry;
+	const char *test_event_name;
+	const char *test_event_payload;
+	int expected_should_send_event;
+};
+
+static char *add_filter_result_enums[] = {
+	[FILTER_SUCCESS] = "FILTER_SUCCESS",
+	[FILTER_ALLOC_FAILED] = "FILTER_ALLOC_FAILED",
+	[FILTER_COMPILE_FAIL] = "FILTER_COMPILE_FAIL",
+	[FILTER_FORMAT_ERROR] = "FILTER_FORMAT_ERROR",
+};
+
+#define TEST_EVENT_NEWCHANNEL "Newchannel", "Event: Newchannel\r\nChannel: XXX\r\nSomeheader: YYY\r\n"
+#define TEST_EVENT_VARSET "VarSet", "Event: VarSet\r\nChannel: ABC\r\nSomeheader: XXX\r\n"
+#define TEST_EVENT_NONE "", ""
+
+static struct test_filter_data parsing_filter_tests[] = {
+	/* Valid filters */
+	{ "eventfilter", "XXX", FILTER_SUCCESS,
+		{ FILTER_MATCH_REGEX, NULL, NULL, NULL, 0, NULL, 0}, TEST_EVENT_NEWCHANNEL, 1},
+	{ "eventfilter", "!XXX", FILTER_SUCCESS,
+		{ FILTER_MATCH_REGEX, NULL, NULL, NULL, 0, NULL, 1},  TEST_EVENT_VARSET, 0},
+	{ "eventfilter(name(VarSet),method(none))", "", FILTER_SUCCESS,
+		{ FILTER_MATCH_NONE, NULL, NULL, "VarSet", 0, NULL, 0}, TEST_EVENT_VARSET, 1},
+	{ "eventfilter(name(Newchannel),method(regex))", "X[XYZ]X", FILTER_SUCCESS,
+		{ FILTER_MATCH_REGEX, NULL, NULL, "Newchannel", 0, NULL, 0}, TEST_EVENT_NEWCHANNEL, 1},
+	{ "eventfilter(name(Newchannel),method(regex))", "X[abc]X", FILTER_SUCCESS,
+		{ FILTER_MATCH_REGEX, NULL, NULL, "Newchannel", 0, NULL, 0}, TEST_EVENT_NEWCHANNEL, 0},
+	{ "eventfilter(action(exclude),name(Newchannel),method(regex))", "X[XYZ]X", FILTER_SUCCESS,
+		{ FILTER_MATCH_REGEX, NULL, NULL, "Newchannel", 0, NULL, 1}, TEST_EVENT_NEWCHANNEL, 0},
+	{ "eventfilter(action(exclude),name(Newchannel),method(regex))", "X[abc]X", FILTER_SUCCESS,
+		{ FILTER_MATCH_REGEX, NULL, NULL, "Newchannel", 0, NULL, 1}, TEST_EVENT_NEWCHANNEL, 1},
+	{ "eventfilter(action(include),name(VarSet),header(Channel),method(starts_with))", "AB", FILTER_SUCCESS,
+		{ FILTER_MATCH_STARTS_WITH, NULL, NULL, "VarSet", 0, "Channel:", 0}, TEST_EVENT_VARSET, 1},
+	{ "eventfilter(action(include),name(VarSet),header(Channel),method(ends_with))", "BC", FILTER_SUCCESS,
+		{ FILTER_MATCH_ENDS_WITH, NULL, NULL, "VarSet", 0, "Channel:", 0}, TEST_EVENT_VARSET, 1},
+	{ "eventfilter(action(include),name(VarSet),header(Channel),method(exact))", "ABC", FILTER_SUCCESS,
+		{ FILTER_MATCH_EXACT, NULL, NULL, "VarSet", 0, "Channel:", 0}, TEST_EVENT_VARSET, 1},
+	{ "eventfilter(action(include),name(VarSet),header(Channel),method(exact))", "XXX", FILTER_SUCCESS,
+		{ FILTER_MATCH_EXACT, NULL, NULL, "VarSet", 0, "Channel:", 0}, TEST_EVENT_VARSET, 0},
+	{ "eventfilter(name(VarSet),header(Channel),method(exact))", "!ZZZ", FILTER_SUCCESS,
+		{ FILTER_MATCH_EXACT, NULL, NULL, "VarSet", 0, "Channel:", 1}, TEST_EVENT_VARSET, 1},
+	{ "eventfilter(action(exclude),name(VarSet),header(Channel),method(exact))", "ZZZ", FILTER_SUCCESS,
+		{ FILTER_MATCH_EXACT, NULL, NULL, "VarSet", 0, "Channel:", 1}, TEST_EVENT_VARSET, 1},
+	{ "eventfilter(action(include),name(VarSet),header(Someheader),method(exact))", "!XXX", FILTER_SUCCESS,
+		{ FILTER_MATCH_EXACT, NULL, NULL, "VarSet", 0, "Someheader:", 0}, TEST_EVENT_VARSET, 1},
+
+	/* Invalid filters */
+	{ "eventfilter(action(include)", "", FILTER_FORMAT_ERROR, { 0, }, TEST_EVENT_NONE, 0},
+	{ "eventfilter(action(inlude)", "", FILTER_FORMAT_ERROR, { 0, }, TEST_EVENT_NONE, 0},
+	{ "eventfilter(nnnn(yyy)", "XXX", FILTER_FORMAT_ERROR, { 0, }, TEST_EVENT_NONE, 0},
+	{ "eventfilter(eader(VarSet)", "XXX", FILTER_FORMAT_ERROR, { 0, }, TEST_EVENT_NONE, 0},
+	{ "eventfilter(ethod(contains)", "XXX", FILTER_FORMAT_ERROR, { 0, }, TEST_EVENT_NONE, 0},
+	{ "eventfilter(nnnn(yyy),header(VarSet),method(contains)", "XXX", FILTER_FORMAT_ERROR, { 0, }, TEST_EVENT_NONE, 0},
+	{ "eventfilter(name(yyy),heder(VarSet),method(contains)", "XXX", FILTER_FORMAT_ERROR, { 0, }, TEST_EVENT_NONE, 0},
+	{ "eventfilter(name(yyy),header(VarSet),mehod(contains)", "XXX", FILTER_FORMAT_ERROR, { 0, }, TEST_EVENT_NONE, 0},
+	{ "eventfilter(name(yyy),header(VarSet),method(coains)", "XXX", FILTER_FORMAT_ERROR, { 0, }, TEST_EVENT_NONE, 0},
+	{ "eventfilter(method(yyy))", "XXX", FILTER_FORMAT_ERROR, { 0, }, TEST_EVENT_NONE, 0},
+	{ "eventfilter", "", FILTER_FORMAT_ERROR, { 0, }, TEST_EVENT_NONE, 0},
+	{ "eventfilter", "!", FILTER_FORMAT_ERROR, { 0, }, TEST_EVENT_NONE, 0},
+	{ "eventfilter()", "XXX", FILTER_FORMAT_ERROR, { 0, }, TEST_EVENT_NONE, 0},
+	{ "eventfilter", "XX[X", FILTER_COMPILE_FAIL, { 0, }, TEST_EVENT_NONE, 0},
+	{ "eventfilter(method(regex))", "XX[X", FILTER_COMPILE_FAIL, { 0, }, TEST_EVENT_NONE, 0},
+};
+
+/*
+ * This is a bit different than ast_strings_equal in that
+ * it will return 1 if both strings are NULL.
+ */
+static int strings_equal(const char *str1, const char *str2)
+{
+	if ((!str1 && str2) || (str1 && !str2)) {
+		return 0;
+	}
+
+	return str1 == str2 || !strcmp(str1, str2);
+}
+
+AST_TEST_DEFINE(eventfilter_test_creation)
+{
+	enum ast_test_result_state res = AST_TEST_PASS;
+	RAII_VAR(struct ao2_container *, includefilters, NULL, ao2_cleanup);
+	RAII_VAR(struct ao2_container *, excludefilters, NULL, ao2_cleanup);
+	int i = 0;
+
+	switch (cmd) {
+	case TEST_INIT:
+		info->name = "eventfilter_test_creation";
+		info->category = "/main/manager/";
+		info->summary = "Test eventfilter creation";
+		info->description =
+			"This creates various eventfilters and tests to make sure they were created successfully.";
+		return AST_TEST_NOT_RUN;
+	case TEST_EXECUTE:
+		break;
+	}
+
+	includefilters = ao2_container_alloc_list(AO2_ALLOC_OPT_LOCK_MUTEX, 0, NULL, NULL);
+	excludefilters = ao2_container_alloc_list(AO2_ALLOC_OPT_LOCK_MUTEX, 0, NULL, NULL);
+	if (!includefilters || !excludefilters) {
+		ast_test_status_update(test, "Failed to allocate filter containers.\n");
+		return AST_TEST_FAIL;
+	}
+
+	for (i = 0; i < ARRAY_LEN(parsing_filter_tests); i++) {
+		struct event_filter_entry *filter_entry;
+		enum add_filter_result add_filter_res;
+		int send_event = 0;
+		struct eventqent *eqe = NULL;
+		int include_container_count = 0;
+		int exclude_container_count = 0;
+
+		/* We need to clear the containers before each test */
+		ao2_callback(includefilters, OBJ_UNLINK | OBJ_NODATA, NULL, NULL);
+		ao2_callback(excludefilters, OBJ_UNLINK | OBJ_NODATA, NULL, NULL);
+
+		add_filter_res = manager_add_filter(parsing_filter_tests[i].criteria, parsing_filter_tests[i].filter,
+			includefilters, excludefilters);
+
+		/* If you're adding a new test, enable this to see the full results */
+#if 0
+		ast_test_debug(test, "Add filter result '%s = %s': Expected: %s  Actual: %s  %s\n",
+			parsing_filter_tests[i].criteria, parsing_filter_tests[i].filter,
+			add_filter_result_enums[parsing_filter_tests[i].expected_add_filter_result],
+			add_filter_result_enums[add_filter_res],
+			add_filter_res != parsing_filter_tests[i].expected_add_filter_result ? "FAIL" : "PASS");
+#endif
+
+		if (add_filter_res != parsing_filter_tests[i].expected_add_filter_result) {
+			ast_test_status_update(test,
+				"Unexpected add filter result '%s = %s'. Expected result: %s Actual result: %s\n",
+				parsing_filter_tests[i].criteria, parsing_filter_tests[i].filter,
+				add_filter_result_enums[parsing_filter_tests[i].expected_add_filter_result],
+				add_filter_result_enums[add_filter_res]);
+			res = AST_TEST_FAIL;
+			continue;
+		}
+
+		if (parsing_filter_tests[i].expected_add_filter_result != FILTER_SUCCESS) {
+			/*
+			 * We don't need to test filters that we know aren't going
+			 * to be parsed successfully.
+			 */
+			continue;
+		}
+
+		/* We need to set the event name hash on the test data */
+		if (parsing_filter_tests[i].expected_filter_entry.event_name) {
+			parsing_filter_tests[i].expected_filter_entry.event_name_hash =
+				ast_str_hash(parsing_filter_tests[i].expected_filter_entry.event_name);
+		}
+
+		include_container_count = ao2_container_count(includefilters);
+		exclude_container_count = ao2_container_count(excludefilters);
+
+		if (parsing_filter_tests[i].expected_filter_entry.is_excludefilter) {
+			if (exclude_container_count != 1 || include_container_count != 0) {
+				ast_test_status_update(test,
+					"Invalid container counts for exclude filter '%s = %s'. Exclude: %d Include: %d.  Should be 1 and 0\n",
+					parsing_filter_tests[i].criteria, parsing_filter_tests[i].filter,
+					exclude_container_count, include_container_count);
+				res = AST_TEST_FAIL;
+				continue;
+			}
+			/* There can only be one entry in the container so ao2_find is fine */
+			filter_entry = ao2_find(excludefilters, NULL, OBJ_SEARCH_OBJECT);
+		} else {
+			if (include_container_count != 1 || exclude_container_count != 0) {
+				ast_test_status_update(test,
+					"Invalid container counts for include filter '%s = %s'. Include: %d Exclude: %d.  Should be 1 and 0\n",
+					parsing_filter_tests[i].criteria, parsing_filter_tests[i].filter,
+					include_container_count, exclude_container_count);
+				res = AST_TEST_FAIL;
+				continue;
+			}
+			/* There can only be one entry in the container so ao2_find is fine */
+			filter_entry = ao2_find(includefilters, NULL, OBJ_SEARCH_OBJECT);
+		}
+
+		if (!filter_entry) {
+			ast_test_status_update(test,
+				"Failed to find filter entry for '%s = %s' in %s filter container\n",
+				parsing_filter_tests[i].criteria, parsing_filter_tests[i].filter,
+				parsing_filter_tests[i].expected_filter_entry.is_excludefilter ? "exclude" : "include");
+			res = AST_TEST_FAIL;
+			goto loop_cleanup;
+		}
+
+		if (filter_entry->match_type != parsing_filter_tests[i].expected_filter_entry.match_type) {
+			ast_test_status_update(test,
+				"Failed to match filter type for '%s = %s'. Expected: %s Actual: %s\n",
+				parsing_filter_tests[i].criteria, parsing_filter_tests[i].filter,
+				match_type_names[parsing_filter_tests[i].expected_filter_entry.match_type],
+				match_type_names[filter_entry->match_type]);
+			res = AST_TEST_FAIL;
+			goto loop_cleanup;
+		}
+
+		if (!strings_equal(filter_entry->event_name, parsing_filter_tests[i].expected_filter_entry.event_name)) {
+			ast_test_status_update(test,
+				"Failed to match event name for '%s = %s'. Expected: '%s' Actual: '%s'\n",
+				parsing_filter_tests[i].criteria, parsing_filter_tests[i].filter,
+				parsing_filter_tests[i].expected_filter_entry.event_name, filter_entry->event_name);
+			res = AST_TEST_FAIL;
+			goto loop_cleanup;
+		}
+
+		if (filter_entry->event_name_hash != parsing_filter_tests[i].expected_filter_entry.event_name_hash) {
+			ast_test_status_update(test,
+				"Event name hashes failed to match for '%s = %s'. Expected: %u Actual: %u\n",
+				parsing_filter_tests[i].criteria, parsing_filter_tests[i].filter,
+				parsing_filter_tests[i].expected_filter_entry.event_name_hash, filter_entry->event_name_hash);
+			res = AST_TEST_FAIL;
+			goto loop_cleanup;
+		}
+
+		if (!strings_equal(filter_entry->header_name, parsing_filter_tests[i].expected_filter_entry.header_name)) {
+			ast_test_status_update(test,
+				"Failed to match header name for '%s = %s'. Expected: '%s' Actual: '%s'\n",
+				parsing_filter_tests[i].criteria, parsing_filter_tests[i].filter,
+				parsing_filter_tests[i].expected_filter_entry.header_name, filter_entry->header_name);
+			res = AST_TEST_FAIL;
+			goto loop_cleanup;
+		}
+
+		switch (parsing_filter_tests[i].expected_filter_entry.match_type) {
+		case FILTER_MATCH_REGEX:
+			if (!filter_entry->regex_filter) {
+				ast_test_status_update(test,
+					"Failed to compile regex filter for '%s = %s'\n",
+					parsing_filter_tests[i].criteria, parsing_filter_tests[i].filter);
+				res = AST_TEST_FAIL;
+				goto loop_cleanup;
+			}
+			break;
+		case FILTER_MATCH_NONE:
+			if (filter_entry->regex_filter || !ast_strlen_zero(filter_entry->string_filter)) {
+				ast_test_status_update(test,
+					"Unexpected regex filter or string for '%s = %s' with match_type 'none'\n",
+					parsing_filter_tests[i].criteria, parsing_filter_tests[i].filter);
+				res = AST_TEST_FAIL;
+				goto loop_cleanup;
+			}
+			break;
+		case FILTER_MATCH_STARTS_WITH:
+		case FILTER_MATCH_ENDS_WITH:
+		case FILTER_MATCH_CONTAINS:
+		case FILTER_MATCH_EXACT:
+			if (filter_entry->regex_filter || ast_strlen_zero(filter_entry->string_filter)) {
+				ast_test_status_update(test,
+					"Unexpected regex filter or empty string for '%s = %s' with match_type '%s'\n",
+					parsing_filter_tests[i].criteria, parsing_filter_tests[i].filter,
+					match_type_names[parsing_filter_tests[i].expected_filter_entry.match_type]);
+				res = AST_TEST_FAIL;
+				goto loop_cleanup;
+			}
+			break;
+		default:
+			res = AST_TEST_FAIL;
+			goto loop_cleanup;
+		}
+
+		/*
+		 * This is a basic test of whether a single event matches a single filter.
+		 */
+		eqe = ast_calloc(1, sizeof(*eqe) + strlen(parsing_filter_tests[i].test_event_payload) + 1);
+		if (!eqe) {
+			ast_test_status_update(test, "Failed to allocate eventqent\n");
+			res = AST_TEST_FAIL;
+			ao2_ref(filter_entry, -1);
+			break;
+		}
+		strcpy(eqe->eventdata, parsing_filter_tests[i].test_event_payload); /* Safe */
+		eqe->event_name_hash = ast_str_hash(parsing_filter_tests[i].test_event_name);
+		send_event = should_send_event(includefilters, excludefilters, eqe);
+		if (send_event != parsing_filter_tests[i].expected_should_send_event) {
+			char *escaped = ast_escape_c_alloc(parsing_filter_tests[i].test_event_payload);
+			ast_test_status_update(test,
+				"Should send event failed to match for '%s = %s' payload '%s'. Expected: %s Actual: %s\n",
+				parsing_filter_tests[i].criteria, parsing_filter_tests[i].filter, escaped,
+				AST_YESNO(parsing_filter_tests[i].expected_should_send_event), AST_YESNO(send_event));
+			ast_free(escaped);
+			res = AST_TEST_FAIL;
+		}
+loop_cleanup:
+		ast_free(eqe);
+		ao2_cleanup(filter_entry);
+
+	}
+	ast_test_status_update(test, "Tested %d filters\n", i);
+
+	return res;
+}
+
+struct test_filter_matching {
+	const char *criteria;
+	const char *pattern;
+};
+
+/*
+ * These filters are used to test the precedence of include and exclude
+ * filters.  When there are both include and exclude filters, the include
+ * filters are matched first.  If the event doesn't match an include filter,
+ * it's discarded.  If it does match, the exclude filter list is searched and
+ * if a match is found, the event is discarded.
+ */
+
+/*
+ * The order of the filters in the array doesn't really matter.  The
+ * include and exclude filters are in separate containers and in each
+ * container, traversal stops when a match is found.
+ */
+static struct test_filter_matching filters_for_matching[] = {
+	{ "eventfilter(name(VarSet),method(none))", ""},
+	{ "eventfilter(name(Newchannel),method(regex))", "X[XYZ]X"},
+	{ "eventfilter(name(Newchannel),method(regex))", "X[abc]X"},
+	{ "eventfilter(name(Newchannel),header(Someheader),method(regex))", "ZZZ"},
+	{ "eventfilter(action(exclude),name(Newchannel),method(regex))", "X[a]X"},
+	{ "eventfilter(action(exclude),name(Newchannel),method(regex))", "X[Z]X"},
+	{ "eventfilter(action(exclude),name(VarSet),header(Channel),method(regex))", "YYY"},
+};
+
+struct test_event_matching{
+	const char *event_name;
+	const char *payload;
+	int expected_should_send_event;
+};
+
+static struct test_event_matching events_for_matching[] = {
+	{ "Newchannel", "Event: Newchannel\r\nChannel: XXX\r\nSomeheader: YYY\r\n", 1 },
+	{ "Newchannel", "Event: Newchannel\r\nChannel: XZX\r\nSomeheader: YYY\r\n", 0 },
+	{ "Newchannel", "Event: Newchannel\r\nChannel: XaX\r\nSomeheader: YYY\r\n", 0 },
+	{ "Newchannel", "Event: Newchannel\r\nChannel: XbX\r\nSomeheader: YYY\r\n", 1 },
+	{ "Newchannel", "Event: Newchannel\r\nChannel: XcX\r\nSomeheader: YYY\r\n", 1 },
+	{ "Newchannel", "Event: Newchannel\r\nChannel: YYY\r\nSomeheader: YYY\r\n", 0 },
+	{ "Newchannel", "Event: Newchannel\r\nChannel: YYY\r\nSomeheader: ZZZ\r\n", 1 },
+	{ "VarSet", "Event: VarSet\r\nChannel: XXX\r\nSomeheader: YYY\r\n", 1 },
+	{ "VarSet", "Event: VarSet\r\nChannel: YYY\r\nSomeheader: YYY\r\n", 0 },
+};
+
+AST_TEST_DEFINE(eventfilter_test_matching)
+{
+	enum ast_test_result_state res = AST_TEST_PASS;
+	RAII_VAR(struct ao2_container *, includefilters, NULL, ao2_cleanup);
+	RAII_VAR(struct ao2_container *, excludefilters, NULL, ao2_cleanup);
+	int i = 0;
+
+	switch (cmd) {
+	case TEST_INIT:
+		info->name = "eventfilter_test_matching";
+		info->category = "/main/manager/";
+		info->summary = "Test eventfilter matching";
+		info->description =
+			"This creates various eventfilters and tests to make sure they were matched successfully.";
+		return AST_TEST_NOT_RUN;
+	case TEST_EXECUTE:
+		break;
+	}
+
+	includefilters = ao2_container_alloc_list(AO2_ALLOC_OPT_LOCK_MUTEX, 0, NULL, NULL);
+	excludefilters = ao2_container_alloc_list(AO2_ALLOC_OPT_LOCK_MUTEX, 0, NULL, NULL);
+	if (!includefilters || !excludefilters) {
+		ast_test_status_update(test, "Failed to allocate filter containers.\n");
+		return AST_TEST_FAIL;
+	}
+
+	/* Load all the expected SUCCESS filters */
+	for (i = 0; i < ARRAY_LEN(filters_for_matching); i++) {
+		enum add_filter_result add_filter_res;
+
+		add_filter_res = manager_add_filter(filters_for_matching[i].criteria,
+			filters_for_matching[i].pattern, includefilters, excludefilters);
+
+		if (add_filter_res != FILTER_SUCCESS) {
+			ast_test_status_update(test,
+				"Unexpected add filter result '%s = %s'. Expected result: %s Actual result: %s\n",
+				parsing_filter_tests[i].criteria, parsing_filter_tests[i].filter,
+				add_filter_result_enums[FILTER_SUCCESS],
+				add_filter_result_enums[add_filter_res]);
+			res = AST_TEST_FAIL;
+			break;
+		}
+	}
+	ast_test_debug(test, "Loaded %d filters\n", i);
+
+	if (res != AST_TEST_PASS) {
+		return res;
+	}
+
+	/* Now test them */
+	for (i = 0; i < ARRAY_LEN(events_for_matching); i++) {
+		int send_event = 0;
+		struct eventqent *eqe = NULL;
+
+		eqe = ast_calloc(1, sizeof(*eqe) + strlen(events_for_matching[i].payload) + 1);
+		if (!eqe) {
+			ast_test_status_update(test, "Failed to allocate eventqent\n");
+			res = AST_TEST_FAIL;
+			break;
+		}
+		strcpy(eqe->eventdata, events_for_matching[i].payload); /* Safe */
+		eqe->event_name_hash = ast_str_hash(events_for_matching[i].event_name);
+		send_event = should_send_event(includefilters, excludefilters, eqe);
+		if (send_event != events_for_matching[i].expected_should_send_event) {
+			char *escaped = ast_escape_c_alloc(events_for_matching[i].payload);
+			ast_test_status_update(test,
+				"Should send event failed to match for '%s'. Expected: %s Actual: %s\n",
+				escaped,
+				AST_YESNO(events_for_matching[i].expected_should_send_event), AST_YESNO(send_event));
+			ast_free(escaped);
+			res = AST_TEST_FAIL;
+		}
+		ast_free(eqe);
+	}
+	ast_test_debug(test, "Tested %d events\n", i);
+
+	return res;
+}
+#endif
 
 /*!
  * Send any applicable events to the client listening on this socket.
@@ -6846,7 +6338,7 @@ static int process_events(struct mansession *s)
 			if (!ret && s->session->authenticated &&
 			    (s->session->readperm & eqe->category) == eqe->category &&
 			    (s->session->send_events & eqe->category) == eqe->category) {
-					if (match_filter(s, eqe->eventdata)) {
+					if (should_send_event(s->session->includefilters, s->session->excludefilters, eqe)) {
 						if (send_string(s, eqe->eventdata) < 0 || s->write_error)
 							ret = -1;	/* don't send more */
 					}
@@ -7192,6 +6684,13 @@ static int action_coreshowchannelmap(struct mansession *s, const struct message 
 		return 0;
 	}
 
+	if (ast_strlen_zero(channel_snapshot->bridge->id)) {
+		astman_send_listack(s, m, "Channel map will follow", "start");
+		astman_send_list_complete_start(s, m, "CoreShowChannelMapComplete", 0);
+		astman_send_list_complete_end(s);
+		return 0;
+	}
+
 	bridge_snapshot = ast_bridge_get_snapshot_by_uniqueid(channel_snapshot->bridge->id);
 	if (!bridge_snapshot) {
 		astman_send_listack(s, m, "Channel map will follow", "start");
@@ -7220,7 +6719,7 @@ static int action_coreshowchannelmap(struct mansession *s, const struct message 
 			"Event: CoreShowChannelMap\r\n"
 			"%s"
 			"Channel: %s\r\n"
-			"ConnectedChannel: %s\r\n\n",
+			"ConnectedChannel: %s\r\n\r\n",
 			id_text,
 			channel_name,
 			current_channel_name);
@@ -7278,6 +6777,42 @@ static int manager_modulecheck(struct mansession *s, const struct message *m)
 	return 0;
 }
 
+/**
+ * \brief Check if the given file path is in the modules dir or not
+ *
+ * \note When the module is being loaded / reloaded / unloaded, the modules dir is
+ * automatically prepended
+ *
+ * \return 1 if inside modules dir
+ * \return 0 if outside modules dir
+ * \return -1 on failure
+ */
+static int file_in_modules_dir(const char *filename)
+{
+	char *stripped_filename;
+	RAII_VAR(char *, path, NULL, ast_free);
+	RAII_VAR(char *, real_path, NULL, ast_free);
+
+	/* Don't bother checking */
+	if (live_dangerously) {
+		return 1;
+	}
+
+	stripped_filename = ast_strip(ast_strdupa(filename));
+
+	/* Always prepend the modules dir since that is what the code does for ModuleLoad */
+	if (ast_asprintf(&path, "%s/%s", ast_config_AST_MODULE_DIR, stripped_filename) == -1) {
+		return -1;
+	}
+
+	real_path = realpath(path, NULL);
+	if (!real_path) {
+		return -1;
+	}
+
+	return ast_begins_with(real_path, ast_config_AST_MODULE_DIR);
+}
+
 static int manager_moduleload(struct mansession *s, const struct message *m)
 {
 	int res;
@@ -7290,6 +6825,15 @@ static int manager_moduleload(struct mansession *s, const struct message *m)
 	}
 	if ((!module || strlen(module) == 0) && strcasecmp(loadtype, "reload") != 0) {
 		astman_send_error(s, m, "Need module name");
+	}
+
+	res = file_in_modules_dir(module);
+	if (res == 0) {
+		astman_send_error(s, m, "Module must be in the configured modules directory.");
+		return 0;
+	} else if (res == -1) {
+		astman_send_error(s, m, "Module not found.");
+		return 0;
 	}
 
 	if (!strcasecmp(loadtype, "load")) {
@@ -7344,8 +6888,9 @@ static int manager_moduleload(struct mansession *s, const struct message *m)
 			ast_module_reload(NULL);	/* Reload all modules */
 			astman_send_ack(s, m, "All modules reloaded");
 		}
-	} else
+	} else {
 		astman_send_error(s, m, "Incomplete ModuleLoad action.");
+	}
 	return 0;
 }
 
@@ -7856,7 +7401,7 @@ static int purge_sessions(int n_max)
  * events are appended to a queue from where they
  * can be dispatched to clients.
  */
-static int append_event(const char *str, int category)
+static int append_event(const char *str, int event_name_hash, int category)
 {
 	struct eventqent *tmp = ast_malloc(sizeof(*tmp) + strlen(str));
 	static int seq;	/* sequence number */
@@ -7870,6 +7415,7 @@ static int append_event(const char *str, int category)
 	tmp->category = category;
 	tmp->seq = ast_atomic_fetchadd_int(&seq, 1);
 	tmp->tv = ast_tvnow();
+	tmp->event_name_hash = event_name_hash;
 	AST_RWLIST_NEXT(tmp, eq_next) = NULL;
 	strcpy(tmp->eventdata, str);
 
@@ -7917,6 +7463,7 @@ static int __attribute__((format(printf, 9, 0))) __manager_event_sessions_va(
 	struct timeval now;
 	struct ast_str *buf;
 	int i;
+	int event_name_hash;
 
 	if (!ast_strlen_zero(manager_disabledevents)) {
 		if (ast_in_delimited_string(event, manager_disabledevents, ',')) {
@@ -7968,7 +7515,9 @@ static int __attribute__((format(printf, 9, 0))) __manager_event_sessions_va(
 
 	ast_str_append(&buf, 0, "\r\n");
 
-	append_event(ast_str_buffer(buf), category);
+	event_name_hash = ast_str_hash(event);
+
+	append_event(ast_str_buffer(buf), event_name_hash, category);
 
 	/* Wake up any sleeping sessions */
 	if (sessions) {
@@ -8023,8 +7572,8 @@ static int __attribute__((format(printf, 9, 0))) __manager_event_sessions(
 	int res;
 
 	va_start(ap, fmt);
-	res = __manager_event_sessions_va(sessions, category, event, chancount, chans,
-		file, line, func, fmt, ap);
+	res = __manager_event_sessions_va(sessions, category, event,
+		chancount, chans, file, line, func, fmt, ap);
 	va_end(ap);
 	return res;
 }
@@ -9770,11 +9319,11 @@ static void manager_free_user(struct ast_manager_user *user)
 {
 	ast_free(user->a1_hash);
 	ast_free(user->secret);
-	if (user->whitefilters) {
-		ao2_t_ref(user->whitefilters, -1, "decrement ref for white container, should be last one");
+	if (user->includefilters) {
+		ao2_t_ref(user->includefilters, -1, "decrement ref for include container, should be last one");
 	}
-	if (user->blackfilters) {
-		ao2_t_ref(user->blackfilters, -1, "decrement ref for black container, should be last one");
+	if (user->excludefilters) {
+		ao2_t_ref(user->excludefilters, -1, "decrement ref for exclude container, should be last one");
 	}
 	user->acl = ast_free_acl_list(user->acl);
 	ast_variables_destroy(user->chanvars);
@@ -9788,6 +9337,12 @@ static void manager_free_user(struct ast_manager_user *user)
 static void manager_shutdown(void)
 {
 	struct ast_manager_user *user;
+
+#ifdef TEST_FRAMEWORK
+	AST_TEST_UNREGISTER(eventfilter_test_creation);
+	AST_TEST_UNREGISTER(eventfilter_test_matching);
+	AST_TEST_UNREGISTER(originate_permissions_test);
+#endif
 
 	/* This event is not actually transmitted, but causes all TCP sessions to be closed */
 	manager_event(EVENT_FLAG_SHUTDOWN, "CloseSession", "CloseSession: true\r\n");
@@ -9984,7 +9539,7 @@ static int __init_manager(int reload, int by_external_config)
 	struct ast_manager_user *user = NULL;
 	struct ast_variable *var;
 	struct ast_flags config_flags = { (reload && !by_external_config) ? CONFIG_FLAG_FILEUNCHANGED : 0 };
-	char a1[256];
+	char a1[337];
 	char a1_hash[256];
 	struct ast_sockaddr ami_desc_local_address_tmp;
 	struct ast_sockaddr amis_desc_local_address_tmp;
@@ -10057,7 +9612,8 @@ static int __init_manager(int reload, int by_external_config)
 		ast_extension_state_add(NULL, NULL, manager_state_cb, NULL);
 
 		/* Append placeholder event so master_eventq never runs dry */
-		if (append_event("Event: Placeholder\r\n\r\n", 0)) {
+		if (append_event("Event: Placeholder\r\n\r\n",
+			ast_str_hash("Placeholder"), 0)) {
 			return -1;
 		}
 
@@ -10328,9 +9884,9 @@ static int __init_manager(int reload, int by_external_config)
 			/* Default allowmultiplelogin from [general] */
 			user->allowmultiplelogin = allowmultiplelogin;
 			user->writetimeout = 100;
-			user->whitefilters = ao2_container_alloc_list(AO2_ALLOC_OPT_LOCK_MUTEX, 0, NULL, NULL);
-			user->blackfilters = ao2_container_alloc_list(AO2_ALLOC_OPT_LOCK_MUTEX, 0, NULL, NULL);
-			if (!user->whitefilters || !user->blackfilters) {
+			user->includefilters = ao2_container_alloc_list(AO2_ALLOC_OPT_LOCK_MUTEX, 0, NULL, NULL);
+			user->excludefilters = ao2_container_alloc_list(AO2_ALLOC_OPT_LOCK_MUTEX, 0, NULL, NULL);
+			if (!user->includefilters || !user->excludefilters) {
 				manager_free_user(user);
 				break;
 			}
@@ -10338,8 +9894,8 @@ static int __init_manager(int reload, int by_external_config)
 			/* Insert into list */
 			AST_RWLIST_INSERT_TAIL(&users, user, list);
 		} else {
-			ao2_t_callback(user->whitefilters, OBJ_UNLINK | OBJ_NODATA | OBJ_MULTIPLE, NULL, NULL, "unlink all white filters");
-			ao2_t_callback(user->blackfilters, OBJ_UNLINK | OBJ_NODATA | OBJ_MULTIPLE, NULL, NULL, "unlink all black filters");
+			ao2_t_callback(user->includefilters, OBJ_UNLINK | OBJ_NODATA | OBJ_MULTIPLE, NULL, NULL, "unlink all include filters");
+			ao2_t_callback(user->excludefilters, OBJ_UNLINK | OBJ_NODATA | OBJ_MULTIPLE, NULL, NULL, "unlink all exclude filters");
 		}
 
 		/* Make sure we keep this user and don't destroy it during cleanup */
@@ -10395,9 +9951,9 @@ static int __init_manager(int reload, int by_external_config)
 						user->chanvars = tmpvar;
 					}
 				}
-			} else if (!strcasecmp(var->name, "eventfilter")) {
+			} else if (ast_begins_with(var->name, "eventfilter")) {
 				const char *value = var->value;
-				manager_add_filter(value, user->whitefilters, user->blackfilters);
+				manager_add_filter(var->name, value, user->includefilters, user->excludefilters);
 			} else {
 				ast_debug(1, "%s is an unknown option.\n", var->name);
 			}
@@ -10490,14 +10046,20 @@ static int unload_module(void)
 
 static int load_module(void)
 {
+	int rc = 0;
 	ast_register_cleanup(manager_shutdown);
-
-	return __init_manager(0, 0) ? AST_MODULE_LOAD_FAILURE : AST_MODULE_LOAD_SUCCESS;
+	rc = __init_manager(0, 0) ? AST_MODULE_LOAD_FAILURE : AST_MODULE_LOAD_SUCCESS;
+#ifdef TEST_FRAMEWORK
+	AST_TEST_REGISTER(eventfilter_test_creation);
+	AST_TEST_REGISTER(eventfilter_test_matching);
+	AST_TEST_REGISTER(originate_permissions_test);
+#endif
+	return rc;
 }
 
 static int reload_module(void)
 {
-	return __init_manager(1, 0);
+	return __init_manager(1, 0) ? AST_MODULE_LOAD_FAILURE : AST_MODULE_LOAD_SUCCESS;
 }
 
 int astman_datastore_add(struct mansession *s, struct ast_datastore *datastore)

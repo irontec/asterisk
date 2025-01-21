@@ -285,6 +285,7 @@ static struct ast_channel_snapshot_base *channel_snapshot_base_create(struct ast
 	ast_string_field_set(snapshot, userfield, ast_channel_userfield(chan));
 	ast_string_field_set(snapshot, uniqueid, ast_channel_uniqueid(chan));
 	ast_string_field_set(snapshot, language, ast_channel_language(chan));
+	ast_string_field_set(snapshot, tenantid, ast_channel_tenantid(chan));
 
 	snapshot->creationtime = ast_channel_creationtime(chan);
 	snapshot->tech_properties = ast_channel_tech(chan)->properties;
@@ -942,8 +943,8 @@ void ast_channel_publish_final_snapshot(struct ast_channel *chan)
 		return;
 	}
 
-	ao2_unlink(channel_cache, update->old_snapshot);
-	ao2_unlink(channel_cache_by_name, update->old_snapshot);
+	ao2_find(channel_cache, ast_channel_uniqueid(chan), OBJ_SEARCH_KEY | OBJ_UNLINK | OBJ_NODATA);
+	ao2_find(channel_cache_by_name, ast_channel_name(chan), OBJ_SEARCH_KEY | OBJ_UNLINK | OBJ_NODATA);
 
 	ast_channel_snapshot_set(chan, NULL);
 
@@ -1096,17 +1097,15 @@ void ast_channel_publish_snapshot(struct ast_channel *chan)
 	 * snapshot is not in the cache.
 	 */
 	ao2_wrlock(channel_cache);
-	if (update->old_snapshot) {
-		ao2_unlink_flags(channel_cache, update->old_snapshot, OBJ_NOLOCK);
-	}
+	ao2_find(channel_cache, ast_channel_uniqueid(chan), OBJ_SEARCH_KEY | OBJ_UNLINK | OBJ_NODATA | OBJ_NOLOCK);
+
 	ao2_link_flags(channel_cache, update->new_snapshot, OBJ_NOLOCK);
 	ao2_unlock(channel_cache);
 
 	/* The same applies here. */
 	ao2_wrlock(channel_cache_by_name);
-	if (update->old_snapshot) {
-		ao2_unlink_flags(channel_cache_by_name, update->old_snapshot, OBJ_NOLOCK);
-	}
+	ao2_find(channel_cache_by_name, ast_channel_name(chan), OBJ_SEARCH_KEY | OBJ_UNLINK | OBJ_NODATA | OBJ_NOLOCK);
+
 	ao2_link_flags(channel_cache_by_name, update->new_snapshot, OBJ_NOLOCK);
 	ao2_unlock(channel_cache_by_name);
 
@@ -1330,6 +1329,10 @@ struct ast_json *ast_channel_snapshot_to_json(
 	if (snapshot->ari_vars && !AST_LIST_EMPTY(snapshot->ari_vars)) {
 		ast_json_object_set(json_chan, "channelvars", ast_json_channel_vars(snapshot->ari_vars));
 	}
+
+        if (!ast_strlen_zero(snapshot->base->tenantid)) {
+                ast_json_object_set(json_chan, "tenantid", ast_json_string_create(snapshot->base->tenantid));
+        }
 
 	return json_chan;
 }

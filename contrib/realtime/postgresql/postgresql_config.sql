@@ -272,7 +272,7 @@ CREATE TABLE musiconhold (
     PRIMARY KEY (name)
 );
 
-INSERT INTO alembic_version (version_num) VALUES ('4da0c5f79a9c');
+INSERT INTO alembic_version (version_num) VALUES ('4da0c5f79a9c') RETURNING alembic_version.version_num;
 
 -- Running upgrade 4da0c5f79a9c -> 43956d550a44
 
@@ -1804,6 +1804,36 @@ ALTER TABLE ps_outbound_publishes ALTER COLUMN id SET NOT NULL;
 ALTER TABLE ps_registrations ALTER COLUMN id SET NOT NULL;
 
 UPDATE alembic_version SET version_num='6c475a93f48a' WHERE alembic_version.version_num = 'd5122576cca8';
+
+-- Running upgrade 6c475a93f48a -> bd9c5159c7ea
+
+ALTER TABLE ps_endpoint_id_ips DROP COLUMN transport;
+
+UPDATE alembic_version SET version_num='bd9c5159c7ea' WHERE alembic_version.version_num = '6c475a93f48a';
+
+-- Running upgrade bd9c5159c7ea -> 2b7c507d7d12
+
+ALTER TABLE queues ADD COLUMN log_restricted_caller_id ast_bool_values;
+
+UPDATE alembic_version SET version_num='2b7c507d7d12' WHERE alembic_version.version_num = 'bd9c5159c7ea';
+
+-- Running upgrade 2b7c507d7d12 -> 655054a68ad5
+
+ALTER TABLE ps_endpoints ADD COLUMN tenantid VARCHAR(80);
+
+UPDATE alembic_version SET version_num='655054a68ad5' WHERE alembic_version.version_num = '2b7c507d7d12';
+
+-- Running upgrade 655054a68ad5 -> 801b9fced8b7
+
+ALTER TABLE ps_subscription_persistence ADD COLUMN generator_data TEXT;
+
+UPDATE alembic_version SET version_num='801b9fced8b7' WHERE alembic_version.version_num = '655054a68ad5';
+
+-- Running upgrade 801b9fced8b7 -> 4f91fc18c979
+
+ALTER TABLE ps_endpoints ADD COLUMN suppress_moh_on_sendonly ast_bool_values;
+
+UPDATE alembic_version SET version_num='4f91fc18c979' WHERE alembic_version.version_num = '801b9fced8b7';
 
 COMMIT;
 

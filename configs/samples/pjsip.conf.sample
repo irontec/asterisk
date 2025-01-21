@@ -197,47 +197,6 @@
 ;tcp_keepalive_interval_time=10  ; The time in seconds between individual keepalive probes
 ;tcp_keepalive_probe_count=5     ; The maximum number of keepalive probes TCP should send before dropping the connection
 
-;===============ENDPOINT IDENTIFIER TRANSPORT EXAMPLE==========================
-;
-; When Asterisk has multiple bound IP addresses, and endpoints don't use any
-; other means of identification (e.g.: username), the transports' bind addresses
-; can be used to identify them. Can be useful in case you're connecting to the
-; same ITSP multiple times on different IPs / NICs.
-;
-;[transport-eth0]
-;type=transport
-;protocol=tcp
-;bind=192.168.1.1:5060
-;
-;[transport-eth1]
-;type=transport
-;protocol=udp
-;bind=192.168.2.1:5060
-;
-;
-;[myprovider-a]
-;type=endpoint
-;transport=transport-eth0
-;identify_by=transport
-;
-;[myprovider-b]
-;type=endpoint
-;transport=transport-eth1
-;identify_by=transport
-;
-;
-;[identify-a]
-;type=identify
-;endpoint=myprovider-a
-;match=192.168.1.1:5060	; This is the bind address of [transport-eth0]
-;;transport=tcp		; Optionally, this is the transport protocol of [transport-eth0]
-;
-;[identify-b]
-;type=identify
-;endpoint=myprovider-b
-;match=192.168.2.1:5060	; This is the bind address of [transport-eth1]
-;;transport=udp		; Optionally, This is the transport protocol of [transport-eth1]
-
 ;===============OUTBOUND REGISTRATION WITH OUTBOUND AUTHENTICATION============
 ;
 ; This is a simple registration that works with some SIP trunking providers.
@@ -297,8 +256,8 @@
 ; At a basic level configure the endpoint with a transport that is set up
 ; with the appropriate NAT settings. There may be some additional settings you
 ; need here based on your NAT/Firewall scenario. Look to the CLI config help
-; "config show help res_pjsip endpoint" or on the wiki for other NAT related
-; options and configuration. We've included a few below.
+; "config show help res_pjsip endpoint" or on https://docs.asterisk.org/ for
+; other NAT related options and configuration. We've included a few below.
 ;
 ; AOR
 ;
@@ -459,7 +418,7 @@
 ;force_rport=yes
 ;rewrite_contact=yes  ; necessary if endpoint does not know/register public ip:port
 ;ice_support=yes   ;This is specific to clients that support NAT traversal
-                   ;for media via ICE,STUN,TURN. See the wiki at:
+                   ;for media via ICE,STUN,TURN. See the docs at:
                    ;https://docs.asterisk.org/Configuration/Miscellaneous/Interactive-Connectivity-Establishment-ICE-in-Asterisk/
                    ;for a deeper explanation of this topic.
 
@@ -472,6 +431,16 @@
 ;[6002]
 ;type=aor
 ;max_contacts=2
+
+;===============DEFAULT ENDPOINT FOR OUTBOUND REQUESTS TO URI===================
+;
+; This is an example default outbound endpoint.  The global setting:
+; default_outbound_endpoint needs to be set to such an endpoint in order to be
+; able to send an outbound request to a URI without a specified endpoint.
+;
+;[default_outbound_endpoint]
+;type=endpoint
+;context=none-invalid
 
 
 ;============EXAMPLE ACL CONFIGURATION==========================================
@@ -725,10 +694,9 @@
                         ; identified.
                         ; "username": Identify by the From or To username and domain
                         ; "auth_username": Identify by the Authorization username and realm
-                        ; "ip": Identify by the source (remote) IP address
+                        ; "ip": Identify by the source IP address
                         ; "header": Identify by a configured SIP header value.
                         ; "request_uri": Identify by the configured SIP request URI.
-                        ; "transport": Identify by the bound (local) IP address
                         ; In the username and auth_username cases, if an exact match
                         ; on both username and domain/realm fails, the match is
                         ; retried with just the username.
@@ -1040,7 +1008,28 @@
                 ; AOC updates can be sent using the AOCMessage AMI action or come
                 ; from PRI channels.
                 ; (default: no)
-
+;
+; tenantid =
+                ; Sets the tenant ID for this endpoint. It can be read in dialplan
+                ; with the CHANNEL function, and it can be changed later via dialplan
+                ; using the same CHANNEL function if needed. Setting tenant ID here
+                ; will cause it to show up on channel creation and the initial
+                ; channel snapshot.
+;
+; suppress_moh_on_sendonly = no
+                ; Normally, when one party in a call sends Asterisk an SDP with
+                ; a "sendonly" or "inactive" attribute it means "hold" and
+                ; causes Asterisk to start playing MOH back to the other party.
+                ; This can be problematic if it happens at certain times, such
+                ; as in a 183 Progress message, because the MOH will replace
+                ; any early media you may be playing to the calling party. If
+                ; you set this option to "yes" on an endpoint and the endpoint
+                ; receives an SDP with "sendonly" or "inactive", Asterisk will
+                ; NOT play MOH back to the other party.
+                ; NOTE: This doesn't just apply to 183 responses.  MOH will
+                ; be suppressed when the attribute appears in any SDP received
+                ; including INVITEs, re-INVITES, and other responses.
+                ; (default: no)
 
 ;==========================AUTH SECTION OPTIONS=========================
 ;[auth]
@@ -1050,8 +1039,8 @@
 ;  authentication is not recommended.  There is a difference in
 ;  meaning for an empty realm setting between inbound and outbound
 ;  authentication uses.  Look to the CLI config help
-;  "config show help res_pjsip auth realm" or on the wiki for the
-;  difference.
+;  "config show help res_pjsip auth realm" or on https://docs.asterisk.org/
+;  for the difference.
 ;
 ;auth_type=userpass  ; Authentication type.  May be
                      ; "userpass" for plain text passwords or
@@ -1313,10 +1302,9 @@
             ; (default: "no")
 ;endpoint_identifier_order=ip,username,anonymous
             ; The order by which endpoint identifiers are given priority.
-            ; Currently, "ip", "header", "request_uri", "transport", "username",
-            ; "auth_username" and "anonymous"  are valid identifiers as registered by
-            ; the res_pjsip_endpoint_identifier_* modules.
-            ; Some modules like res_pjsip_endpoint_identifier_user register
+            ; Currently, "ip", "header", "username", "auth_username" and "anonymous"
+            ; are valid identifiers as registered by the res_pjsip_endpoint_identifier_*
+            ; modules.  Some modules like res_pjsip_endpoint_identifier_user register
             ; more than one identifier.  Use the CLI command "pjsip show identifiers"
             ; to see the identifiers currently available.
             ; (default: ip,username,anonymous)
@@ -1504,8 +1492,6 @@
 ;match= ; Comma separated list of IP addresses, networks, or hostnames to match
         ; against (default: "")
 ;match_header= ; SIP header with specified value to match against (default: "")
-;match_request_uri= ; SIP request URI to match against (default: "")
-;transport= ; Match ageinst the transport protocol (tcp or udp) (default: "")
 ;type=  ; Must be of type identify (default: "")
 
 
