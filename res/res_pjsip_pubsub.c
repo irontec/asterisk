@@ -50,6 +50,9 @@
 
 /*** DOCUMENTATION
 	<manager name="PJSIPShowSubscriptionsInbound" language="en_US">
+		<since>
+			<version>12.0.0</version>
+		</since>
 		<synopsis>
 			Lists subscriptions.
 		</synopsis>
@@ -63,6 +66,9 @@
 		</description>
 	</manager>
 	<manager name="PJSIPShowSubscriptionsOutbound" language="en_US">
+		<since>
+			<version>12.0.0</version>
+		</since>
 		<synopsis>
 			Lists subscriptions.
 		</synopsis>
@@ -76,6 +82,9 @@
 		</description>
 	</manager>
 	<manager name="PJSIPShowResourceLists" language="en_US">
+		<since>
+			<version>13.0.0</version>
+		</since>
 		<synopsis>
 			Displays settings for configured resource lists.
 		</synopsis>
@@ -139,6 +148,7 @@
 				</configOption>
 			</configObject>
 			<configObject name="resource_list">
+				<since><version>13.0.0</version></since>
 				<synopsis>Resource list configuration parameters.</synopsis>
 				<description>
 					<para>This configuration object allows for RFC 4662 resource list subscriptions
@@ -151,9 +161,11 @@
 					</note>
 				</description>
 				<configOption name="type">
+					<since><version>13.0.0</version></since>
 					<synopsis>Must be of type 'resource_list'</synopsis>
 				</configOption>
 				<configOption name="event">
+					<since><version>13.0.0</version></since>
 					<synopsis>The SIP event package that the list resource belong to.</synopsis>
 					<description><para>
 						The SIP event package describes the types of resources that Asterisk reports
@@ -173,6 +185,7 @@
 					</description>
 				</configOption>
 				<configOption name="list_item">
+					<since><version>13.0.0</version></since>
 					<synopsis>The name of a resource to report state on</synopsis>
 					<description>
 						<para>In general Asterisk looks up list items in the following way:</para>
@@ -187,6 +200,7 @@
 					</description>
 				</configOption>
 				<configOption name="full_state" default="no">
+					<since><version>13.0.0</version></since>
 					<synopsis>Indicates if the entire list's state should be sent out.</synopsis>
 					<description>
 						<para>If this option is enabled, and a resource changes state, then Asterisk will construct
@@ -202,6 +216,7 @@
 					</description>
 				</configOption>
 				<configOption name="notification_batch_interval" default="0">
+					<since><version>13.0.0</version></since>
 					<synopsis>Time Asterisk should wait, in milliseconds, before sending notifications.</synopsis>
 					<description>
 						<para>When a resource's state changes, it may be desired to wait a certain amount before Asterisk
@@ -211,6 +226,7 @@
 					</description>
 				</configOption>
 				<configOption name="resource_display_name" default="no">
+					<since><version>16.25.0</version><version>18.11.0</version><version>19.3.0</version></since>
 					<synopsis>Indicates whether display name of resource or the resource name being reported.</synopsis>
 					<description>
 						<para>If this option is enabled, the Display Name will be reported as resource name.
@@ -221,11 +237,14 @@
 				</configOption>
 			</configObject>
 			<configObject name="inbound-publication">
+				<since><version>13.0.0</version></since>
 				<synopsis>The configuration for inbound publications</synopsis>
 				<configOption name="endpoint" default="">
+					<since><version>13.0.0</version></since>
 					<synopsis>Optional name of an endpoint that is only allowed to publish to this resource</synopsis>
 				</configOption>
 				<configOption name="type">
+					<since><version>13.0.0</version></since>
 					<synopsis>Must be of type 'inbound-publication'.</synopsis>
 				</configOption>
 			</configObject>

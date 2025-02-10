@@ -5267,6 +5267,11 @@ static int rtp_raw_write(struct ast_rtp_instance *instance, struct ast_frame *fr
 	}
 
 	if (ast_test_flag(frame, AST_FRFLAG_HAS_TIMING_INFO)) {
+		if (abs(frame->ts * rate - (int)rtp->lastts) > MAX_TIMESTAMP_SKEW) {
+			ast_verbose("(%p) RTP audio difference is %d set mark\n",
+				instance, abs(frame->ts * rate - (int)rtp->lastts));
+			mark = 1;
+		}
 		rtp->lastts = frame->ts * rate;
 	}
 
@@ -7240,8 +7245,8 @@ static int bridge_p2p_rtp_write(struct ast_rtp_instance *instance,
 	}
 
 	/* Otherwise adjust bridged payload to match */
-	bridged_payload = ast_rtp_codecs_payload_code_tx(ast_rtp_instance_get_codecs(instance1),
-		payload_type->asterisk_format, payload_type->format, payload_type->rtp_code);
+	bridged_payload = ast_rtp_codecs_payload_code_tx_sample_rate(ast_rtp_instance_get_codecs(instance1),
+		payload_type->asterisk_format, payload_type->format, payload_type->rtp_code, payload_type->sample_rate);
 
 	/* If no codec could be matched between instance and instance1, then somehow things were made incompatible while we were still bridged.  Bail. */
 	if (bridged_payload < 0) {

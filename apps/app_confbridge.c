@@ -76,6 +76,7 @@
 
 /*** DOCUMENTATION
 	<application name="ConfBridge" language="en_US">
+		<since><version>12.0.0</version></since>
 		<synopsis>
 			Conference bridge application.
 		</synopsis>
@@ -135,7 +136,6 @@
 		<since>
 			<version>16.19.0</version>
 			<version>18.5.0</version>
-			<version>19.0.0</version>
 		</since>
 		<synopsis>
 			Kicks channel(s) from the requested ConfBridge.
@@ -169,6 +169,7 @@
 		</see-also>
 	</application>
 	<function name="CONFBRIDGE" language="en_US">
+		<since><version>10.0.0</version></since>
 		<synopsis>
 			Set a custom dynamic bridge, user, or menu profile on a channel for the
 			ConfBridge application using the same options available in confbridge.conf.
@@ -224,6 +225,7 @@
 		</description>
 	</function>
 	<function name="CONFBRIDGE_INFO" language="en_US">
+		<since><version>10.0.0</version></since>
 		<synopsis>
 			Get information about a ConfBridge conference.
 		</synopsis>
@@ -262,9 +264,9 @@
 	</function>
 	<function name="CONFBRIDGE_CHANNELS" language="en_US">
 		<since>
-			<version>16.26.0</version>
-			<version>18.12.0</version>
-			<version>19.4.0</version>
+			<version>16.27.0</version>
+			<version>18.13.0</version>
+			<version>19.5.0</version>
 		</since>
 		<synopsis>
 			Get a list of channels in a ConfBridge conference.
@@ -302,6 +304,9 @@
 		</see-also>
 	</function>
 	<manager name="ConfbridgeList" language="en_US">
+		<since>
+			<version>10.0.0</version>
+		</since>
 		<synopsis>
 			List participants in a conference.
 		</synopsis>
@@ -319,6 +324,7 @@
 	</manager>
 	<managerEvent language="en_US" name="ConfbridgeList">
 		<managerEventInstance class="EVENT_FLAG_REPORTING">
+			<since><version>13.20.0</version><version>15.3.0</version></since>
 			<synopsis>Raised as part of the ConfbridgeList action response list.</synopsis>
 			<syntax>
 				<parameter name="Conference">
@@ -381,6 +387,9 @@
 		</managerEventInstance>
 	</managerEvent>
 	<manager name="ConfbridgeListRooms" language="en_US">
+		<since>
+			<version>10.0.0</version>
+		</since>
 		<synopsis>
 			List active conferences.
 		</synopsis>
@@ -395,6 +404,7 @@
 	</manager>
 	<managerEvent language="en_US" name="ConfbridgeListRooms">
 		<managerEventInstance class="EVENT_FLAG_REPORTING">
+			<since><version>16.29.0</version><version>18.15.0</version><version>19.7.0</version></since>
 			<synopsis>Raised as part of the ConfbridgeListRooms action response list.</synopsis>
 			<syntax>
 				<parameter name="Conference">
@@ -425,6 +435,9 @@
 		</managerEventInstance>
 	</managerEvent>
 	<manager name="ConfbridgeMute" language="en_US">
+		<since>
+			<version>10.0.0</version>
+		</since>
 		<synopsis>
 			Mute a Confbridge user.
 		</synopsis>
@@ -441,6 +454,9 @@
 		</description>
 	</manager>
 	<manager name="ConfbridgeUnmute" language="en_US">
+		<since>
+			<version>10.0.0</version>
+		</since>
 		<synopsis>
 			Unmute a Confbridge user.
 		</synopsis>
@@ -457,6 +473,9 @@
 		</description>
 	</manager>
 	<manager name="ConfbridgeKick" language="en_US">
+		<since>
+			<version>10.0.0</version>
+		</since>
 		<synopsis>
 			Kick a Confbridge user.
 		</synopsis>
@@ -472,6 +491,9 @@
 		</description>
 	</manager>
 	<manager name="ConfbridgeLock" language="en_US">
+		<since>
+			<version>10.0.0</version>
+		</since>
 		<synopsis>
 			Lock a Confbridge conference.
 		</synopsis>
@@ -483,6 +505,9 @@
 		</description>
 	</manager>
 	<manager name="ConfbridgeUnlock" language="en_US">
+		<since>
+			<version>10.0.0</version>
+		</since>
 		<synopsis>
 			Unlock a Confbridge conference.
 		</synopsis>
@@ -494,6 +519,9 @@
 		</description>
 	</manager>
 	<manager name="ConfbridgeStartRecord" language="en_US">
+		<since>
+			<version>10.0.0</version>
+		</since>
 		<synopsis>
 			Start recording a Confbridge conference.
 		</synopsis>
@@ -507,6 +535,9 @@
 		</description>
 	</manager>
 	<manager name="ConfbridgeStopRecord" language="en_US">
+		<since>
+			<version>10.0.0</version>
+		</since>
 		<synopsis>
 			Stop recording a Confbridge conference.
 		</synopsis>
@@ -518,6 +549,9 @@
 		</description>
 	</manager>
 	<manager name="ConfbridgeSetSingleVideoSrc" language="en_US">
+		<since>
+			<version>10.0.0</version>
+		</since>
 		<synopsis>
 			Set a conference user as the single video source distributed to all other participants.
 		</synopsis>

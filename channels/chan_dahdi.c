@@ -131,6 +131,7 @@
 
 /*** DOCUMENTATION
 	<application name="DAHDISendKeypadFacility" language="en_US">
+		<since><version>1.6.2.0</version></since>
 		<synopsis>
 			Send digits out of band over a PRI.
 		</synopsis>
@@ -143,6 +144,7 @@
 		</description>
 	</application>
 	<application name="DAHDISendCallreroutingFacility" language="en_US">
+		<since><version>1.6.2.0</version></since>
 		<synopsis>
 			Send an ISDN call rerouting/deflection facility message.
 		</synopsis>
@@ -164,6 +166,7 @@
 		</description>
 	</application>
 	<application name="DAHDIAcceptR2Call" language="en_US">
+		<since><version>1.6.1.0</version></since>
 		<synopsis>
 			Accept an R2 call if its not already accepted (you still need to answer it)
 		</synopsis>
@@ -178,6 +181,7 @@
 		</description>
 	</application>
 	<function name="POLARITY" language="en_US">
+		<since><version>16.28.0</version><version>18.14.0</version><version>19.6.0</version></since>
 		<synopsis>
 			Set or get the polarity of a DAHDI channel.
 		</synopsis>
@@ -347,6 +351,9 @@
 		</example>
 	</info>
 	<manager name="DAHDITransfer" language="en_US">
+		<since>
+			<version>1.4.22</version>
+		</since>
 		<synopsis>
 			Transfer DAHDI Channel.
 		</synopsis>
@@ -362,6 +369,9 @@
 		</description>
 	</manager>
 	<manager name="DAHDIHangup" language="en_US">
+		<since>
+			<version>1.4.22</version>
+		</since>
 		<synopsis>
 			Hangup DAHDI Channel.
 		</synopsis>
@@ -377,6 +387,9 @@
 		</description>
 	</manager>
 	<manager name="DAHDIDialOffhook" language="en_US">
+		<since>
+			<version>1.4.22</version>
+		</since>
 		<synopsis>
 			Dial over DAHDI channel while offhook.
 		</synopsis>
@@ -394,6 +407,9 @@
 		</description>
 	</manager>
 	<manager name="DAHDIDNDon" language="en_US">
+		<since>
+			<version>1.4.22</version>
+		</since>
 		<synopsis>
 			Toggle DAHDI channel Do Not Disturb status ON.
 		</synopsis>
@@ -409,6 +425,9 @@
 		</description>
 	</manager>
 	<manager name="DAHDIDNDoff" language="en_US">
+		<since>
+			<version>1.4.22</version>
+		</since>
 		<synopsis>
 			Toggle DAHDI channel Do Not Disturb status OFF.
 		</synopsis>
@@ -424,6 +443,9 @@
 		</description>
 	</manager>
 	<manager name="DAHDIShowChannels" language="en_US">
+		<since>
+			<version>1.4.22</version>
+		</since>
 		<synopsis>
 			Show status of DAHDI channels.
 		</synopsis>
@@ -438,6 +460,11 @@
 		</description>
 	</manager>
 	<manager name="DAHDIShowStatus" language="en_US">
+		<since>
+			<version>21.3.0</version>
+			<version>20.8.0</version>
+			<version>18.23.0</version>
+		</since>
 		<synopsis>
 			Show status of DAHDI spans.
 		</synopsis>
@@ -447,6 +474,9 @@
 		</description>
 	</manager>
 	<manager name="DAHDIRestart" language="en_US">
+		<since>
+			<version>1.4.22</version>
+		</since>
 		<synopsis>
 			Fully Restart DAHDI channels (terminates calls).
 		</synopsis>
@@ -458,6 +488,9 @@
 		</description>
 	</manager>
 	<manager name="PRIShowSpans" language="en_US">
+		<since>
+			<version>10.0.0</version>
+		</since>
 		<synopsis>
 			Show status of PRI spans.
 		</synopsis>
@@ -472,6 +505,9 @@
 		</description>
 	</manager>
 	<manager name="PRIDebugSet" language="en_US">
+		<since>
+			<version>13.0.0</version>
+		</since>
 		<synopsis>
 			Set PRI debug levels for a span
 		</synopsis>
@@ -495,6 +531,9 @@
 		</description>
 	</manager>
 	<manager name="PRIDebugFileSet" language="en_US">
+		<since>
+			<version>13.0.0</version>
+		</since>
 		<synopsis>
 			Set the file used for PRI debug message output
 		</synopsis>
@@ -509,6 +548,9 @@
 		</description>
 	</manager>
 	<manager name="PRIDebugFileUnset" language="en_US">
+		<since>
+			<version>13.0.0</version>
+		</since>
 		<synopsis>
 			Disables file output for PRI debug messages
 		</synopsis>
@@ -518,6 +560,7 @@
 	</manager>
 	<managerEvent language="en_US" name="AlarmClear">
 		<managerEventInstance class="EVENT_FLAG_SYSTEM">
+			<since><version>12.0.0</version></since>
 			<synopsis>Raised when an alarm is cleared on a DAHDI channel.</synopsis>
 			<syntax>
 				<parameter name="DAHDIChannel">
@@ -529,6 +572,7 @@
 	</managerEvent>
 	<managerEvent language="en_US" name="SpanAlarmClear">
 		<managerEventInstance class="EVENT_FLAG_SYSTEM">
+			<since><version>12.0.0</version></since>
 			<synopsis>Raised when an alarm is cleared on a DAHDI span.</synopsis>
 			<syntax>
 				<parameter name="Span">
@@ -539,6 +583,7 @@
 	</managerEvent>
 	<managerEvent language="en_US" name="DNDState">
 		<managerEventInstance class="EVENT_FLAG_SYSTEM">
+			<since><version>12.0.0</version></since>
 			<synopsis>Raised when the Do Not Disturb state is changed on a DAHDI channel.</synopsis>
 			<syntax>
 				<parameter name="DAHDIChannel">
@@ -556,6 +601,7 @@
 	</managerEvent>
 	<managerEvent language="en_US" name="Alarm">
 		<managerEventInstance class="EVENT_FLAG_SYSTEM">
+			<since><version>12.0.0</version></since>
 			<synopsis>Raised when an alarm is set on a DAHDI channel.</synopsis>
 			<syntax>
 				<parameter name="DAHDIChannel">
@@ -570,6 +616,7 @@
 	</managerEvent>
 	<managerEvent language="en_US" name="SpanAlarm">
 		<managerEventInstance class="EVENT_FLAG_SYSTEM">
+			<since><version>12.0.0</version></since>
 			<synopsis>Raised when an alarm is set on a DAHDI span.</synopsis>
 			<syntax>
 				<parameter name="Span">
@@ -583,6 +630,7 @@
 	</managerEvent>
 	<managerEvent language="en_US" name="DAHDIChannel">
 		<managerEventInstance class="EVENT_FLAG_CALL">
+			<since><version>12.0.0</version></since>
 			<synopsis>Raised when a DAHDI channel is created or an underlying technology is associated with a DAHDI channel.</synopsis>
 			<syntax>
 				<channel_snapshot/>
@@ -9395,8 +9443,11 @@ static int dahdi_indicate(struct ast_channel *chan, int condition, const void *d
 				if ((ast_channel_state(chan) != AST_STATE_RING) ||
 					((p->sig != SIG_FXSKS) &&
 				 (p->sig != SIG_FXSLS) &&
-				 (p->sig != SIG_FXSGS)))
-				ast_setstate(chan, AST_STATE_RINGING);
+				 (p->sig != SIG_FXSGS))) {
+					/* We're playing audible ringback tone on the channel,
+					 * so set state to AST_STATE_RING, not AST_STATE_RINGING. */
+					ast_setstate(chan, AST_STATE_RING);
+				}
 			}
 			break;
 		case AST_CONTROL_INCOMPLETE:
@@ -13068,6 +13119,7 @@ static struct dahdi_pvt *mkintf(int channel, const struct dahdi_chan_conf *conf,
 		tmp->permhidecallerid = conf->chan.hidecallerid;
 		tmp->hidecalleridname = conf->chan.hidecalleridname;
 		tmp->callreturn = conf->chan.callreturn;
+		tmp->lastnumredial = conf->chan.lastnumredial; /* Not used in DAHDI pvt, only analog pvt */
 		tmp->echocancel = conf->chan.echocancel;
 		tmp->echotraining = conf->chan.echotraining;
 		tmp->pulse = conf->chan.pulse;
@@ -13363,6 +13415,7 @@ static struct dahdi_pvt *mkintf(int channel, const struct dahdi_chan_conf *conf,
 				analog_p->permcallwaiting = conf->chan.callwaiting; /* permcallwaiting possibly modified in analog_config_complete */
 				analog_p->calledsubscriberheld = conf->chan.calledsubscriberheld; /* Only actually used in analog pvt, not DAHDI pvt */
 				analog_p->callreturn = conf->chan.callreturn;
+				analog_p->lastnumredial = conf->chan.lastnumredial; /* Only actually used in analog pvt, not DAHDI pvt */
 				analog_p->cancallforward = conf->chan.cancallforward;
 				analog_p->canpark = conf->chan.canpark;
 				analog_p->dahditrcallerid = conf->chan.dahditrcallerid;
@@ -18612,6 +18665,8 @@ static int process_dahdi(struct dahdi_chan_conf *confp, const char *cat, struct 
 			parse_busy_pattern(v, &confp->chan.busy_cadence);
 		} else if (!strcasecmp(v->name, "calledsubscriberheld")) {
 			confp->chan.calledsubscriberheld = ast_true(v->value);
+		} else if (!strcasecmp(v->name, "lastnumredial")) {
+			confp->chan.lastnumredial = ast_true(v->value);
 		} else if (!strcasecmp(v->name, "callprogress")) {
 			confp->chan.callprogress &= ~CALLPROGRESS_PROGRESS;
 			if (ast_true(v->value))

@@ -416,7 +416,7 @@ void ast_copy_string(char *dst, const char *src, size_t size),
 	volatile char *sp = (char *)src;
 	while (*sp && sz) {
 		*dst++ = *sp++;
-		sz--;
+		sz -= 1;
 	}
 	if (__builtin_expect(!sz, 0))
 		dst--;
@@ -756,7 +756,7 @@ char * attribute_pure ast_str_buffer(const struct ast_str *buf),
 	if (__builtin_expect(buf->__AST_STR_LEN > 0, 1)) {
 		return (char *) buf->__AST_STR_STR;
 	}
-	return "";
+	return (char *)"";
 }
 )
 

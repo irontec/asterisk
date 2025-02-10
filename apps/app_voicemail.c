@@ -111,6 +111,7 @@
 
 /*** DOCUMENTATION
 	<application name="VoiceMail" language="en_US">
+		<since><version>1.6.2.0</version></since>
 		<synopsis>
 			Leave a Voicemail message.
 		</synopsis>
@@ -200,6 +201,7 @@
 		</see-also>
 	</application>
 	<application name="VoiceMailMain" language="en_US">
+		<since><version>1.6.2.0</version></since>
 		<synopsis>
 			Check Voicemail messages.
 		</synopsis>
@@ -265,6 +267,7 @@
 		</see-also>
 	</application>
 	<application name="VMAuthenticate" language="en_US">
+		<since><version>1.6.2.0</version></since>
 		<synopsis>
 			Authenticate with Voicemail passwords.
 		</synopsis>
@@ -297,6 +300,7 @@
 		</description>
 	</application>
 	<application name="VoiceMailPlayMsg" language="en_US">
+		<since><version>11.0.0</version></since>
 		<synopsis>
 			Play a single voice mail msg from a mailbox by msg id.
 		</synopsis>
@@ -321,6 +325,7 @@
 		</description>
 	</application>
 	<application name="VMSayName" language="en_US">
+		<since><version>1.8.0</version></since>
 		<synopsis>
 			Play the name of a voicemail user
 		</synopsis>
@@ -339,6 +344,7 @@
 		</description>
 	</application>
 	<function name="VM_INFO" language="en_US">
+		<since><version>11.0.0</version></since>
 		<synopsis>
 			Returns the selected attribute from a mailbox.
 		</synopsis>
@@ -392,6 +398,9 @@
 		</description>
 	</function>
 	<manager name="VoicemailUsersList" language="en_US">
+		<since>
+			<version>1.6.0</version>
+		</since>
 		<synopsis>
 			List All Voicemail User Information.
 		</synopsis>
@@ -402,6 +411,9 @@
 		</description>
 	</manager>
 	<manager name="VoicemailUserStatus" language="en_US">
+		<since>
+			<version>16.0.0</version>
+		</since>
 		<synopsis>
 			Show the status of given voicemail user's info.
 		</synopsis>
@@ -419,6 +431,9 @@
 		</description>
 	</manager>
 	<manager name="VoicemailRefresh" language="en_US">
+		<since>
+			<version>12.0.0</version>
+		</since>
 		<synopsis>
 			Tell Asterisk to poll mailboxes for a change
 		</synopsis>
@@ -446,6 +461,10 @@
 		</description>
 	</manager>
 	<manager name="VoicemailBoxSummary" language="en_US">
+		<since>
+			<version>20.5.0</version>
+			<version>18.20.0</version>
+		</since>
 		<synopsis>
 			Show the mailbox contents of given voicemail user.
 		</synopsis>
@@ -463,6 +482,10 @@
 		</description>
 	</manager>
 	<manager name="VoicemailMove" language="en_US">
+		<since>
+			<version>20.5.0</version>
+			<version>18.20.0</version>
+		</since>
 		<synopsis>
 			Move Voicemail between mailbox folders of given user.
 		</synopsis>
@@ -489,6 +512,10 @@
 		</description>
 	</manager>
 	<manager name="VoicemailRemove" language="en_US">
+		<since>
+			<version>20.5.0</version>
+			<version>18.20.0</version>
+		</since>
 		<synopsis>
 			Remove Voicemail from mailbox folder.
 		</synopsis>
@@ -512,6 +539,10 @@
 		</description>
 	</manager>
 	<manager name="VoicemailForward" language="en_US">
+		<since>
+			<version>20.5.0</version>
+			<version>18.20.0</version>
+		</since>
 		<synopsis>
 			Forward Voicemail from one mailbox folder to another between given users.
 		</synopsis>
@@ -548,6 +579,7 @@
 	</manager>
 	<managerEvent language="en_US" name="VoicemailPasswordChange">
 		<managerEventInstance class="EVENT_FLAG_USER">
+			<since><version>18.21.0</version><version>20.6.0</version><version>21.1.0</version></since>
 			<synopsis>Raised in response to a mailbox password change.</synopsis>
 			<syntax>
 				<parameter name="Context">

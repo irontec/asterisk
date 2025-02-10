@@ -39,6 +39,9 @@
 
 /*** DOCUMENTATION
 	<manager name="Parkinglots" language="en_US">
+		<since>
+			<version>11.0.0</version>
+		</since>
 		<synopsis>
 			Get a list of parking lots
 		</synopsis>
@@ -50,6 +53,9 @@
 		</description>
 	</manager>
 	<manager name="ParkedCalls" language="en_US">
+		<since>
+			<version>0.7.2</version>
+		</since>
 		<synopsis>
 			List parked calls.
 		</synopsis>
@@ -64,6 +70,9 @@
 		</description>
 	</manager>
 	<manager name="Park" language="en_US">
+		<since>
+			<version>1.4.0</version>
+		</since>
 		<synopsis>
 			Park a channel.
 		</synopsis>
@@ -107,6 +116,7 @@
 	</manager>
 	<managerEvent language="en_US" name="ParkedCall">
 		<managerEventInstance class="EVENT_FLAG_CALL">
+			<since><version>12.0.0</version></since>
 			<synopsis>Raised when a channel is parked.</synopsis>
 			<syntax>
 				<channel_snapshot prefix="Parkee"/>
@@ -130,6 +140,7 @@
 	</managerEvent>
 	<managerEvent language="en_US" name="ParkedCallTimeOut">
 		<managerEventInstance class="EVENT_FLAG_CALL">
+			<since><version>12.0.0</version></since>
 			<synopsis>Raised when a channel leaves a parking lot due to reaching the time limit of being parked.</synopsis>
 			<syntax>
 				<channel_snapshot prefix="Parkee"/>
@@ -140,6 +151,7 @@
 	</managerEvent>
 	<managerEvent language="en_US" name="ParkedCallGiveUp">
 		<managerEventInstance class="EVENT_FLAG_CALL">
+			<since><version>12.0.0</version></since>
 			<synopsis>Raised when a channel leaves a parking lot because it hung up without being answered.</synopsis>
 			<syntax>
 				<channel_snapshot prefix="Parkee"/>
@@ -150,6 +162,7 @@
 	</managerEvent>
 	<managerEvent language="en_US" name="UnParkedCall">
 		<managerEventInstance class="EVENT_FLAG_CALL">
+			<since><version>12.0.0</version></since>
 			<synopsis>Raised when a channel leaves a parking lot because it was retrieved from the parking lot and reconnected.</synopsis>
 			<syntax>
 				<channel_snapshot prefix="Parkee"/>
@@ -161,6 +174,7 @@
 	</managerEvent>
 	<managerEvent language="en_US" name="ParkedCallSwap">
 		<managerEventInstance class="EVENT_FLAG_CALL">
+			<since><version>13.5.0</version></since>
 			<synopsis>Raised when a channel takes the place of a previously parked channel</synopsis>
 			<syntax>
 				<channel_snapshot prefix="Parkee"/>

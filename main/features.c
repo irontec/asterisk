@@ -80,6 +80,7 @@
 
 /*** DOCUMENTATION
 	<application name="Bridge" language="en_US">
+		<since><version>1.6.2.0</version></since>
 		<synopsis>
 			Bridge two channels.
 		</synopsis>
@@ -216,6 +217,9 @@
 		</see-also>
 	</application>
 	<manager name="Bridge" language="en_US">
+		<since>
+			<version>1.6.0</version>
+		</since>
 		<synopsis>
 			Bridge two channels already in the PBX.
 		</synopsis>

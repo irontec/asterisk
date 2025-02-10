@@ -36,6 +36,7 @@
 		<synopsis>Resource for integration with Prometheus</synopsis>
 		<configFile name="prometheus.conf">
 			<configObject name="general">
+				<since><version>17.0.0</version></since>
 				<synopsis>General settings.</synopsis>
 				<description>
 					<para>
@@ -49,6 +50,7 @@
 					</note>
 				</description>
 				<configOption name="enabled" default="no">
+					<since><version>17.0.0</version></since>
 					<synopsis>Enable or disable Prometheus statistics.</synopsis>
 					<description>
 						<enumlist>
@@ -58,6 +60,7 @@
 					</description>
 				</configOption>
 				<configOption name="core_metrics_enabled" default="yes">
+					<since><version>17.0.0</version></since>
 					<synopsis>Enable or disable core metrics.</synopsis>
 					<description>
 						<para>
@@ -75,9 +78,11 @@
 					</description>
 				</configOption>
 				<configOption name="uri" default="metrics">
+					<since><version>17.0.0</version></since>
 					<synopsis>The HTTP URI to serve metrics up on.</synopsis>
 				</configOption>
 				<configOption name="auth_username">
+					<since><version>17.0.0</version></since>
 					<synopsis>Username to use for Basic Auth.</synopsis>
 					<description>
 						<para>
@@ -101,6 +106,7 @@
 					</description>
 				</configOption>
 				<configOption name="auth_password">
+					<since><version>17.0.0</version></since>
 					<synopsis>Password to use for Basic Auth.</synopsis>
 					<description>
 						<para>
@@ -112,6 +118,7 @@
 					</description>
 				</configOption>
 				<configOption name="auth_realm" default="Asterisk Prometheus Metrics">
+					<since><version>17.0.0</version></since>
 					<synopsis>Auth realm used in challenge responses</synopsis>
 				</configOption>
 			</configObject>
@@ -596,6 +603,7 @@ static int http_callback(struct ast_tcptls_session_instance *ser,
 {
 	RAII_VAR(struct module_config *, mod_cfg, ao2_global_obj_ref(global_config), ao2_cleanup);
 	struct ast_str *response = NULL;
+	struct ast_str *content_type_header = NULL;
 	struct timeval start;
 	struct timeval end;
 
@@ -628,9 +636,12 @@ static int http_callback(struct ast_tcptls_session_instance *ser,
 	}
 
 	response = ast_str_create(512);
-	if (!response) {
+	content_type_header = ast_str_create(32);
+	if (!response || !content_type_header) {
 		goto err500;
 	}
+
+	ast_str_set(&content_type_header, 0, "Content-Type: text/plain\r\n");
 
 	start = ast_tvnow();
 
@@ -652,7 +663,7 @@ static int http_callback(struct ast_tcptls_session_instance *ser,
 	}
 	ast_mutex_unlock(&scrape_lock);
 
-	ast_http_send(ser, method, 200, "OK", NULL, response, 0, 0);
+	ast_http_send(ser, method, 200, "OK", content_type_header, response, 0, 0);
 
 	return 0;
 
@@ -671,14 +682,17 @@ err401:
 		ast_http_send(ser, method, 401, "Unauthorized", auth_challenge_headers, NULL, 0, 1);
 	}
 	ast_free(response);
+	ast_free(content_type_header);
 	return 0;
 err503:
 	ast_http_send(ser, method, 503, "Service Unavailable", NULL, NULL, 0, 1);
 	ast_free(response);
+	ast_free(content_type_header);
 	return 0;
 err500:
 	ast_http_send(ser, method, 500, "Server Error", NULL, NULL, 0, 1);
 	ast_free(response);
+	ast_free(content_type_header);
 	return 0;
 }
 

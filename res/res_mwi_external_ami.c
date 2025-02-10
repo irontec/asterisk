@@ -34,6 +34,9 @@
 
 /*** DOCUMENTATION
 	<manager name="MWIGet" language="en_US">
+		<since>
+			<version>12.1.0</version>
+		</since>
 		<synopsis>
 			Get selected mailboxes with message counts.
 		</synopsis>
@@ -51,6 +54,7 @@
 	</manager>
 	<managerEvent language="en_US" name="MWIGet">
 		<managerEventInstance class="EVENT_FLAG_REPORTING">
+			<since><version>12.1.0</version></since>
 			<synopsis>
 				Raised in response to a MWIGet command.
 			</synopsis>
@@ -73,6 +77,7 @@
 	</managerEvent>
 	<managerEvent language="en_US" name="MWIGetComplete">
 		<managerEventInstance class="EVENT_FLAG_REPORTING">
+			<since><version>12.1.0</version></since>
 			<synopsis>
 				Raised in response to a MWIGet command.
 			</synopsis>
@@ -89,6 +94,9 @@
 		</managerEventInstance>
 	</managerEvent>
 	<manager name="MWIDelete" language="en_US">
+		<since>
+			<version>12.1.0</version>
+		</since>
 		<synopsis>
 			Delete selected mailboxes.
 		</synopsis>
@@ -101,6 +109,9 @@
 		</description>
 	</manager>
 	<manager name="MWIUpdate" language="en_US">
+		<since>
+			<version>12.1.0</version>
+		</since>
 		<synopsis>
 			Update the mailbox message counts.
 		</synopsis>

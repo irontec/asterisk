@@ -40,6 +40,7 @@
 
 /*** DOCUMENTATION
 	<application name="ControlPlayback" language="en_US">
+		<since><version>1.6.2.0</version></since>
 		<synopsis>
 			Play a file with fast forward and rewind.
 		</synopsis>
@@ -98,6 +99,9 @@
 		</description>
 	</application>
 	<manager name="ControlPlayback" language="en_US">
+		<since>
+			<version>12.0.0</version>
+		</since>
 		<synopsis>
 			Control the playback of a file being played to a channel.
 		</synopsis>

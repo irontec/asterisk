@@ -1,7 +1,7 @@
 /*
  * Asterisk -- An open source telephony toolkit.
  *
- * Copyright (C) 1999 - 2018, Digium, Inc.
+ * Copyright (C) 1999 - 2025, Sangoma Technologies Corporation
  *
  * Mark Spencer <markster@digium.com>
  *
@@ -53,7 +53,7 @@
  *
  * \section copyright Copyright and Author
  *
- * Copyright (C) 1999 - 2021, Sangoma Technologies Corporation.
+ * Copyright (C) 1999 - 2025, Sangoma Technologies Corporation.
  * Asterisk is a <a href="https://cdn.sangoma.com/wp-content/uploads/Sangoma-Trademark-Policy.pdf">registered trademark</a>
  * of <a rel="nofollow" href="http://www.sangoma.com">Sangoma Technologies Corporation</a>.
  *
@@ -249,6 +249,7 @@ int daemon(int, int);  /* defined in libresolv of all places */
 /*** DOCUMENTATION
 	<managerEvent language="en_US" name="FullyBooted">
 		<managerEventInstance class="EVENT_FLAG_SYSTEM">
+			<since><version>12.0.0</version></since>
 			<synopsis>Raised when all Asterisk initialization procedures have finished.</synopsis>
 			<syntax>
 				<parameter name="Status">
@@ -265,6 +266,7 @@ int daemon(int, int);  /* defined in libresolv of all places */
 	</managerEvent>
 	<managerEvent language="en_US" name="Shutdown">
 		<managerEventInstance class="EVENT_FLAG_SYSTEM">
+			<since><version>12.0.0</version></since>
 			<synopsis>Raised when Asterisk is shutdown or restarted.</synopsis>
 			<syntax>
 				<parameter name="Shutdown">
@@ -297,7 +299,7 @@ int daemon(int, int);  /* defined in libresolv of all places */
 #define NUM_MSGS 64
 
 /*! Displayed copyright tag */
-#define COPYRIGHT_TAG "Copyright (C) 1999 - 2022, Sangoma Technologies Corporation and others."
+#define COPYRIGHT_TAG "Copyright (C) 1999 - 2025, Sangoma Technologies Corporation and others."
 
 /*! \brief Welcome message when starting a CLI interface */
 #define WELCOME_MESSAGE \

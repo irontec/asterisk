@@ -57,6 +57,7 @@
 
 /*** DOCUMENTATION
 	<application name="AgentLogin" language="en_US">
+		<since><version>12.0.0</version></since>
 		<synopsis>
 			Login an agent.
 		</synopsis>
@@ -105,6 +106,7 @@
 		</see-also>
 	</application>
 	<application name="AgentRequest" language="en_US">
+		<since><version>12.0.0</version></since>
 		<synopsis>
 			Request an agent to connect with the channel.
 		</synopsis>
@@ -130,6 +132,7 @@
 		</see-also>
 	</application>
 	<function name="AGENT" language="en_US">
+		<since><version>12.0.0</version></since>
 		<synopsis>
 			Gets information about an Agent
 		</synopsis>
@@ -162,6 +165,9 @@
 		<description></description>
 	</function>
 	<manager name="Agents" language="en_US">
+		<since>
+			<version>1.2.0</version>
+		</since>
 		<synopsis>
 			Lists agents and their status.
 		</synopsis>
@@ -178,6 +184,7 @@
 	</manager>
 	<managerEvent language="en_US" name="Agents">
 		<managerEventInstance class="EVENT_FLAG_AGENT">
+			<since><version>12.0.0</version></since>
 			<synopsis>
 				Response event in a series to the Agents AMI action containing
 				information about a defined agent.
@@ -223,6 +230,7 @@
 	</managerEvent>
 	<managerEvent language="en_US" name="AgentsComplete">
 		<managerEventInstance class="EVENT_FLAG_AGENT">
+			<since><version>12.0.0</version></since>
 			<synopsis>
 				Final response event in a series of events to the Agents AMI action.
 			</synopsis>
@@ -235,6 +243,9 @@
 		</managerEventInstance>
 	</managerEvent>
 	<manager name="AgentLogoff" language="en_US">
+		<since>
+			<version>1.2.0</version>
+		</since>
 		<synopsis>
 			Sets an agent as no longer logged in.
 		</synopsis>
@@ -262,11 +273,13 @@
 				<synopsis>Unused, but reserved.</synopsis>
 			</configObject>
 			<configObject name="agent-id">
+				<since><version>12.0.0</version></since>
 				<synopsis>Configure an agent for the pool.</synopsis>
 				<description>
 					<xi:include xpointer="xpointer(/docs/configInfo[@name='app_agent_pool']/description/note)" />
 				</description>
 				<configOption name="ackcall">
+					<since><version>12.0.0</version></since>
 					<synopsis>Enable to require the agent to acknowledge a call.</synopsis>
 					<description>
 						<para>Enable to require the agent to give a DTMF acknowledgement
@@ -276,6 +289,7 @@
 					</description>
 				</configOption>
 				<configOption name="acceptdtmf">
+					<since><version>12.0.0</version></since>
 					<synopsis>DTMF key sequence the agent uses to acknowledge a call.</synopsis>
 					<description>
 						<note><para>The option is overridden by <variable>AGENTACCEPTDTMF</variable> on agent login.</para></note>
@@ -284,6 +298,7 @@
 					</description>
 				</configOption>
 				<configOption name="autologoff">
+					<since><version>12.0.0</version></since>
 					<synopsis>Time the agent has to acknowledge a call before being logged off.</synopsis>
 					<description>
 						<para>Set how many seconds a call for the agent has to wait for the
@@ -296,6 +311,7 @@
 					</description>
 				</configOption>
 				<configOption name="wrapuptime">
+					<since><version>12.0.0</version></since>
 					<synopsis>Minimum time the agent has between calls.</synopsis>
 					<description>
 						<para>Set the minimum amount of time in milliseconds after
@@ -305,12 +321,14 @@
 					</description>
 				</configOption>
 				<configOption name="musiconhold">
+					<since><version>12.0.0</version></since>
 					<synopsis>Music on hold class the agent listens to between calls.</synopsis>
 					<description>
 						<xi:include xpointer="xpointer(/docs/configInfo[@name='app_agent_pool']/description/note)" />
 					</description>
 				</configOption>
 				<configOption name="recordagentcalls">
+					<since><version>12.0.0</version></since>
 					<synopsis>Enable to automatically record calls the agent takes.</synopsis>
 					<description>
 						<para>Enable recording calls the agent takes automatically by
@@ -321,12 +339,14 @@
 					</description>
 				</configOption>
 				<configOption name="custom_beep">
+					<since><version>12.4.0</version></since>
 					<synopsis>Sound file played to alert the agent when a call is present.</synopsis>
 					<description>
 						<xi:include xpointer="xpointer(/docs/configInfo[@name='app_agent_pool']/description/note)" />
 					</description>
 				</configOption>
 				<configOption name="fullname">
+					<since><version>12.0.0</version></since>
 					<synopsis>A friendly name for the agent used in log messages.</synopsis>
 					<description>
 						<xi:include xpointer="xpointer(/docs/configInfo[@name='app_agent_pool']/description/note)" />
