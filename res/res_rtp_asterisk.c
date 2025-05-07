@@ -495,11 +495,11 @@ struct ast_rtp {
 
 	struct ast_rtp_ioqueue_thread *ioqueue; /*!< The ioqueue thread handling us */
 
-	char remote_ufrag[256];  /*!< The remote ICE username */
-	char remote_passwd[256]; /*!< The remote ICE password */
+	char remote_ufrag[257];  /*!< The remote ICE username */
+	char remote_passwd[257]; /*!< The remote ICE password */
 
-	char local_ufrag[256];  /*!< The local ICE username */
-	char local_passwd[256]; /*!< The local ICE password */
+	char local_ufrag[257];  /*!< The local ICE username */
+	char local_passwd[257]; /*!< The local ICE password */
 
 	struct ao2_container *ice_local_candidates;           /*!< The local ICE candidates */
 	struct ao2_container *ice_active_remote_candidates;   /*!< The remote ICE candidates */
@@ -623,7 +623,6 @@ struct rtp_red {
 	unsigned char len[AST_RED_MAX_GENERATION]; /*!< length of each generation */
 	int num_gen; /*!< Number of generations */
 	int schedid; /*!< Timer id */
-	int ti; /*!< How long to buffer data before send */
 	unsigned char t140red_data[64000];
 	unsigned char buf_data[64000]; /*!< buffered primary data */
 	int hdrlen;
@@ -5267,11 +5266,6 @@ static int rtp_raw_write(struct ast_rtp_instance *instance, struct ast_frame *fr
 	}
 
 	if (ast_test_flag(frame, AST_FRFLAG_HAS_TIMING_INFO)) {
-		if (abs(frame->ts * rate - (int)rtp->lastts) > MAX_TIMESTAMP_SKEW) {
-			ast_verbose("(%p) RTP audio difference is %d set mark\n",
-				instance, abs(frame->ts * rate - (int)rtp->lastts));
-			mark = 1;
-		}
 		rtp->lastts = frame->ts * rate;
 	}
 
@@ -9171,7 +9165,6 @@ static int rtp_red_init(struct ast_rtp_instance *instance, int buffer_time, int 
 	rtp->red->t140red = rtp->red->t140;
 	rtp->red->t140red.data.ptr = &rtp->red->t140red_data;
 
-	rtp->red->ti = buffer_time;
 	rtp->red->num_gen = generations;
 	rtp->red->hdrlen = generations * 4 + 1;
 
@@ -9181,7 +9174,7 @@ static int rtp_red_init(struct ast_rtp_instance *instance, int buffer_time, int 
 		rtp->red->t140red_data[x*4] = rtp->red->pt[x];
 	}
 	rtp->red->t140red_data[x*4] = rtp->red->pt[x] = payloads[x]; /* primary pt */
-	rtp->red->schedid = ast_sched_add(rtp->sched, generations, red_write, instance);
+	rtp->red->schedid = ast_sched_add(rtp->sched, buffer_time, red_write, instance);
 
 	return 0;
 }

@@ -73,7 +73,9 @@
 	</manager>
 	<managerEvent language="en_US" name="LocalBridge">
 		<managerEventInstance class="EVENT_FLAG_CALL">
-			<since><version>12.0.0</version></since>
+			<since>
+				<version>12.0.0</version>
+			</since>
 			<synopsis>Raised when two halves of a Local Channel form a bridge.</synopsis>
 			<syntax>
 				<channel_snapshot prefix="LocalOne"/>
@@ -95,7 +97,9 @@
 	</managerEvent>
 	<managerEvent language="en_US" name="LocalOptimizationBegin">
 		<managerEventInstance class="EVENT_FLAG_CALL">
-			<since><version>12.0.0</version></since>
+			<since>
+				<version>12.0.0</version>
+			</since>
 			<synopsis>Raised when two halves of a Local Channel begin to optimize
 			themselves out of the media path.</synopsis>
 			<syntax>
@@ -117,7 +121,9 @@
 	</managerEvent>
 	<managerEvent language="en_US" name="LocalOptimizationEnd">
 		<managerEventInstance class="EVENT_FLAG_CALL">
-			<since><version>12.0.0</version></since>
+			<since>
+				<version>12.0.0</version>
+			</since>
 			<synopsis>Raised when two halves of a Local Channel have finished optimizing
 			themselves out of the media path.</synopsis>
 			<syntax>
@@ -291,7 +297,7 @@ struct ast_channel *ast_local_get_peer(struct ast_channel *ast)
 
 	found = p ? ao2_find(locals, p, 0) : NULL;
 	if (!found) {
-		/* ast is either not a local channel or it has alredy been hungup */
+		/* ast is either not a local channel or it has already been hungup */
 		return NULL;
 	}
 	ao2_lock(found);
@@ -889,7 +895,7 @@ static struct local_pvt *local_alloc(const char *data, struct ast_stream_topolog
 	 *
 	 * This is a silly default because it represents state held by
 	 * the local channels.  Unless local channel optimization is
-	 * disabled, the state will dissapear when the local channels
+	 * disabled, the state will disappear when the local channels
 	 * optimize out.
 	 */
 	ast_set_flag(&pvt->base, AST_UNREAL_MOH_INTERCEPT);

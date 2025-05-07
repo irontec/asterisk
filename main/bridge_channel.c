@@ -278,13 +278,23 @@ static void bridge_channel_poke(struct ast_bridge_channel *bridge_channel)
  */
 static int channel_set_cause(struct ast_channel *chan, int cause)
 {
+	int current_cause;
 	ast_channel_lock(chan);
+	current_cause = ast_channel_hangupcause(chan);
+
+	/* if the hangupcause is already set, leave it */
+	if (current_cause > 0) {
+		ast_channel_unlock(chan);
+		return current_cause;
+	}
+
 	if (cause <= 0) {
 		cause = ast_channel_hangupcause(chan);
 		if (cause <= 0) {
 			cause = AST_CAUSE_NORMAL_CLEARING;
 		}
 	}
+
 	ast_channel_hangupcause_set(chan, cause);
 	ast_channel_unlock(chan);
 	return cause;
@@ -1277,7 +1287,7 @@ void ast_bridge_channel_playfile(struct ast_bridge_channel *bridge_channel, ast_
 
 	/*
 	 * It may be necessary to resume music on hold after we finish
-	 * playing the announcment.
+	 * playing the announcement.
 	 */
 	if (ast_test_flag(ast_channel_flags(bridge_channel->chan), AST_FLAG_MOH)) {
 		const char *latest_musicclass;

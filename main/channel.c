@@ -942,7 +942,7 @@ __ast_channel_alloc_ap(int needqueue, int state, const char *cid_num, const char
 
 	/*
 	 * And now, since the channel structure is built, and has its name, let
-	 * the world know of its existance
+	 * the world know of its existence
 	 */
 	ast_channel_stage_snapshot_done(tmp);
 
@@ -2910,7 +2910,6 @@ static void deactivate_generator_nolock(struct ast_channel *chan)
 		}
 		ast_channel_generatordata_set(chan, NULL);
 		ast_channel_generator_set(chan, NULL);
-		ast_channel_set_fd(chan, AST_GENERATOR_FD, -1);
 		ast_clear_flag(ast_channel_flags(chan), AST_FLAG_WRITE_INT);
 		ast_settimeout(chan, 0, NULL, NULL);
 	}
@@ -3666,17 +3665,6 @@ static struct ast_frame *__ast_read(struct ast_channel *chan, int dropaudio, int
 			break;
 		}
 
-	} else if (ast_channel_fd_isset(chan, AST_GENERATOR_FD) && ast_channel_fdno(chan) == AST_GENERATOR_FD) {
-		/* if the AST_GENERATOR_FD is set, call the generator with args
-		 * set to -1 so it can do whatever it needs to.
-		 */
-		void *tmp = ast_channel_generatordata(chan);
-		ast_channel_generatordata_set(chan, NULL);     /* reset to let ast_write get through */
-		ast_channel_generator(chan)->generate(chan, tmp, -1, -1);
-		ast_channel_generatordata_set(chan, tmp);
-		f = &ast_null_frame;
-		ast_channel_fdno_set(chan, -1);
-		goto done;
 	} else if (ast_channel_fd_isset(chan, AST_JITTERBUFFER_FD) && ast_channel_fdno(chan) == AST_JITTERBUFFER_FD) {
 		ast_clear_flag(ast_channel_flags(chan), AST_FLAG_EXCEPTION);
 	}
@@ -3719,7 +3707,7 @@ static struct ast_frame *__ast_read(struct ast_channel *chan, int dropaudio, int
 				ast_channel_alert_write(chan);
 			} else {
 				/*
-				 * Safely disable continous timer events if only buffered dtmf begin or end
+				 * Safely disable continuous timer events if only buffered dtmf begin or end
 				 * frames are left in the readq.
 				 */
 				ast_timer_disable_continuous(ast_channel_timer(chan));
@@ -5139,7 +5127,7 @@ static void adjust_frame_for_plc(struct ast_channel *chan, struct ast_frame *fra
 		return;
 	}
 
-	/* First, we need to be sure that our buffer is large enough to accomodate
+	/* First, we need to be sure that our buffer is large enough to accommodate
 	 * the samples we need to fill in. This will likely only occur on the first
 	 * frame we write.
 	 */
@@ -6848,7 +6836,11 @@ static void __ast_change_name_nolink(struct ast_channel *chan, const char *newna
 	/*** DOCUMENTATION
 		<managerEvent language="en_US" name="Rename">
 			<managerEventInstance class="EVENT_FLAG_CALL">
-				<since><version>16.24.0</version><version>18.10.0</version><version>19.2.0</version></since>
+				<since>
+					<version>16.24.0</version>
+					<version>18.10.0</version>
+					<version>19.2.0</version>
+				</since>
 				<synopsis>Raised when the name of a channel is changed.</synopsis>
 			</managerEventInstance>
 		</managerEvent>
@@ -6965,7 +6957,6 @@ static void channel_do_masquerade(struct ast_channel *original, struct ast_chann
 	int origstate;
 	unsigned int orig_disablestatecache;
 	unsigned int clone_disablestatecache;
-	int generator_fd;
 	int visible_indication;
 	int clone_hold_state;
 	int moh_is_playing;
@@ -7012,7 +7003,7 @@ static void channel_do_masquerade(struct ast_channel *original, struct ast_chann
 	 */
 	ao2_lock(channels);
 
-	/* Bump the refs to ensure that they won't dissapear on us. */
+	/* Bump the refs to ensure that they won't disappear on us. */
 	ast_channel_ref(original);
 	ast_channel_ref(clonechan);
 
@@ -7170,15 +7161,12 @@ static void channel_do_masquerade(struct ast_channel *original, struct ast_chann
 	/* Keep the same parkinglot. */
 	ast_channel_parkinglot_set(original, ast_channel_parkinglot(clonechan));
 
-	/* Clear all existing file descriptors but retain the generator */
-	generator_fd = ast_channel_fd(original, AST_GENERATOR_FD);
+	/* Clear all existing file descriptors */
 	ast_channel_internal_fd_clear_all(original);
-	ast_channel_set_fd(original, AST_GENERATOR_FD, generator_fd);
 
-	/* Copy all file descriptors present on clonechan to original, skipping generator */
+	/* Copy all file descriptors present on clonechan to original */
 	for (x = 0; x < ast_channel_fd_count(clonechan); x++) {
-		if (x != AST_GENERATOR_FD)
-			ast_channel_set_fd(original, x, ast_channel_fd(clonechan, x));
+		ast_channel_set_fd(original, x, ast_channel_fd(clonechan, x));
 	}
 
 	ast_app_group_update(clonechan, original);
@@ -7230,7 +7218,7 @@ static void channel_do_masquerade(struct ast_channel *original, struct ast_chann
 	ast_autochan_new_channel(clonechan, original);
 
 	clone_variables(original, clonechan);
-	/* Presense of ADSI capable CPE follows clone */
+	/* Presence of ADSI capable CPE follows clone */
 	ast_channel_adsicpe_set(original, ast_channel_adsicpe(clonechan));
 	/* Bridge remains the same */
 	/* CDR fields remain the same */

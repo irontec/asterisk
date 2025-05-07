@@ -96,7 +96,9 @@
 
 /*** DOCUMENTATION
 	<function name="EXCEPTION" language="en_US">
-		<since><version>1.6.2.0</version></since>
+		<since>
+			<version>1.6.0</version>
+		</since>
 		<synopsis>
 			Retrieve the details of the current dialplan exception.
 		</synopsis>
@@ -128,7 +130,9 @@
 		</see-also>
 	</function>
 	<function name="TESTTIME" language="en_US">
-		<since><version>1.8.0</version></since>
+		<since>
+			<version>1.8.0</version>
+		</since>
 		<synopsis>
 			Sets a time to be used with the channel to test logical conditions.
 		</synopsis>
@@ -201,7 +205,9 @@
 			</list-elements>
 			<managerEvent name="ExtensionStateListComplete" language="en_US">
 				<managerEventInstance class="EVENT_FLAG_COMMAND">
-					<since><version>13.0.0</version></since>
+					<since>
+						<version>13.0.0</version>
+					</since>
 					<synopsis>
 						Indicates the end of the list the current known extension states.
 					</synopsis>
@@ -1017,7 +1023,7 @@ static void pbx_destroy(struct ast_pbx *p)
  * in a similar collating sequence as sorting alphabetic strings, from left to
  * right. Thus, "1XXXXX" comes before "X11111", and would be the "better" match,
  * because "1" is more specific than "X".
- * So, to accomodate this philosophy, I sort the tree branches along the alt_char
+ * So, to accommodate this philosophy, I sort the tree branches along the alt_char
  * line so they are lowest to highest in specificity numbers. This way, as soon
  * as we encounter our first complete match, we automatically have the "best"
  * match and can stop the traversal immediately. Same for CANMATCH/MATCHMORE.
@@ -4336,7 +4342,7 @@ static enum ast_pbx_result __ast_pbx_run(struct ast_channel *c,
 	callid = ast_read_threadstorage_callid();
 	/* If the thread isn't already associated with a callid, we should create that association. */
 	if (!callid) {
-		/* Associate new PBX thread with the channel call id if it is availble.
+		/* Associate new PBX thread with the channel call id if it is available.
 		 * If not, create a new one instead.
 		 */
 		callid = ast_channel_callid(c);

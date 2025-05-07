@@ -30,7 +30,9 @@
 /*** DOCUMENTATION
 	<managerEvent language="en_US" name="RTCPSent">
 		<managerEventInstance class="EVENT_FLAG_REPORTING">
-			<since><version>12.0.0</version></since>
+			<since>
+				<version>12.0.0</version>
+			</since>
 			<synopsis>Raised when an RTCP packet is sent.</synopsis>
 			<syntax>
 				<channel_snapshot/>
@@ -110,7 +112,9 @@
 	</managerEvent>
 	<managerEvent language="en_US" name="RTCPReceived">
 		<managerEventInstance class="EVENT_FLAG_REPORTING">
-			<since><version>12.0.0</version></since>
+			<since>
+				<version>12.0.0</version>
+			</since>
 			<synopsis>Raised when an RTCP packet is received.</synopsis>
 			<syntax>
 				<channel_snapshot/>
@@ -1969,7 +1973,7 @@ static int rtp_codecs_assign_payload_code_rx(struct ast_rtp_codecs *codecs, int 
 				/* We can either call this with the full list or the current rx list. The former
 				 * (static_RTP_PT) results in payload types skipping statically 'used' slots so you
 				 * get 101, 113...
-				 * With the latter (the built ingore list) you get what's expected 101, 102, 103 under
+				 * With the latter (the built ignore list) you get what's expected 101, 102, 103 under
 				 * most circumstances, but this results in static types being replaced.  Probably fine
 				 * because we preclude the current list.
 				 */
