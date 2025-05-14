@@ -289,7 +289,7 @@
 			up by another user.</para>
 			<para>This application will return to the dialplan if the queue does not exist, or
 			any of the join options cause the caller to not enter the queue.</para>
-			<para>This application does not automatically answer and should be preceeded
+			<para>This application does not automatically answer and should be preceded
 			by an application such as Answer(), Progress(), or Ringing().</para>
 			<para>This application sets the following channel variables upon completion:</para>
 			<variablelist>
@@ -600,7 +600,7 @@
 			<parameter name="queuename" required="true">
 				<enumlist>
 					<enum name="QUEUEMAX">
-						<para>Maxmimum number of calls allowed.</para>
+						<para>Maximum number of calls allowed.</para>
 					</enum>
 					<enum name="QUEUESTRATEGY">
 						<para>The strategy of the queue.</para>
@@ -1798,6 +1798,9 @@ static int log_membername_as_agent;
 /*! \brief queues.conf [general] option */
 static int force_longest_waiting_caller;
 
+/*! \brief queues.conf [general] option */
+static int log_caller_id_name; 
+
 /*! \brief name of the ringinuse field in the realtime database */
 static char *realtime_ringinuse_field;
 
@@ -2039,7 +2042,7 @@ struct call_queue {
 	int periodicannouncestartdelay;     /*!< How long into the queue should the periodic accouncement start */
 	int periodicannouncefrequency;      /*!< How often to play periodic announcement */
 	int numperiodicannounce;            /*!< The number of periodic announcements configured */
-	int randomperiodicannounce;         /*!< Are periodic announcments randomly chosen */
+	int randomperiodicannounce;         /*!< Are periodic announcements randomly chosen */
 	int roundingseconds;                /*!< How many seconds do we round to? */
 	int holdtime;                       /*!< Current avg holdtime, based on an exponential average */
 	int talktime;                       /*!< Current avg talktime, based on the same exponential average */
@@ -8962,11 +8965,33 @@ static int queue_exec(struct ast_channel *chan, const char *data)
 
 	cid_allow = qe.parent->log_restricted_caller_id || ((ast_party_id_presentation(&ast_channel_caller(chan)->id) & AST_PRES_RESTRICTION) == AST_PRES_ALLOWED);
 	
-	ast_queue_log(args.queuename, ast_channel_uniqueid(chan), "NONE", "ENTERQUEUE", "%s|%s|%d",
-		S_OR(args.url, ""),
-		S_COR(cid_allow && ast_channel_caller(chan)->id.number.valid, ast_channel_caller(chan)->id.number.str, ""),
-		qe.opos);
+	if (log_caller_id_name) {
+		char *escaped_cidname = NULL;
+		/* Ensure caller ID name is valid and not NULL before processing */
+		if (cid_allow && ast_channel_caller(chan)->id.name.valid && ast_channel_caller(chan)->id.name.str) {
+			escaped_cidname = ast_strdupa(ast_channel_caller(chan)->id.name.str);
+			/* Only iterate if '|' is found */
+			if (strchr(escaped_cidname, '|')) {
+				for (char *p = escaped_cidname; *p; p++) {
+					if (*p == '|') {
+						*p = '_';
+					}
+				}
+			}
+		}
 
+		ast_queue_log(args.queuename, ast_channel_uniqueid(chan), "NONE", "ENTERQUEUE", "%s|%s|%d|%s",
+			S_OR(args.url, ""),
+			S_COR(cid_allow && ast_channel_caller(chan)->id.number.valid, ast_channel_caller(chan)->id.number.str, ""),
+			qe.opos,
+			S_OR(escaped_cidname, ""));
+	} else {
+ 		ast_queue_log(args.queuename, ast_channel_uniqueid(chan), "NONE", "ENTERQUEUE", "%s|%s|%d",
+ 			S_OR(args.url, ""),
+ 			S_COR(cid_allow && ast_channel_caller(chan)->id.number.valid, ast_channel_caller(chan)->id.number.str, ""),
+ 			qe.opos);
+	}
+	
 	/* PREDIAL: Preprocess any callee gosub arguments. */
 	if (ast_test_flag(&opts, OPT_PREDIAL_CALLEE)
 		&& !ast_strlen_zero(opt_args[OPT_ARG_PREDIAL_CALLEE])) {
@@ -9874,6 +9899,10 @@ static void queue_set_global_params(struct ast_config *cfg)
 	}
 	if ((general_val = ast_variable_retrieve(cfg, "general", "force_longest_waiting_caller"))) {
 		force_longest_waiting_caller = ast_true(general_val);
+	}
+	/* Apply log-caller-id-name in the same place as other global settings */
+	if ((general_val = ast_variable_retrieve(cfg, "general", "log-caller-id-name"))) {
+		log_caller_id_name = ast_true(general_val);
 	}
 }
 

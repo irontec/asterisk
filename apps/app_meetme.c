@@ -44,7 +44,6 @@
 	<support_level>deprecated</support_level>
 	<replacement>app_confbridge</replacement>
 	<deprecated_in>19</deprecated_in>
-	<removed_in>21</removed_in>
  ***/
 
 #include "asterisk.h"
@@ -758,7 +757,7 @@
 					<para>Total duration of conference in HH:MM:SS format.</para>
 				</parameter>
 				<parameter name="Creation">
-					<para>How the conference was created: "Dyanmic" or "Static".</para>
+					<para>How the conference was created: "Dynamic" or "Static".</para>
 				</parameter>
 				<parameter name="Locked">
 					<para>Whether or not the conference is locked.</para>
