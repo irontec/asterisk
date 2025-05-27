@@ -50,6 +50,9 @@
 
 /*** DOCUMENTATION
 	<function name="ENUMQUERY" language="en_US">
+		<since>
+			<version>1.6.0</version>
+		</since>
 		<synopsis>
 			Initiate an ENUM query.
 		</synopsis>
@@ -69,6 +72,9 @@
 		</description>
 	</function>
 	<function name="ENUMRESULT" language="en_US">
+		<since>
+			<version>1.6.0</version>
+		</since>
 		<synopsis>
 			Retrieve results from a ENUMQUERY.
 		</synopsis>
@@ -89,6 +95,9 @@
 		</description>
 	</function>
 	<function name="ENUMLOOKUP" language="en_US">
+		<since>
+			<version>1.2.0</version>
+		</since>
 		<synopsis>
 			General or specific querying of NAPTR records for ENUM or ENUM-like DNS pointers.
 		</synopsis>
@@ -133,6 +142,9 @@
 		</description>
 	</function>
 	<function name="TXTCIDNAME" language="en_US">
+		<since>
+			<version>1.2.0</version>
+		</since>
 		<synopsis>
 			TXTCIDNAME looks up a caller name via DNS.
 		</synopsis>

@@ -50,6 +50,9 @@
 
 /*** DOCUMENTATION
 	<application name="BridgeWait" language="en_US">
+		<since>
+			<version>12.0.0</version>
+		</since>
 		<synopsis>
 			Put a call into the holding bridge.
 		</synopsis>

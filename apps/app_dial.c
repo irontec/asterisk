@@ -70,6 +70,9 @@
 
 /*** DOCUMENTATION
 	<application name="Dial" language="en_US">
+		<since>
+			<version>0.1.0</version>
+		</since>
 		<synopsis>
 			Attempt to connect to another device or endpoint and bridge the call.
 		</synopsis>
@@ -627,7 +630,7 @@
 						nonexistent location, e.g. nonexistent DNS hostname.
 					</value>
 					<value name="CONGESTION">
-						Channel or switching congestion occured when routing the call.
+						Channel or switching congestion occurred when routing the call.
 						This can occur if there is a slow or no response from the remote end.
 					</value>
 					<value name="NOANSWER">
@@ -668,6 +671,9 @@
 		</see-also>
 	</application>
 	<application name="RetryDial" language="en_US">
+		<since>
+			<version>1.2.0</version>
+		</since>
 		<synopsis>
 			Place a call, retrying on failure allowing an optional exit extension.
 		</synopsis>
@@ -1271,7 +1277,6 @@ static struct ast_channel *wait_for_answer(struct ast_channel *in,
 	struct cause_args num = *num_in;
 	int prestart = num.busy + num.congestion + num.nochan;
 	int orig_answer_to = *to_answer;
-	int progress_to_dup = *to_progress;
 	int orig_progress_to = *to_progress;
 	struct ast_channel *peer = NULL;
 	struct chanlist *outgoing = AST_LIST_FIRST(out_chans);
@@ -1316,7 +1321,7 @@ static struct ast_channel *wait_for_answer(struct ast_channel *in,
 
 	is_cc_recall = ast_cc_is_recall(in, &cc_recall_core_id, NULL);
 
-	while ((*to_answer = ast_remaining_ms(start, orig_answer_to)) && (*to_progress = ast_remaining_ms(start, progress_to_dup)) && !peer) {
+	while ((*to_answer = ast_remaining_ms(start, orig_answer_to)) && (*to_progress = ast_remaining_ms(start, orig_progress_to)) && !peer) {
 		struct chanlist *o;
 		int pos = 0; /* how many channels do we handle */
 		int numlines = prestart;
@@ -1348,7 +1353,10 @@ static struct ast_channel *wait_for_answer(struct ast_channel *in,
 			}
 			SCOPE_EXIT_RTN_VALUE(NULL, "%s: No outgoing channels available\n", ast_channel_name(in));
 		}
-		winner = ast_waitfor_n(watchers, pos, to_answer);
+
+		/* If progress timeout is active, use that if it's the shorter of the 2 timeouts. */
+		winner = ast_waitfor_n(watchers, pos, *to_progress > 0 && (*to_answer < 0 || *to_progress < *to_answer) ? to_progress : to_answer);
+
 		AST_LIST_TRAVERSE(out_chans, o, node) {
 			int res = 0;
 			struct ast_frame *f;
@@ -1565,7 +1573,7 @@ static struct ast_channel *wait_for_answer(struct ast_channel *in,
 					 */
 					++num_ringing;
 					*to_progress = -1;
-					progress_to_dup = -1;
+					orig_progress_to = -1;
 					if (ignore_cc || cc_frame_received || num_ringing == numlines) {
 						ast_verb(3, "%s is ringing\n", ast_channel_name(c));
 						/* Setup early media if appropriate */
@@ -1610,7 +1618,7 @@ static struct ast_channel *wait_for_answer(struct ast_channel *in,
 						}
 					}
 					*to_progress = -1;
-					progress_to_dup = -1;
+					orig_progress_to = -1;
 					if (!sent_progress) {
 						struct timeval now, then;
 						int64_t diff;
@@ -1802,7 +1810,7 @@ static struct ast_channel *wait_for_answer(struct ast_channel *in,
 					break;
 				}
 				*to_progress = -1;
-				progress_to_dup = -1;
+				orig_progress_to = -1;
 				/* Fall through */
 			case AST_FRAME_TEXT:
 				if (single && ast_write(in, f)) {

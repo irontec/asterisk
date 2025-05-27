@@ -50,8 +50,11 @@
 
 /*** DOCUMENTATION
 	<manager name="PJSIPShowSubscriptionsInbound" language="en_US">
+		<since>
+			<version>12.0.0</version>
+		</since>
 		<synopsis>
-			Lists subscriptions.
+			Lists inbound subscriptions.
 		</synopsis>
 		<syntax />
 		<description>
@@ -62,9 +65,80 @@
                         </para>
 		</description>
 	</manager>
+	<managerEvent language="en_US" name="InboundSubscriptionDetail">
+		<managerEventInstance class="EVENT_FLAG_COMMAND">
+			<since>
+				<version>12.0.0</version>
+			</since>
+			<synopsis>
+				Provides details about an inbound subscription - one in which Asterisk
+				handles SUBSCRIBE requests and periodically sends NOTIFYs to its
+				subscribers.
+			</synopsis>
+			<syntax>
+				<parameter name="Role">
+					<para>Asterisk's role for this subscription. This will always be
+					<literal>Notifier</literal>.</para>
+				</parameter>
+				<parameter name="Endpoint">
+					<para>The name of the endpoint associated with this
+					subscription.</para>
+				</parameter>
+				<parameter name="Callid">
+					<para>The CallID of the dialog associated with this
+					subscription.</para>
+				</parameter>
+				<parameter name="State">
+					<para>The current state of the subscription.</para>
+				</parameter>
+				<parameter name="Callerid">
+					<para>The Caller ID of the endpoint associated with this
+					subscription.</para>
+				</parameter>
+				<parameter name="SubscriptionType">
+					<para>Asterisk currently supports the following subscription types, but
+					this could also be extended by third-party modules so this list may not
+					be exhaustive:</para>
+					<enumlist>
+						<enum name="mwi"/>
+						<enum name="extension_state"/>
+					</enumlist>
+				</parameter>
+				<parameter name="Extension">
+					<para>If the <literal>SubscriptionType</literal> is
+					<literal>extension_state</literal> this will be the monitored
+					extension.</para>
+				</parameter>
+				<parameter name="ExtensionStates">
+					<para>If the <literal>SubscriptionType</literal> is
+					<literal>extension_state</literal> this will be the monitored
+					extension's state.</para>
+					<enumlist>
+						<enum name="Idle"/>
+						<enum name="InUse"/>
+						<enum name="Busy"/>
+						<enum name="Unavailable"/>
+						<enum name="Ringing"/>
+						<enum name="InUse&amp;Ringing"/>
+						<enum name="Hold"/>
+						<enum name="InUse&amp;Hold"/>
+						<enum name="Unknown"/>
+					</enumlist>
+				</parameter>
+				<parameter name="Mailboxes">
+					<para>If the <literal>SubscriptionType</literal> is
+					<literal>mwi</literal> this will be a comma-separated list of
+					mailboxes.</para>
+				</parameter>
+			</syntax>
+		</managerEventInstance>
+	</managerEvent>
 	<manager name="PJSIPShowSubscriptionsOutbound" language="en_US">
+		<since>
+			<version>12.0.0</version>
+		</since>
 		<synopsis>
-			Lists subscriptions.
+			Lists outbound subscriptions.
 		</synopsis>
 		<syntax />
 		<description>
@@ -75,7 +149,77 @@
                         </para>
 		</description>
 	</manager>
+	<managerEvent language="en_US" name="OutboundSubscriptionDetail">
+		<managerEventInstance class="EVENT_FLAG_COMMAND">
+			<since>
+				<version>12.0.0</version>
+			</since>
+			<synopsis>
+				Provides details about an outbound subscription - one in which Asterisk
+				sends SUBSCRIBE requests and periodically receives NOTIFYs.
+			</synopsis>
+			<syntax>
+				<parameter name="Role">
+					<para>Asterisk's role for this subscription. This will always be
+					<literal>Subscriber</literal>.</para>
+				</parameter>
+				<parameter name="Endpoint">
+					<para>The name of the endpoint associated with this
+					subscription.</para>
+				</parameter>
+				<parameter name="Callid">
+					<para>The CallID of the dialog associated with this
+					subscription.</para>
+				</parameter>
+				<parameter name="State">
+					<para>The current state of the subscription.</para>
+				</parameter>
+				<parameter name="Callerid">
+					<para>The Caller ID of the endpoint associated with this
+					subscription.</para>
+				</parameter>
+				<parameter name="SubscriptionType">
+					<para>Asterisk currently supports the following subscription types, but
+					this could also be extended by third-party modules so this list may not
+					be exhaustive:</para>
+					<enumlist>
+						<enum name="mwi"/>
+						<enum name="extension_state"/>
+					</enumlist>
+				</parameter>
+				<parameter name="Extension">
+					<para>If the <literal>SubscriptionType</literal> is
+					<literal>extension_state</literal> this will be the monitored
+					extension.</para>
+				</parameter>
+				<parameter name="ExtensionStates">
+					<para>If the <literal>SubscriptionType</literal> is
+					<literal>extension_state</literal> this will be the monitored
+					extension's state.</para>
+					<enumlist>
+						<enum name="Idle"/>
+						<enum name="InUse"/>
+						<enum name="Busy"/>
+						<enum name="Unavailable"/>
+						<enum name="Ringing"/>
+						<enum name="InUse&amp;Ringing"/>
+						<enum name="Hold"/>
+						<enum name="InUse&amp;Hold"/>
+						<enum name="Unknown"/>
+					</enumlist>
+				</parameter>
+				<parameter name="Mailboxes">
+					<para>If the <literal>SubscriptionType</literal> is
+					<literal>mwi</literal> this will be a comma-separated list of
+					mailboxes.</para>
+				</parameter>
+			</syntax>
+		</managerEventInstance>
+	</managerEvent>
 	<manager name="PJSIPShowResourceLists" language="en_US">
+		<since>
+			<version>13.0.0</version>
+		</since>
 		<synopsis>
 			Displays settings for configured resource lists.
 		</synopsis>
@@ -88,6 +232,37 @@
                         </para>
 		</description>
 	</manager>
+	<managerEvent language="en_US" name="ResourceListDetail">
+		<managerEventInstance class="EVENT_FLAG_COMMAND">
+			<since>
+				<version>13.0.0</version>
+			</since>
+			<synopsis>Provides details about a resource list.</synopsis>
+			<syntax>
+				<parameter name="ObjectType">
+					<para>The object's type. This will always be 'resource_list'.</para>
+				</parameter>
+				<parameter name="ObjectName">
+					<para>The name of this object.</para>
+				</parameter>
+				<parameter name="Event">
+					<para><xi:include xpointer="xpointer(/docs/configInfo[@name='res_pjsip_pubsub']/configFile[@name='pjsip.conf']/configObject[@name='resource_list']/configOption[@name='event']/synopsis/node())"/></para>
+				</parameter>
+				<parameter name="FullState">
+					<para><xi:include xpointer="xpointer(/docs/configInfo[@name='res_pjsip_pubsub']/configFile[@name='pjsip.conf']/configObject[@name='resource_list']/configOption[@name='full_state']/synopsis/node())"/></para>
+				</parameter>
+				<parameter name="ListItem">
+					<para>A comma-separated list of resources that belong to this resource list.</para>
+				</parameter>
+				<parameter name="NotificationBatchInterval">
+					<para><xi:include xpointer="xpointer(/docs/configInfo[@name='res_pjsip_pubsub']/configFile[@name='pjsip.conf']/configObject[@name='resource_list']/configOption[@name='notification_batch_interval']/synopsis/node())"/></para>
+				</parameter>
+				<parameter name="ResourceDisplayName">
+					<para><xi:include xpointer="xpointer(/docs/configInfo[@name='res_pjsip_pubsub']/configFile[@name='pjsip.conf']/configObject[@name='resource_list']/configOption[@name='resource_display_name']/synopsis/node())"/></para>
+				</parameter>
+			</syntax>
+		</managerEventInstance>
+	</managerEvent>
 
 	<configInfo name="res_pjsip_pubsub" language="en_US">
 		<synopsis>Module that implements publish and subscribe support.</synopsis>
@@ -139,6 +314,9 @@
 				</configOption>
 			</configObject>
 			<configObject name="resource_list">
+				<since>
+					<version>13.0.0</version>
+				</since>
 				<synopsis>Resource list configuration parameters.</synopsis>
 				<description>
 					<para>This configuration object allows for RFC 4662 resource list subscriptions
@@ -151,9 +329,15 @@
 					</note>
 				</description>
 				<configOption name="type">
+					<since>
+						<version>13.0.0</version>
+					</since>
 					<synopsis>Must be of type 'resource_list'</synopsis>
 				</configOption>
 				<configOption name="event">
+					<since>
+						<version>13.0.0</version>
+					</since>
 					<synopsis>The SIP event package that the list resource belong to.</synopsis>
 					<description><para>
 						The SIP event package describes the types of resources that Asterisk reports
@@ -173,6 +357,9 @@
 					</description>
 				</configOption>
 				<configOption name="list_item">
+					<since>
+						<version>13.0.0</version>
+					</since>
 					<synopsis>The name of a resource to report state on</synopsis>
 					<description>
 						<para>In general Asterisk looks up list items in the following way:</para>
@@ -187,6 +374,9 @@
 					</description>
 				</configOption>
 				<configOption name="full_state" default="no">
+					<since>
+						<version>13.0.0</version>
+					</since>
 					<synopsis>Indicates if the entire list's state should be sent out.</synopsis>
 					<description>
 						<para>If this option is enabled, and a resource changes state, then Asterisk will construct
@@ -202,6 +392,9 @@
 					</description>
 				</configOption>
 				<configOption name="notification_batch_interval" default="0">
+					<since>
+						<version>13.0.0</version>
+					</since>
 					<synopsis>Time Asterisk should wait, in milliseconds, before sending notifications.</synopsis>
 					<description>
 						<para>When a resource's state changes, it may be desired to wait a certain amount before Asterisk
@@ -211,6 +404,11 @@
 					</description>
 				</configOption>
 				<configOption name="resource_display_name" default="no">
+					<since>
+						<version>16.25.0</version>
+						<version>18.11.0</version>
+						<version>19.3.0</version>
+					</since>
 					<synopsis>Indicates whether display name of resource or the resource name being reported.</synopsis>
 					<description>
 						<para>If this option is enabled, the Display Name will be reported as resource name.
@@ -221,11 +419,20 @@
 				</configOption>
 			</configObject>
 			<configObject name="inbound-publication">
+				<since>
+					<version>13.0.0</version>
+				</since>
 				<synopsis>The configuration for inbound publications</synopsis>
 				<configOption name="endpoint" default="">
+					<since>
+						<version>13.0.0</version>
+					</since>
 					<synopsis>Optional name of an endpoint that is only allowed to publish to this resource</synopsis>
 				</configOption>
 				<configOption name="type">
+					<since>
+						<version>13.0.0</version>
+					</since>
 					<synopsis>Must be of type 'inbound-publication'.</synopsis>
 				</configOption>
 			</configObject>

@@ -89,7 +89,7 @@ static const struct ast_datastore_info dtmf_features_info = {
  * \since 12.0.0
  * \brief read a feature code character and set it on for the give feature_flags struct
  *
- * \param feature_flags flags being modifed
+ * \param feature_flags flags being modified
  * \param feature feature code provided - should be an uppercase letter
  *
  * \retval 0 if the feature was set successfully
@@ -341,7 +341,7 @@ struct bridge_basic_personality {
  * \param len Length of the given extension buffer.
  *
  * \retval 0 success
- * \retval non-zero failiure
+ * \retval non-zero failure
  */
 static int builtin_feature_get_exten(struct ast_channel *chan, const char *feature_name, char *buf, size_t len)
 {
@@ -1479,7 +1479,7 @@ static struct attended_transfer_properties *attended_transfer_properties_alloc(
 	/*
 	 * Save the transferee's party information for any recall calls.
 	 * This is the only piece of information needed that gets overwritten
-	 * on the transferer channel by the inital call to the transfer target.
+	 * on the transferer channel by the initial call to the transfer target.
 	 */
 	ast_party_connected_line_copy(&props->original_transferer_colp,
 		ast_channel_connected(props->transferer));
@@ -1856,7 +1856,9 @@ static void bridge_ringing(struct ast_bridge *bridge)
 		.subclass.integer = AST_CONTROL_RINGING,
 	};
 
+	ast_bridge_lock(bridge);
 	ast_bridge_queue_everyone_else(bridge, NULL, &ringing);
+	ast_bridge_unlock(bridge);
 }
 
 /*!
@@ -1869,7 +1871,9 @@ static void bridge_hold(struct ast_bridge *bridge)
 		.subclass.integer = AST_CONTROL_HOLD,
 	};
 
+	ast_bridge_lock(bridge);
 	ast_bridge_queue_everyone_else(bridge, NULL, &hold);
+	ast_bridge_unlock(bridge);
 }
 
 /*!
@@ -1882,7 +1886,9 @@ static void bridge_unhold(struct ast_bridge *bridge)
 		.subclass.integer = AST_CONTROL_UNHOLD,
 	};
 
+	ast_bridge_lock(bridge);
 	ast_bridge_queue_everyone_else(bridge, NULL, &unhold);
+	ast_bridge_unlock(bridge);
 }
 
 /*!
@@ -3195,7 +3201,7 @@ static int grab_transfer(struct ast_channel *chan, char *exten, size_t exten_len
 		if (extenres) {
 			ast_copy_string(exten, extenoverride, exten_len);
 			ast_channel_unlock(chan);
-			ast_verb(3, "Transfering call to '%s@%s'", exten, context);
+			ast_verb(3, "Transferring call to '%s@%s'", exten, context);
 			return 0;
 		}
 		ast_log(LOG_WARNING, "Override extension '%s' does not exist in context '%s'\n", extenoverride, context);

@@ -50,6 +50,9 @@
 
 /*** DOCUMENTATION
 	<application name="DISA" language="en_US">
+		<since>
+			<version>0.1.9</version>
+		</since>
 		<synopsis>
 			Direct Inward System Access.
 		</synopsis>

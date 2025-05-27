@@ -87,6 +87,9 @@
 
 /*** DOCUMENTATION
 	<function name="PP_EACH_EXTENSION" language="en_US">
+		<since>
+			<version>1.6.1.0</version>
+		</since>
 		<synopsis>
 			Execute specified template for each extension.
 		</synopsis>
@@ -99,6 +102,9 @@
 		</description>
 	</function>
 	<function name="PP_EACH_USER" language="en_US">
+		<since>
+			<version>1.6.0</version>
+		</since>
 		<synopsis>
 			Generate a string for each phoneprov user.
 		</synopsis>

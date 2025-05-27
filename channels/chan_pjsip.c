@@ -552,19 +552,23 @@ static struct ast_channel *chan_pjsip_new(struct ast_sip_session *session, int s
 	struct ast_sip_channel_pvt *channel;
 	struct ast_variable *var;
 	struct ast_stream_topology *topology;
+	struct ast_channel_initializers initializers = {
+		.version = AST_CHANNEL_INITIALIZERS_VERSION,
+		.tenantid = session->endpoint->tenantid,
+	};
 	SCOPE_ENTER(1, "%s\n", ast_sip_session_get_name(session));
 
 	if (!(pvt = ao2_alloc_options(sizeof(*pvt), chan_pjsip_pvt_dtor, AO2_ALLOC_OPT_LOCK_NOLOCK))) {
 		SCOPE_EXIT_RTN_VALUE(NULL, "Couldn't create pvt\n");
 	}
 
-	chan = ast_channel_alloc_with_endpoint(1, state,
+	chan = ast_channel_alloc_with_initializers(1, state,
 		S_COR(session->id.number.valid, session->id.number.str, ""),
 		S_COR(session->id.name.valid, session->id.name.str, ""),
 		session->endpoint->accountcode,
 		exten, session->endpoint->context,
 		assignedids, requestor, 0,
-		session->endpoint->persistent, "PJSIP/%s-%08x",
+		session->endpoint->persistent, &initializers, "PJSIP/%s-%08x",
 		ast_sorcery_object_get_id(session->endpoint),
 		(unsigned) ast_atomic_fetchadd_int((int *) &chan_idx, +1));
 	if (!chan) {
@@ -664,7 +668,7 @@ static struct ast_channel *chan_pjsip_new(struct ast_sip_session *session, int s
 	for (var = session->endpoint->channel_vars; var; var = var->next) {
 		char buf[512];
 		pbx_builtin_setvar_helper(chan, var->name, ast_get_encoded_str(
-						  var->value, buf, sizeof(buf)));
+					var->value, buf, sizeof(buf)));
 	}
 
 	ast_channel_stage_snapshot_done(chan);
@@ -1217,15 +1221,14 @@ static int chan_pjsip_devicestate(const char *data)
 			ast_devstate_aggregate_add(&aggregate, ast_state_chan2dev(snapshot->state));
 		}
 
-		if ((snapshot->state == AST_STATE_UP) || (snapshot->state == AST_STATE_RING) ||
-			(snapshot->state == AST_STATE_BUSY)) {
+		if (snapshot->state != AST_STATE_DOWN && snapshot->state != AST_STATE_RESERVED) {
 			inuse++;
 		}
 
 		ao2_ref(snapshot, -1);
 	}
 
-	if (endpoint->devicestate_busy_at && (inuse == endpoint->devicestate_busy_at)) {
+	if (endpoint->devicestate_busy_at && (inuse >= endpoint->devicestate_busy_at)) {
 		state = AST_DEVICE_BUSY;
 	} else if (ast_devstate_aggregate_result(&aggregate) != AST_DEVICE_INVALID) {
 		state = ast_devstate_aggregate_result(&aggregate);
@@ -1729,8 +1732,7 @@ static int chan_pjsip_indicate(struct ast_channel *ast, int condition, const voi
 				if (ast_format_cap_iscompatible_format(ast_channel_nativeformats(ast), ast_format_vp8) != AST_FORMAT_CMP_NOT_EQUAL ||
 					ast_format_cap_iscompatible_format(ast_channel_nativeformats(ast), ast_format_vp9) != AST_FORMAT_CMP_NOT_EQUAL ||
 					ast_format_cap_iscompatible_format(ast_channel_nativeformats(ast), ast_format_h265) != AST_FORMAT_CMP_NOT_EQUAL ||
-					(channel->session->endpoint->media.webrtc &&
-					 ast_format_cap_iscompatible_format(ast_channel_nativeformats(ast), ast_format_h264) != AST_FORMAT_CMP_NOT_EQUAL)) {
+					ast_format_cap_iscompatible_format(ast_channel_nativeformats(ast), ast_format_h264) != AST_FORMAT_CMP_NOT_EQUAL) {
 					/* FIXME Fake RTP write, this will be sent as an RTCP packet. Ideally the
 					 * RTP engine would provide a way to externally write/schedule RTCP
 					 * packets */
@@ -1788,7 +1790,7 @@ static int chan_pjsip_indicate(struct ast_channel *ast, int condition, const voi
 		device_buf_size = strlen(ast_channel_name(ast)) + 1;
 		device_buf = alloca(device_buf_size);
 		ast_channel_get_device_name(ast, device_buf, device_buf_size);
-		ast_devstate_changed_literal(AST_DEVICE_ONHOLD, 1, device_buf);
+		ast_devstate_changed_literal(AST_DEVICE_UNKNOWN, AST_DEVSTATE_CACHABLE, device_buf);
 		if (!channel->session->moh_passthrough) {
 			ast_moh_start(ast, data, NULL);
 		} else {
@@ -1804,7 +1806,7 @@ static int chan_pjsip_indicate(struct ast_channel *ast, int condition, const voi
 		device_buf_size = strlen(ast_channel_name(ast)) + 1;
 		device_buf = alloca(device_buf_size);
 		ast_channel_get_device_name(ast, device_buf, device_buf_size);
-		ast_devstate_changed_literal(AST_DEVICE_UNKNOWN, 1, device_buf);
+		ast_devstate_changed_literal(AST_DEVICE_UNKNOWN, AST_DEVSTATE_CACHABLE, device_buf);
 		if (!channel->session->moh_passthrough) {
 			ast_moh_stop(ast);
 		} else {
@@ -1847,6 +1849,8 @@ static int chan_pjsip_indicate(struct ast_channel *ast, int condition, const voi
 	case AST_CONTROL_STREAM_TOPOLOGY_CHANGED:
 		break;
 	case AST_CONTROL_STREAM_TOPOLOGY_SOURCE_CHANGED:
+		break;
+	case AST_CONTROL_TRANSFER:
 		break;
 	case -1:
 		res = -1;
@@ -3243,6 +3247,11 @@ static struct ast_custom_function chan_pjsip_parse_uri_function = {
 	.read = pjsip_acf_parse_uri_read,
 };
 
+static struct ast_custom_function chan_pjsip_parse_uri_from_function = {
+	.name = "PJSIP_PARSE_URI_FROM",
+	.read = pjsip_acf_parse_uri_read,
+};
+
 static struct ast_custom_function media_offer_function = {
 	.name = "PJSIP_MEDIA_OFFER",
 	.read = pjsip_acf_media_offer_read,
@@ -3264,6 +3273,11 @@ static struct ast_custom_function moh_passthrough_function = {
 static struct ast_custom_function session_refresh_function = {
 	.name = "PJSIP_SEND_SESSION_REFRESH",
 	.write = pjsip_acf_session_refresh_write,
+};
+
+static struct ast_custom_function transfer_handling_function = {
+	.name = "PJSIP_TRANSFER_HANDLING",
+	.write = pjsip_transfer_handling_write,
 };
 
 static char *app_pjsip_hangup = "PJSIPHangup";
@@ -3305,6 +3319,11 @@ static int load_module(void)
 		goto end;
 	}
 
+	if (ast_custom_function_register(&chan_pjsip_parse_uri_from_function)) {
+		ast_log(LOG_ERROR, "Unable to register PJSIP_PARSE_URI_FROM dialplan function\n");
+		goto end;
+	}
+
 	if (ast_custom_function_register(&media_offer_function)) {
 		ast_log(LOG_WARNING, "Unable to register PJSIP_MEDIA_OFFER dialplan function\n");
 		goto end;
@@ -3322,6 +3341,11 @@ static int load_module(void)
 
 	if (ast_custom_function_register(&session_refresh_function)) {
 		ast_log(LOG_WARNING, "Unable to register PJSIP_SEND_SESSION_REFRESH dialplan function\n");
+		goto end;
+	}
+
+	if (ast_custom_function_register(&transfer_handling_function)) {
+		ast_log(LOG_WARNING, "Unable to register PJSIP_TRANSFER_HANDLING dialplan function\n");
 		goto end;
 	}
 
@@ -3378,7 +3402,9 @@ end:
 	ast_custom_function_unregister(&media_offer_function);
 	ast_custom_function_unregister(&chan_pjsip_dial_contacts_function);
 	ast_custom_function_unregister(&chan_pjsip_parse_uri_function);
+	ast_custom_function_unregister(&chan_pjsip_parse_uri_from_function);
 	ast_custom_function_unregister(&session_refresh_function);
+	ast_custom_function_unregister(&transfer_handling_function);
 	ast_unregister_application(app_pjsip_hangup);
 	ast_manager_unregister(app_pjsip_hangup);
 
@@ -3410,7 +3436,9 @@ static int unload_module(void)
 	ast_custom_function_unregister(&media_offer_function);
 	ast_custom_function_unregister(&chan_pjsip_dial_contacts_function);
 	ast_custom_function_unregister(&chan_pjsip_parse_uri_function);
+	ast_custom_function_unregister(&chan_pjsip_parse_uri_from_function);
 	ast_custom_function_unregister(&session_refresh_function);
+	ast_custom_function_unregister(&transfer_handling_function);
 	ast_unregister_application(app_pjsip_hangup);
 	ast_manager_unregister(app_pjsip_hangup);
 

@@ -110,11 +110,17 @@ generate_enum_string_prototypes(endpoint_behavior,
 
 generate_enum_string_prototypes(attest_level,
 	attest_level_UNKNOWN = -1,
-	attest_level_A = 0,
+	attest_level_NOT_SET = 0,
+	attest_level_A,
 	attest_level_B,
 	attest_level_C,
-	attest_level_NOT_SET,
 );
+
+/*
+ * unknown_tn_attest_level uses the same enum as attest_level.
+ */
+enum attest_level_enum unknown_tn_attest_level_from_str(const char *value);
+const char *unknown_tn_attest_level_to_str(enum attest_level_enum value);
 
 /*
  * enum stir_shaken_failure_action is defined in
@@ -136,20 +142,23 @@ const char *stir_shaken_failure_action_to_str(
  * are _to_str and _from_str functions defined elsewhere.
  *
  */
-#define generate_sorcery_enum_to_str(__struct, __substruct, __lc_param) \
+#define generate_sorcery_enum_to_str_ex(__struct, __substruct, __lc_param, __base_enum) \
 static int sorcery_ ## __lc_param ## _to_str(const void *obj, const intptr_t *args, char **buf) \
 { \
 	const struct __struct *cfg = obj; \
-	*buf = ast_strdup(__lc_param ## _to_str(cfg->__substruct __lc_param)); \
+	*buf = ast_strdup(__base_enum ## _to_str(cfg->__substruct __lc_param)); \
 	return *buf ? 0 : -1; \
 }
 
-#define generate_sorcery_enum_from_str_ex(__struct, __substruct, __lc_param, __unknown) \
+#define generate_sorcery_enum_to_str(__struct, __substruct, __lc_param) \
+	generate_sorcery_enum_to_str_ex(__struct, __substruct, __lc_param, __lc_param)
+
+#define generate_sorcery_enum_from_str_ex(__struct, __substruct, __lc_param, __base_enum, __unknown) \
 static int sorcery_ ## __lc_param ## _from_str(const struct aco_option *opt, struct ast_variable *var, void *obj) \
 { \
 	struct __struct *cfg = obj; \
-	cfg->__substruct __lc_param = __lc_param ## _from_str (var->value); \
-	if (cfg->__substruct __lc_param == __unknown) { \
+	cfg->__substruct __lc_param = __base_enum ## _from_str (var->value); \
+	if (cfg->__substruct __lc_param == __base_enum ## _ ## __unknown) { \
 		ast_log(LOG_WARNING, "Unknown value '%s' specified for %s\n", \
 			var->value, var->name); \
 		return -1; \
@@ -158,7 +167,7 @@ static int sorcery_ ## __lc_param ## _from_str(const struct aco_option *opt, str
 }
 
 #define generate_sorcery_enum_from_str(__struct, __substruct, __lc_param, __unknown) \
-	generate_sorcery_enum_from_str_ex(__struct, __substruct, __lc_param, __lc_param ## _ ## __unknown) \
+	generate_sorcery_enum_from_str_ex(__struct, __substruct, __lc_param, __lc_param, __unknown) \
 
 
 #define generate_sorcery_acl_to_str(__struct, __lc_param) \
@@ -263,13 +272,17 @@ struct ast_acl_list *get_default_acl_list(void);
  * Copy an enum from the source to the dest only if the source is
  * neither NOT_SET nor UNKNOWN
  */
-#define cfg_enum_copy(__cfg_dst, __cfg_src, __field) \
+#define cfg_enum_copy_ex(__cfg_dst, __cfg_src, __field, __not_set, __unknown) \
 ({ \
-	if (__cfg_src->__field != __field ## _NOT_SET \
-		&& __cfg_src->__field != __field ## _UNKNOWN) { \
+	if (__cfg_src->__field != __not_set \
+		&& __cfg_src->__field != __unknown) { \
 		__cfg_dst->__field = __cfg_src->__field; \
 	} \
 })
+
+#define cfg_enum_copy(__cfg_dst, __cfg_src, __field) \
+	cfg_enum_copy_ex(__cfg_dst, __cfg_src, __field, __field ## _NOT_SET, __field ## _UNKNOWN)
+
 
 /*!
  * \brief Attestation Service configuration for stir/shaken
@@ -314,6 +327,7 @@ struct attestation_cfg {
 	 */
 	AST_DECLARE_STRING_FIELDS();
 	struct attestation_cfg_common acfg_common;
+	enum attest_level_enum unknown_tn_attest_level;
 	int global_disable;
 };
 
@@ -334,6 +348,8 @@ struct verification_cfg_common {
 		AST_STRING_FIELD(ca_path);
 		AST_STRING_FIELD(crl_file);
 		AST_STRING_FIELD(crl_path);
+		AST_STRING_FIELD(untrusted_cert_file);
+		AST_STRING_FIELD(untrusted_cert_path);
 		AST_STRING_FIELD(cert_cache_dir);
 	);
 	unsigned int curl_timeout;
@@ -410,11 +426,14 @@ struct profile_cfg {
 	struct attestation_cfg_common acfg_common;
 	struct verification_cfg_common vcfg_common;
 	enum endpoint_behavior_enum endpoint_behavior;
+	enum attest_level_enum unknown_tn_attest_level;
 	struct profile_cfg *eprofile;
 };
 
 struct profile_cfg *profile_get_cfg(const char *id);
+struct ao2_container *profile_get_all(void);
 struct profile_cfg *eprofile_get_cfg(const char *id);
+struct ao2_container *eprofile_get_all(void);
 int profile_load(void);
 int profile_reload(void);
 int profile_unload(void);
@@ -482,13 +501,13 @@ int tn_config_unload(void);
 		__stringify(DEFAULT_ ## name), OPT_UINT_T, 0, \
 		FLDSET(struct object, field))
 
-#define enum_option_register_ex(sorcery, CONFIG_TYPE, name, field, nodoc) \
+#define enum_option_register_ex(sorcery, CONFIG_TYPE, name, field, function_prefix, nodoc) \
 	ast_sorcery_object_field_register_custom ## nodoc(sorcery, CONFIG_TYPE, \
-		#name, field ## _to_str(DEFAULT_ ## field), \
+		#name, function_prefix ## _to_str(DEFAULT_ ## field), \
 		sorcery_ ## field ## _from_str, sorcery_ ## field ## _to_str, NULL, 0, 0)
 
 #define enum_option_register(sorcery, CONFIG_TYPE, name, nodoc) \
-	enum_option_register_ex(sorcery, CONFIG_TYPE, name, name, nodoc)
+	enum_option_register_ex(sorcery, CONFIG_TYPE, name, name, name, nodoc)
 
 #define register_common_verification_fields(sorcery, object, CONFIG_TYPE, nodoc) \
 ({ \
@@ -496,6 +515,8 @@ int tn_config_unload(void);
 	stringfield_option_register(sorcery, CONFIG_TYPE, object, ca_path, vcfg_common.ca_path, nodoc); \
 	stringfield_option_register(sorcery, CONFIG_TYPE, object, crl_file, vcfg_common.crl_file, nodoc); \
 	stringfield_option_register(sorcery, CONFIG_TYPE, object, crl_path, vcfg_common.crl_path, nodoc); \
+	stringfield_option_register(sorcery, CONFIG_TYPE, object, untrusted_cert_file, vcfg_common.untrusted_cert_file, nodoc); \
+	stringfield_option_register(sorcery, CONFIG_TYPE, object, untrusted_cert_path, vcfg_common.untrusted_cert_path, nodoc); \
 	stringfield_option_register(sorcery, CONFIG_TYPE, object, cert_cache_dir, vcfg_common.cert_cache_dir, nodoc); \
 \
 	uint_option_register(sorcery, CONFIG_TYPE, object, curl_timeout, vcfg_common.curl_timeout, nodoc);\
@@ -504,7 +525,7 @@ int tn_config_unload(void);
 	uint_option_register(sorcery, CONFIG_TYPE, object, max_cache_entry_age, vcfg_common.max_cache_entry_age, nodoc);\
 	uint_option_register(sorcery, CONFIG_TYPE, object, max_cache_size, vcfg_common.max_cache_size, nodoc);\
 \
-	enum_option_register_ex(sorcery, CONFIG_TYPE, failure_action, stir_shaken_failure_action, nodoc); \
+	enum_option_register_ex(sorcery, CONFIG_TYPE, failure_action, stir_shaken_failure_action, stir_shaken_failure_action, nodoc); \
 	enum_option_register(sorcery, CONFIG_TYPE, use_rfc9410_responses, nodoc); \
 	enum_option_register(sorcery, CONFIG_TYPE, \
 		relax_x5u_port_scheme_restrictions, nodoc); \

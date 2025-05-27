@@ -184,11 +184,11 @@ int ast_format_def_unregister(const char *name)
 	return res;
 }
 
-FILE *ast_file_mkftemp(char *template, mode_t mode)
+FILE *ast_file_mkftemp(char *template_name, mode_t mode)
 {
 	FILE *p = NULL;
-	int pfd = mkstemp(template);
-	chmod(template, mode);
+	int pfd = mkstemp(template_name);
+	chmod(template_name, mode);
 	if (pfd > -1) {
 		p = fdopen(pfd, "w+");
 		if (!p) {
@@ -729,7 +729,7 @@ static int fileexists_test(const char *filename, const char *fmt, const char *la
  *
  * \param filename Name of the file.
  * \param fmt Format to look for the file in. OPTIONAL
- * \param preflang The perfered language
+ * \param preflang The preferred language
  * \param buf Returns the matching filename
  * \param buflen Size of the buf
  * \param result_cap OPTIONAL format capabilities result structure
@@ -787,13 +787,8 @@ static int fileexists_core(const char *filename, const char *fmt, const char *pr
 	return 0;
 }
 
-struct ast_filestream *ast_openstream(struct ast_channel *chan, const char *filename, const char *preflang)
-{
-	return ast_openstream_full(chan, filename, preflang, 0);
-}
-
-struct ast_filestream *ast_openstream_full(struct ast_channel *chan,
-	const char *filename, const char *preflang, int asis)
+static struct ast_filestream *openstream_internal(struct ast_channel *chan,
+	const char *filename, const char *preflang, int asis, int quiet)
 {
 	/*
 	 * Use fileexists_core() to find a file in a compatible
@@ -822,7 +817,9 @@ struct ast_filestream *ast_openstream_full(struct ast_channel *chan,
 	if (!fileexists_core(filename, NULL, preflang, buf, buflen, file_fmt_cap) ||
 		!ast_format_cap_has_type(file_fmt_cap, AST_MEDIA_TYPE_AUDIO)) {
 
-		ast_log(LOG_WARNING, "File %s does not exist in any format\n", filename);
+		if (!quiet) {
+			ast_log(LOG_WARNING, "File %s does not exist in any format\n", filename);
+		}
 		ao2_ref(file_fmt_cap, -1);
 		return NULL;
 	}
@@ -843,6 +840,17 @@ struct ast_filestream *ast_openstream_full(struct ast_channel *chan,
 	if (res >= 0)
 		return ast_channel_stream(chan);
 	return NULL;
+}
+
+struct ast_filestream *ast_openstream(struct ast_channel *chan, const char *filename, const char *preflang)
+{
+	return openstream_internal(chan, filename, preflang, 0, 0);
+}
+
+struct ast_filestream *ast_openstream_full(struct ast_channel *chan,
+	const char *filename, const char *preflang, int asis)
+{
+	return openstream_internal(chan, filename, preflang, asis, 0);
 }
 
 struct ast_filestream *ast_openvstream(struct ast_channel *chan,
@@ -1307,7 +1315,7 @@ int ast_streamfile(struct ast_channel *chan, const char *filename,
 	if (ast_opt_sounds_search_custom && !is_absolute_path(filename)) {
 		memset(custom_filename, 0, sizeof(custom_filename));
 		snprintf(custom_filename, sizeof(custom_filename), "custom/%s", filename);
-		fs = ast_openstream(chan, custom_filename, preflang);
+		fs = openstream_internal(chan, filename, preflang, 0, 1); /* open stream, do not warn for missing files */
 		if (fs) {
 			tmp_filename = custom_filename;
 			ast_debug(3, "Found file %s in custom directory\n", filename);

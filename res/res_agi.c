@@ -73,6 +73,9 @@
 
 /*** DOCUMENTATION
 	<agi name="answer" language="en_US">
+		<since>
+			<version>0.4.0</version>
+		</since>
 		<synopsis>
 			Answer channel
 		</synopsis>
@@ -87,6 +90,9 @@
 		</see-also>
 	</agi>
 	<agi name="asyncagi break" language="en_US">
+		<since>
+			<version>1.8.0</version>
+		</since>
 		<synopsis>
 			Interrupts Async AGI
 		</synopsis>
@@ -101,6 +107,9 @@
 		</see-also>
 	</agi>
 	<agi name="channel status" language="en_US">
+		<since>
+			<version>0.4.0</version>
+		</since>
 		<synopsis>
 			Returns status of the connected channel.
 		</synopsis>
@@ -143,6 +152,9 @@
 		</see-also>
 	</agi>
 	<agi name="control stream file" language="en_US">
+		<since>
+			<version>1.2.0</version>
+		</since>
 		<synopsis>
 			Sends audio file on channel and allows the listener to control the stream.
 		</synopsis>
@@ -198,6 +210,9 @@
 		</see-also>
 	</agi>
 	<agi name="database del" language="en_US">
+		<since>
+			<version>0.4.0</version>
+		</since>
 		<synopsis>
 			Removes database key/value
 		</synopsis>
@@ -219,6 +234,9 @@
 		</see-also>
 	</agi>
 	<agi name="database deltree" language="en_US">
+		<since>
+			<version>0.4.0</version>
+		</since>
 		<synopsis>
 			Removes database keytree/value
 		</synopsis>
@@ -239,6 +257,9 @@
 		</see-also>
 	</agi>
 	<agi name="database get" language="en_US">
+		<since>
+			<version>0.4.0</version>
+		</since>
 		<synopsis>
 			Gets database value
 		</synopsis>
@@ -262,6 +283,9 @@
 		</see-also>
 	</agi>
 	<agi name="database put" language="en_US">
+		<since>
+			<version>0.4.0</version>
+		</since>
 		<synopsis>
 			Adds/updates database value
 		</synopsis>
@@ -284,6 +308,9 @@
 		</see-also>
 	</agi>
 	<agi name="exec" language="en_US">
+		<since>
+			<version>0.4.0</version>
+		</since>
 		<synopsis>
 			Executes a given Application
 		</synopsis>
@@ -305,6 +332,9 @@
 		</see-also>
 	</agi>
 	<agi name="get data" language="en_US">
+		<since>
+			<version>0.4.0</version>
+		</since>
 		<synopsis>
 			Prompts for DTMF on a channel
 		</synopsis>
@@ -322,6 +352,9 @@
 		</see-also>
 	</agi>
 	<agi name="get full variable" language="en_US">
+		<since>
+			<version>1.2.0</version>
+		</since>
 		<synopsis>
 			Evaluates a channel expression
 		</synopsis>
@@ -349,6 +382,9 @@
 		</see-also>
 	</agi>
 	<agi name="get option" language="en_US">
+		<since>
+			<version>1.2.0</version>
+		</since>
 		<synopsis>
 			Stream file, prompt for DTMF, with timeout.
 		</synopsis>
@@ -367,6 +403,9 @@
 		</see-also>
 	</agi>
 	<agi name="get variable" language="en_US">
+		<since>
+			<version>0.4.0</version>
+		</since>
 		<synopsis>
 			Gets a channel variable.
 		</synopsis>
@@ -386,6 +425,9 @@
 		</see-also>
 	</agi>
 	<agi name="hangup" language="en_US">
+		<since>
+			<version>0.4.0</version>
+		</since>
 		<synopsis>
 			Hangup a channel.
 		</synopsis>
@@ -401,6 +443,9 @@
 		</see-also>
 	</agi>
 	<agi name="noop" language="en_US">
+		<since>
+			<version>0.4.0</version>
+		</since>
 		<synopsis>
 			Does nothing.
 		</synopsis>
@@ -413,6 +458,9 @@
 		</see-also>
 	</agi>
 	<agi name="receive char" language="en_US">
+		<since>
+			<version>0.4.0</version>
+		</since>
 		<synopsis>
 			Receives one character from channels supporting it.
 		</synopsis>
@@ -434,6 +482,9 @@
 		</see-also>
 	</agi>
 	<agi name="receive text" language="en_US">
+		<since>
+			<version>1.2.0</version>
+		</since>
 		<synopsis>
 			Receives text from channels supporting it.
 		</synopsis>
@@ -455,6 +506,9 @@
 		</see-also>
 	</agi>
 	<agi name="record file" language="en_US">
+		<since>
+			<version>0.4.0</version>
+		</since>
 		<synopsis>
 			Records to a given file.
 		</synopsis>
@@ -506,6 +560,9 @@
 		</see-also>
 	</agi>
 	<agi name="say alpha" language="en_US">
+		<since>
+			<version>1.2.0</version>
+		</since>
 		<synopsis>
 			Says a given character string.
 		</synopsis>
@@ -530,6 +587,9 @@
 		</see-also>
 	</agi>
 	<agi name="say digits" language="en_US">
+		<since>
+			<version>0.4.0</version>
+		</since>
 		<synopsis>
 			Says a given digit string.
 		</synopsis>
@@ -554,6 +614,9 @@
 		</see-also>
 	</agi>
 	<agi name="say number" language="en_US">
+		<since>
+			<version>0.4.0</version>
+		</since>
 		<synopsis>
 			Says a given number.
 		</synopsis>
@@ -579,6 +642,9 @@
 		</see-also>
 	</agi>
 	<agi name="say phonetic" language="en_US">
+		<since>
+			<version>1.0.0</version>
+		</since>
 		<synopsis>
 			Says a given character string with phonetics.
 		</synopsis>
@@ -603,6 +669,9 @@
 		</see-also>
 	</agi>
 	<agi name="say date" language="en_US">
+		<since>
+			<version>1.2.0</version>
+		</since>
 		<synopsis>
 			Says a given date.
 		</synopsis>
@@ -630,6 +699,9 @@
 		</see-also>
 	</agi>
 	<agi name="say time" language="en_US">
+		<since>
+			<version>1.0.0</version>
+		</since>
 		<synopsis>
 			Says a given time.
 		</synopsis>
@@ -657,6 +729,9 @@
 		</see-also>
 	</agi>
 	<agi name="say datetime" language="en_US">
+		<since>
+			<version>1.2.0</version>
+		</since>
 		<synopsis>
 			Says a given time as specified by the format given.
 		</synopsis>
@@ -693,6 +768,9 @@
 		</see-also>
 	</agi>
 	<agi name="send image" language="en_US">
+		<since>
+			<version>0.4.0</version>
+		</since>
 		<synopsis>
 			Sends images to channels supporting it.
 		</synopsis>
@@ -710,6 +788,9 @@
 		</see-also>
 	</agi>
 	<agi name="send text" language="en_US">
+		<since>
+			<version>0.4.0</version>
+		</since>
 		<synopsis>
 			Sends text to channels supporting it.
 		</synopsis>
@@ -731,6 +812,9 @@
 		</see-also>
 	</agi>
 	<agi name="set autohangup" language="en_US">
+		<since>
+			<version>0.4.0</version>
+		</since>
 		<synopsis>
 			Autohangup channel in some time.
 		</synopsis>
@@ -747,6 +831,9 @@
 		</see-also>
 	</agi>
 	<agi name="set callerid" language="en_US">
+		<since>
+			<version>0.4.0</version>
+		</since>
 		<synopsis>
 			Sets callerid for the current channel.
 		</synopsis>
@@ -761,6 +848,9 @@
 		</see-also>
 	</agi>
 	<agi name="set context" language="en_US">
+		<since>
+			<version>0.4.0</version>
+		</since>
 		<synopsis>
 			Sets channel context.
 		</synopsis>
@@ -777,6 +867,9 @@
 		</see-also>
 	</agi>
 	<agi name="set extension" language="en_US">
+		<since>
+			<version>0.4.0</version>
+		</since>
 		<synopsis>
 			Changes channel extension.
 		</synopsis>
@@ -793,6 +886,9 @@
 		</see-also>
 	</agi>
 	<agi name="set music" language="en_US">
+		<since>
+			<version>0.5.0</version>
+		</since>
 		<synopsis>
 			Enable/Disable Music on hold generator
 		</synopsis>
@@ -816,6 +912,9 @@
 		</see-also>
 	</agi>
 	<agi name="set priority" language="en_US">
+		<since>
+			<version>0.4.0</version>
+		</since>
 		<synopsis>
 			Set channel dialplan priority.
 		</synopsis>
@@ -833,6 +932,9 @@
 		</see-also>
 	</agi>
 	<agi name="set variable" language="en_US">
+		<since>
+			<version>0.4.0</version>
+		</since>
 		<synopsis>
 			Sets a channel variable.
 		</synopsis>
@@ -850,6 +952,9 @@
 		</see-also>
 	</agi>
 	<agi name="stream file" language="en_US">
+		<since>
+			<version>0.4.0</version>
+		</since>
 		<synopsis>
 			Sends audio file on channel.
 		</synopsis>
@@ -890,6 +995,9 @@
 		</see-also>
 	</agi>
 	<agi name="tdd mode" language="en_US">
+		<since>
+			<version>0.4.0</version>
+		</since>
 		<synopsis>
 			Toggles TDD mode (for the deaf).
 		</synopsis>
@@ -910,6 +1018,9 @@
 		</see-also>
 	</agi>
 	<agi name="verbose" language="en_US">
+		<since>
+			<version>0.4.0</version>
+		</since>
 		<synopsis>
 			Logs a message to the asterisk verbose log.
 		</synopsis>
@@ -927,6 +1038,9 @@
 		</see-also>
 	</agi>
 	<agi name="wait for digit" language="en_US">
+		<since>
+			<version>0.4.0</version>
+		</since>
 		<synopsis>
 			Waits for a digit to be pressed.
 		</synopsis>
@@ -945,6 +1059,9 @@
 		</see-also>
 	</agi>
 	<agi name="speech create" language="en_US">
+		<since>
+			<version>1.6.0</version>
+		</since>
 		<synopsis>
 			Creates a speech object.
 		</synopsis>
@@ -966,6 +1083,9 @@
 		</see-also>
 	</agi>
 	<agi name="speech set" language="en_US">
+		<since>
+			<version>1.6.0</version>
+		</since>
 		<synopsis>
 			Sets a speech engine setting.
 		</synopsis>
@@ -988,6 +1108,9 @@
 		</see-also>
 	</agi>
 	<agi name="speech destroy" language="en_US">
+		<since>
+			<version>1.6.0</version>
+		</since>
 		<synopsis>
 			Destroys a speech object.
 		</synopsis>
@@ -1008,6 +1131,9 @@
 		</see-also>
 	</agi>
 	<agi name="speech load grammar" language="en_US">
+		<since>
+			<version>1.6.0</version>
+		</since>
 		<synopsis>
 			Loads a grammar.
 		</synopsis>
@@ -1030,6 +1156,9 @@
 		</see-also>
 	</agi>
 	<agi name="speech unload grammar" language="en_US">
+		<since>
+			<version>1.6.0</version>
+		</since>
 		<synopsis>
 			Unloads a grammar.
 		</synopsis>
@@ -1051,6 +1180,9 @@
 		</see-also>
 	</agi>
 	<agi name="speech activate grammar" language="en_US">
+		<since>
+			<version>1.6.0</version>
+		</since>
 		<synopsis>
 			Activates a grammar.
 		</synopsis>
@@ -1072,6 +1204,9 @@
 		</see-also>
 	</agi>
 	<agi name="speech deactivate grammar" language="en_US">
+		<since>
+			<version>1.6.0</version>
+		</since>
 		<synopsis>
 			Deactivates a grammar.
 		</synopsis>
@@ -1093,6 +1228,9 @@
 		</see-also>
 	</agi>
 	<agi name="speech recognize" language="en_US">
+		<since>
+			<version>1.6.0</version>
+		</since>
 		<synopsis>
 			Recognizes speech.
 		</synopsis>
@@ -1117,6 +1255,9 @@
 		</see-also>
 	</agi>
 	<application name="AGI" language="en_US">
+		<since>
+			<version>0.1.9</version>
+		</since>
 		<synopsis>
 			Executes an AGI compliant application.
 		</synopsis>
@@ -1218,6 +1359,9 @@
 		</see-also>
 	</application>
 	<application name="EAGI" language="en_US">
+		<since>
+			<version>0.4.0</version>
+		</since>
 		<synopsis>
 			Executes an EAGI compliant application.
 		</synopsis>
@@ -1239,6 +1383,9 @@
 		</see-also>
 	</application>
 	<application name="DeadAGI" language="en_US">
+		<since>
+			<version>1.0.0</version>
+		</since>
 		<synopsis>
 			Executes AGI on a hungup channel.
 		</synopsis>
@@ -1265,6 +1412,9 @@
 		</see-also>
 	</application>
 	<manager name="AGI" language="en_US">
+		<since>
+			<version>1.6.0</version>
+		</since>
 		<synopsis>
 			Add an AGI command to execute by Async AGI.
 		</synopsis>
@@ -1292,6 +1442,9 @@
 	</manager>
 	<managerEvent language="en_US" name="AsyncAGIStart">
 		<managerEventInstance class="EVENT_FLAG_AGI">
+			<since>
+				<version>12.0.0</version>
+			</since>
 			<synopsis>Raised when a channel starts AsyncAGI command processing.</synopsis>
 			<syntax>
 				<channel_snapshot/>
@@ -1309,6 +1462,9 @@
 	</managerEvent>
 	<managerEvent language="en_US" name="AsyncAGIEnd">
 		<managerEventInstance class="EVENT_FLAG_AGI">
+			<since>
+				<version>12.0.0</version>
+			</since>
 			<synopsis>Raised when a channel stops AsyncAGI command processing.</synopsis>
 			<syntax>
 				<channel_snapshot/>
@@ -1323,6 +1479,9 @@
 	</managerEvent>
 	<managerEvent language="en_US" name="AsyncAGIExec">
 		<managerEventInstance class="EVENT_FLAG_AGI">
+			<since>
+				<version>12.0.0</version>
+			</since>
 			<synopsis>Raised when AsyncAGI completes an AGI command.</synopsis>
 			<syntax>
 				<channel_snapshot/>
@@ -1343,6 +1502,9 @@
 	</managerEvent>
 	<managerEvent language="en_US" name="AGIExecStart">
 		<managerEventInstance class="EVENT_FLAG_AGI">
+			<since>
+				<version>12.0.0</version>
+			</since>
 			<synopsis>Raised when a received AGI command starts processing.</synopsis>
 			<syntax>
 				<channel_snapshot/>
@@ -1361,6 +1523,9 @@
 	</managerEvent>
 	<managerEvent language="en_US" name="AGIExecEnd">
 		<managerEventInstance class="EVENT_FLAG_AGI">
+			<since>
+				<version>12.0.0</version>
+			</since>
 			<synopsis>Raised when a received AGI command completes processing.</synopsis>
 			<syntax>
 				<channel_snapshot/>
@@ -2192,11 +2357,14 @@ static enum agi_result launch_ha_netscript(char *agiurl, char *argv[], int *fds)
 	return AGI_RESULT_FAILURE;
 }
 
-static enum agi_result launch_script(struct ast_channel *chan, char *script, int argc, char *argv[], int *fds, int *efd, int *opid)
+static enum agi_result launch_script(struct ast_channel *chan, char *script, int argc, char *argv[], int *fds, int *efd, int *opid, int *safe_fork_called)
 {
 	char tmp[256];
 	int pid, toast[2], fromast[2], audio[2], res;
 	struct stat st;
+
+	/* We should not call ast_safe_fork_cleanup() if we never call ast_safe_fork(1) */
+	*safe_fork_called = 0;
 
 	if (!strncasecmp(script, "agi://", 6)) {
 		return (efd == NULL) ? launch_netscript(script, argv, fds) : AGI_RESULT_FAILURE;
@@ -2251,6 +2419,8 @@ static enum agi_result launch_script(struct ast_channel *chan, char *script, int
 			return AGI_RESULT_FAILURE;
 		}
 	}
+
+	*safe_fork_called = 1;
 
 	if ((pid = ast_safe_fork(1)) < 0) {
 		ast_log(LOG_WARNING, "Failed to fork(): %s\n", strerror(errno));
@@ -3650,8 +3820,10 @@ static int handle_speechrecognize(struct ast_channel *chan, AGI *agi, int argc, 
 			time(&current);
 			if ((current - start) >= timeout) {
 				reason = "timeout";
-				if (fr)
+				if (fr) {
 					ast_frfree(fr);
+					fr = NULL;
+				}
 				break;
 			}
 		}
@@ -3708,6 +3880,7 @@ static int handle_speechrecognize(struct ast_channel *chan, AGI *agi, int argc, 
 				reason = "hangup";
 			}
 			ast_frfree(fr);
+			fr = NULL;
 		}
 	}
 
@@ -3823,8 +3996,10 @@ int AST_OPTIONAL_API_NAME(ast_agi_register)(struct ast_module *mod, agi_command 
 		if (ast_strlen_zero(cmd->summary) && ast_strlen_zero(cmd->usage)) {
 #ifdef AST_XML_DOCS
 			*((char **) &cmd->summary) = ast_xmldoc_build_synopsis("agi", fullcmd, NULL);
+			*((char **) &cmd->since) = ast_xmldoc_build_since("agi", fullcmd, NULL);
 			*((char **) &cmd->usage) = ast_xmldoc_build_description("agi", fullcmd, NULL);
 			*((char **) &cmd->syntax) = ast_xmldoc_build_syntax("agi", fullcmd, NULL);
+			*((char **) &cmd->arguments) = ast_xmldoc_build_arguments("agi", fullcmd, NULL);
 			*((char **) &cmd->seealso) = ast_xmldoc_build_seealso("agi", fullcmd, NULL);
 			*((enum ast_doc_src *) &cmd->docsrc) = AST_XML_DOC;
 #endif
@@ -3871,12 +4046,16 @@ int AST_OPTIONAL_API_NAME(ast_agi_unregister)(agi_command *cmd)
 #ifdef AST_XML_DOCS
 			if (e->docsrc == AST_XML_DOC) {
 				ast_free((char *) e->summary);
+				ast_free((char *) e->since);
 				ast_free((char *) e->usage);
 				ast_free((char *) e->syntax);
+				ast_free((char *) e->arguments);
 				ast_free((char *) e->seealso);
 				*((char **) &e->summary) = NULL;
+				*((char **) &e->since) = NULL;
 				*((char **) &e->usage) = NULL;
 				*((char **) &e->syntax) = NULL;
+				*((char **) &e->arguments) = NULL;
 				*((char **) &e->seealso) = NULL;
 			}
 #endif
@@ -4335,72 +4514,66 @@ static char *handle_cli_agi_show(struct ast_cli_entry *e, int cmd, struct ast_cl
 	if (a->argc > e->args - 1) {
 		command = find_command(a->argv + e->args, 1);
 		if (command) {
-			char *synopsis = NULL, *description = NULL, *syntax = NULL, *seealso = NULL;
-			char info[30 + MAX_CMD_LEN];					/* '-= Info about...' */
-			char infotitle[30 + MAX_CMD_LEN + AST_TERM_MAX_ESCAPE_CHARS];	/* '-= Info about...' with colors */
-			char syntitle[11 + AST_TERM_MAX_ESCAPE_CHARS];			/* [Syntax]\n with colors */
-			char desctitle[15 + AST_TERM_MAX_ESCAPE_CHARS];			/* [Description]\n with colors */
-			char deadtitle[13 + AST_TERM_MAX_ESCAPE_CHARS];			/* [Runs Dead]\n with colors */
-			char deadcontent[3 + AST_TERM_MAX_ESCAPE_CHARS];		/* 'Yes' or 'No' with colors */
-			char seealsotitle[12 + AST_TERM_MAX_ESCAPE_CHARS];		/* [See Also]\n with colors */
-			char stxtitle[10 + AST_TERM_MAX_ESCAPE_CHARS];			/* [Syntax]\n with colors */
-			size_t synlen, desclen, seealsolen, stxlen;
-
-			term_color(syntitle, "[Synopsis]\n", COLOR_MAGENTA, 0, sizeof(syntitle));
-			term_color(desctitle, "[Description]\n", COLOR_MAGENTA, 0, sizeof(desctitle));
-			term_color(deadtitle, "[Runs Dead]\n", COLOR_MAGENTA, 0, sizeof(deadtitle));
-			term_color(seealsotitle, "[See Also]\n", COLOR_MAGENTA, 0, sizeof(seealsotitle));
-			term_color(stxtitle, "[Syntax]\n", COLOR_MAGENTA, 0, sizeof(stxtitle));
-			term_color(deadcontent, command->dead ? "Yes" : "No", COLOR_CYAN, 0, sizeof(deadcontent));
+			char *synopsis = NULL, *since = NULL, *description = NULL, *syntax = NULL, *arguments = NULL, *seealso = NULL;
 
 			ast_join(fullcmd, sizeof(fullcmd), a->argv + e->args);
-			snprintf(info, sizeof(info), "\n  -= Info about agi '%s' =- ", fullcmd);
-			term_color(infotitle, info, COLOR_CYAN, 0, sizeof(infotitle));
+
 #ifdef AST_XML_DOCS
 			if (command->docsrc == AST_XML_DOC) {
 				synopsis = ast_xmldoc_printable(S_OR(command->summary, "Not available"), 1);
+				since = ast_xmldoc_printable(S_OR(command->since, "Not available"), 1);
 				description = ast_xmldoc_printable(S_OR(command->usage, "Not available"), 1);
+				syntax = ast_xmldoc_printable(S_OR(command->syntax, "Not available"), 1);
+				arguments = ast_xmldoc_printable(S_OR(command->arguments, "Not available"), 1);
 				seealso = ast_xmldoc_printable(S_OR(command->seealso, "Not available"), 1);
-				if (!seealso || !description || !synopsis) {
-					error = 1;
-					goto return_cleanup;
-				}
 			} else
 #endif
 			{
-				synlen = strlen(S_OR(command->summary, "Not available")) + AST_TERM_MAX_ESCAPE_CHARS;
-				synopsis = ast_malloc(synlen);
-
-				desclen = strlen(S_OR(command->usage, "Not available")) + AST_TERM_MAX_ESCAPE_CHARS;
-				description = ast_malloc(desclen);
-
-				seealsolen = strlen(S_OR(command->seealso, "Not available")) + AST_TERM_MAX_ESCAPE_CHARS;
-				seealso = ast_malloc(seealsolen);
-
-				if (!synopsis || !description || !seealso) {
-					error = 1;
-					goto return_cleanup;
-				}
-				term_color(synopsis, S_OR(command->summary, "Not available"), COLOR_CYAN, 0, synlen);
-				term_color(description, S_OR(command->usage, "Not available"), COLOR_CYAN, 0, desclen);
-				term_color(seealso, S_OR(command->seealso, "Not available"), COLOR_CYAN, 0, seealsolen);
+				synopsis = ast_strdup(S_OR(command->summary, "Not Available"));
+				since = ast_strdup(S_OR(command->since, "Not Available"));
+				description = ast_strdup(S_OR(command->usage, "Not Available"));
+				syntax = ast_strdup(S_OR(command->syntax, "Not Available"));
+				arguments = ast_strdup(S_OR(command->arguments, "Not Available"));
+				seealso = ast_strdup(S_OR(command->seealso, "Not Available"));
 			}
 
-			stxlen = strlen(S_OR(command->syntax, "Not available")) + AST_TERM_MAX_ESCAPE_CHARS;
-			syntax = ast_malloc(stxlen);
-			if (!syntax) {
+			if (!synopsis || !since || !description || !syntax || !arguments || !seealso) {
 				error = 1;
 				goto return_cleanup;
 			}
-			term_color(syntax, S_OR(command->syntax, "Not available"), COLOR_CYAN, 0, stxlen);
 
-			ast_cli(a->fd, "%s\n\n%s%s\n\n%s%s\n\n%s%s\n\n%s%s\n\n%s%s\n\n", infotitle, stxtitle, syntax,
-					desctitle, description, syntitle, synopsis, deadtitle, deadcontent,
-					seealsotitle, seealso);
+			ast_cli(a->fd, "\n"
+				"%s  -= Info about AGI '%s' =- %s\n\n"
+				COLORIZE_FMT "\n"
+				"%s\n\n"
+				COLORIZE_FMT "\n"
+				"%s\n\n"
+				COLORIZE_FMT "\n"
+				"%s\n\n"
+				COLORIZE_FMT "\n"
+				"%s\n\n"
+				COLORIZE_FMT "\n"
+				"%s\n\n"
+				COLORIZE_FMT "\n"
+				"%s\n\n"
+				COLORIZE_FMT "\n"
+				"%s\n\n",
+				ast_term_color(COLOR_MAGENTA, 0), fullcmd, ast_term_reset(),
+				COLORIZE(COLOR_MAGENTA, 0, "[Synopsis]"), synopsis,
+				COLORIZE(COLOR_MAGENTA, 0, "[Since]"), since,
+				COLORIZE(COLOR_MAGENTA, 0, "[Description]"), description,
+				COLORIZE(COLOR_MAGENTA, 0, "[Syntax]"), syntax,
+				COLORIZE(COLOR_MAGENTA, 0, "[Arguments]"), arguments,
+				COLORIZE(COLOR_MAGENTA, 0, "[Runs Dead]"), command->dead ? "Yes" : "No",
+				COLORIZE(COLOR_MAGENTA, 0, "[See Also]"), seealso
+				);
+
 return_cleanup:
 			ast_free(synopsis);
+			ast_free(since);
 			ast_free(description);
 			ast_free(syntax);
+			ast_free(arguments);
 			ast_free(seealso);
 		} else {
 			if (find_command(a->argv + e->args, -1)) {
@@ -4528,6 +4701,7 @@ static int agi_exec_full(struct ast_channel *chan, const char *data, int enhance
 	enum agi_result res;
 	char *buf;
 	int fds[2], efd = -1, pid = -1;
+	int safe_fork_called = 0;
 	AST_DECLARE_APP_ARGS(args,
 		AST_APP_ARG(arg)[MAX_ARGS];
 	);
@@ -4550,7 +4724,7 @@ static int agi_exec_full(struct ast_channel *chan, const char *data, int enhance
 			return -1;
 	}
 #endif
-	res = launch_script(chan, args.arg[0], args.argc, args.arg, fds, enhanced ? &efd : NULL, &pid);
+	res = launch_script(chan, args.arg[0], args.argc, args.arg, fds, enhanced ? &efd : NULL, &pid, &safe_fork_called);
 	/* Async AGI do not require run_agi(), so just proceed if normal AGI
 	   or Fast AGI are setup with success. */
 	if (res == AGI_RESULT_SUCCESS || res == AGI_RESULT_SUCCESS_FAST) {
@@ -4568,7 +4742,9 @@ static int agi_exec_full(struct ast_channel *chan, const char *data, int enhance
 		if (efd > -1)
 			close(efd);
 	}
-	ast_safe_fork_cleanup();
+	if (safe_fork_called) {
+		ast_safe_fork_cleanup();
+	}
 
 	switch (res) {
 	case AGI_RESULT_SUCCESS:

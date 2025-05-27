@@ -190,9 +190,6 @@ void __attribute__((format(printf, 6, 0))) __ast_verbose_ap(const char *file, in
 
 void __attribute__((format(printf, 2, 3))) ast_child_verbose(int level, const char *fmt, ...);
 
-int ast_register_verbose(void (*verboser)(const char *string)) attribute_warn_unused_result;
-int ast_unregister_verbose(void (*verboser)(const char *string)) attribute_warn_unused_result;
-
 /*
  * These gymnastics are due to platforms which designate char as unsigned by
  * default.  Level is the negative character -- offset by 1, because \0 is
@@ -900,7 +897,7 @@ unsigned long _ast_trace_dec_indent(void);
 	__type __var; \
 	ast_trace(level, "--> Calling %s\n", #__funcname); \
 	__var = __funcname(__VA_ARGS__); \
-	ast_trace(level, "<-- Return from %s\n", #__funcname) \
+	ast_trace(level, "<-- Return from %s\n", #__funcname); \
 	__var; \
 })
 
@@ -1018,7 +1015,10 @@ unsigned long _ast_trace_dec_indent(void);
 	__funcname(__VA_ARGS__)
 
 #define SCOPE_CALL_WITH_RESULT(level, __var, __funcname, ...) \
-	__var = __funcname(__VA_ARGS__)
+	__funcname(__VA_ARGS__)
+
+#define SCOPE_CALL_WITH_INT_RESULT(level, __funcname, ...) \
+	__funcname(__VA_ARGS__)
 
 #define SCOPE_EXIT(...) \
 	ast_debug(__scope_level, " " __VA_ARGS__)

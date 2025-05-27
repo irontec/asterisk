@@ -53,6 +53,9 @@
 
 /*** DOCUMENTATION
 	<application name="MP3Player" language="en_US">
+		<since>
+			<version>0.1.0</version>
+		</since>
 		<synopsis>
 			Play an MP3 file or M3U playlist file or stream.
 		</synopsis>
@@ -71,7 +74,7 @@
 			<example title="Play an MP3 playlist">
 			exten => 1234,1,MP3Player(/var/lib/asterisk/playlist.m3u)
 			</example>
-			<para>This application does not automatically answer and should be preceeded by an
+			<para>This application does not automatically answer and should be preceded by an
 			application such as Answer() or Progress().</para>
 		</description>
 	</application>

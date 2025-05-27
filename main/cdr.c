@@ -82,8 +82,14 @@
 		</description>
 		<configFile name="cdr.conf">
 			<configObject name="general">
+				<since>
+					<version>12.0.0</version>
+				</since>
 				<synopsis>Global settings applied to the CDR engine.</synopsis>
 				<configOption name="debug">
+					<since>
+						<version>12.0.0</version>
+					</since>
 					<synopsis>Enable/disable verbose CDR debugging.</synopsis>
 					<description><para>When set to <literal>True</literal>, verbose updates
 					of changes in CDR information will be logged. Note that this is only
@@ -91,12 +97,20 @@
 					</description>
 				</configOption>
 				<configOption name="enable" default="yes">
+					<since>
+						<version>12.0.0</version>
+					</since>
 					<synopsis>Enable/disable CDR logging.</synopsis>
 					<description><para>Define whether or not to use CDR logging. Setting this to "no" will override
 					any loading of backend CDR modules.</para>
 					</description>
 				</configOption>
 				<configOption name="channeldefaultenabled" default="yes">
+					<since>
+						<version>16.24.0</version>
+						<version>18.10.0</version>
+						<version>19.2.0</version>
+					</since>
 					<synopsis>Whether CDR is enabled on a channel by default</synopsis>
 					<description><para>Define whether or not CDR should be enabled on a channel by default.
 					Setting this to "yes" will enable CDR on every channel unless it is explicitly disabled.
@@ -112,6 +126,12 @@
 					</description>
 				</configOption>
 				<configOption name="ignorestatechanges" default="no">
+					<since>
+						<version>16.30.0</version>
+						<version>18.16.0</version>
+						<version>19.8.0</version>
+						<version>20.1.0</version>
+					</since>
 					<synopsis>Whether CDR is updated or forked by bridging changes.</synopsis>
 					<description><para>Define whether or not CDR should be updated by bridging changes.
 					This includes entering and leaving bridges and call parking.</para>
@@ -122,6 +142,12 @@
 					</description>
 				</configOption>
 				<configOption name="ignoredialchanges" default="no">
+					<since>
+						<version>16.30.0</version>
+						<version>18.16.0</version>
+						<version>19.8.0</version>
+						<version>20.1.0</version>
+					</since>
 					<synopsis>Whether CDR is updated or forked by dial updates.</synopsis>
 					<description><para>Define whether or not CDR should be updated by dial updates.</para>
 					<para>If this is set to "no", a single CDR will be used for the channel, even if
@@ -135,6 +161,9 @@
 					</description>
 				</configOption>
 				<configOption name="unanswered">
+					<since>
+						<version>12.0.0</version>
+					</since>
 					<synopsis>Log calls that are never answered and don't set an outgoing party.</synopsis>
 					<description><para>
 					Define whether or not to log unanswered calls that don't involve an outgoing party. Setting
@@ -147,12 +176,18 @@
 					</description>
 				</configOption>
 				<configOption name="congestion">
+					<since>
+						<version>12.0.0</version>
+					</since>
 					<synopsis>Log congested calls.</synopsis>
 					<description><para>Define whether or not to log congested calls. Setting this to "yes" will
 					report each call that fails to complete due to congestion conditions.</para>
 					</description>
 				</configOption>
 				<configOption name="endbeforehexten">
+					<since>
+						<version>12.0.0</version>
+					</since>
 					<synopsis>Don't produce CDRs while executing hangup logic</synopsis>
 					<description>
 						<para>As each CDR for a channel is finished, its end time is updated
@@ -167,6 +202,9 @@
 					</description>
 				</configOption>
 				<configOption name="initiatedseconds">
+					<since>
+						<version>12.0.0</version>
+					</since>
 					<synopsis>Count microseconds for billsec purposes</synopsis>
 					<description><para>Normally, the <literal>billsec</literal> field logged to the CDR backends
 					is simply the end time (hangup time) minus the answer time in seconds. Internally,
@@ -178,6 +216,9 @@
 					</description>
 				</configOption>
 				<configOption name="batch">
+					<since>
+						<version>12.0.0</version>
+					</since>
 					<synopsis>Submit CDRs to the backends for processing in batches</synopsis>
 					<description><para>Define the CDR batch mode, where instead of posting the CDR at the end of
 					every call, the data will be stored in a buffer to help alleviate load on the
@@ -188,12 +229,19 @@
 					</description>
 				</configOption>
 				<configOption name="size">
+					<since>
+						<version>12.0.0</version>
+					</since>
 					<synopsis>The maximum number of CDRs to accumulate before triggering a batch</synopsis>
 					<description><para>Define the maximum number of CDRs to accumulate in the buffer before posting
 					them to the backend engines. batch must be set to <literal>yes</literal>.</para>
 					</description>
 				</configOption>
 				<configOption name="time">
+					<since>
+						<version>13.22.0</version>
+						<version>15.5.0</version>
+					</since>
 					<synopsis>The maximum time to accumulate CDRs before triggering a batch</synopsis>
 					<description><para>Define the maximum time to accumulate CDRs before posting them in a batch to the
 					backend engines. If this time limit is reached, then it will post the records, regardless of the value
@@ -202,6 +250,9 @@
 					</description>
 				</configOption>
 				<configOption name="scheduleronly">
+					<since>
+						<version>12.0.0</version>
+					</since>
 					<synopsis>Post batched CDRs on their own thread instead of the scheduler</synopsis>
 					<description><para>The CDR engine uses the internal asterisk scheduler to determine when to post
 					records.  Posting can either occur inside the scheduler thread, or a new
@@ -212,6 +263,9 @@
 					</description>
 				</configOption>
 				<configOption name="safeshutdown">
+					<since>
+						<version>12.0.0</version>
+					</since>
 					<synopsis>Block shutdown of Asterisk until CDRs are submitted</synopsis>
 					<description><para>When shutting down asterisk, you can block until the CDRs are submitted.  If
 					you don't, then data will likely be lost.  You can always check the size of
@@ -765,7 +819,8 @@ struct cdr_object {
 	struct ast_flags flags;                 /*!< Flags on the CDR */
 	AST_DECLARE_STRING_FIELDS(
 		AST_STRING_FIELD(linkedid);         /*!< Linked ID. Cached here as it may change out from party A, which must be immutable */
-		AST_STRING_FIELD(uniqueid);			/*!< Unique id of party A. Cached here as it is the master CDR container key */
+		AST_STRING_FIELD(uniqueid);         /*!< Unique id of party A. Cached here as it is the master CDR container key */
+		AST_STRING_FIELD(tenantid);         /*!< Tenant ID. Cached here because the value can be manipulated through dialplan */
 		AST_STRING_FIELD(name);             /*!< Channel name of party A. Cached here as the party A address may change */
 		AST_STRING_FIELD(bridge);           /*!< The bridge the party A happens to be in. */
 		AST_STRING_FIELD(appl);             /*!< The last accepted application party A was in */
@@ -1094,6 +1149,7 @@ static struct cdr_object *cdr_object_alloc(struct ast_channel_snapshot *chan, co
 	ast_string_field_set(cdr, uniqueid, chan->base->uniqueid);
 	ast_string_field_set(cdr, name, chan->base->name);
 	ast_string_field_set(cdr, linkedid, chan->peer->linkedid);
+	ast_string_field_set(cdr, tenantid, chan->base->tenantid);
 	cdr->disposition = AST_CDR_NULL;
 	cdr->sequence = ast_atomic_fetchadd_int(&global_cdr_sequence, +1);
 	cdr->lastevent = *event_time;
@@ -1362,6 +1418,7 @@ static struct ast_cdr *cdr_object_create_public_records(struct cdr_object *cdr)
 		ast_copy_string(cdr_copy->lastdata, it_cdr->data, sizeof(cdr_copy->lastdata));
 		ast_copy_string(cdr_copy->dst, it_cdr->exten, sizeof(cdr_copy->dst));
 		ast_copy_string(cdr_copy->dcontext, it_cdr->context, sizeof(cdr_copy->dcontext));
+		ast_copy_string(cdr_copy->tenantid, it_cdr->tenantid, sizeof(cdr_copy->tenantid));
 
 		/* Party B */
 		if (party_b) {
@@ -1370,6 +1427,7 @@ static struct ast_cdr *cdr_object_create_public_records(struct cdr_object *cdr)
 			if (!ast_strlen_zero(it_cdr->party_b.userfield)) {
 				snprintf(cdr_copy->userfield, sizeof(cdr_copy->userfield), "%s;%s", it_cdr->party_a.userfield, it_cdr->party_b.userfield);
 			}
+			ast_copy_string(cdr_copy->peertenantid, party_b->base->tenantid, sizeof(cdr_copy->peertenantid));
 		}
 		if (ast_strlen_zero(cdr_copy->userfield) && !ast_strlen_zero(it_cdr->party_a.userfield)) {
 			ast_copy_string(cdr_copy->userfield, it_cdr->party_a.userfield, sizeof(cdr_copy->userfield));
@@ -1571,7 +1629,7 @@ static void cdr_object_swap_snapshot(struct cdr_object_snapshot *old_snapshot,
 		struct ast_channel_snapshot *new_snapshot)
 {
 	cdr_object_update_cid(old_snapshot, new_snapshot);
-	ao2_t_replace(old_snapshot->snapshot, new_snapshot, "Swap CDR shapshot");
+	ao2_t_replace(old_snapshot->snapshot, new_snapshot, "Swap CDR snapshot");
 }
 
 /* BASE METHOD IMPLEMENTATIONS */
@@ -2856,7 +2914,7 @@ static void handle_parked_call_message(void *data, struct stasis_subscription *s
 	}
 
 	if (unhandled) {
-		/* Nothing handled the messgae - we need a new one! */
+		/* Nothing handled the message - we need a new one! */
 		struct cdr_object *new_cdr;
 
 		new_cdr = cdr_object_create_and_append(cdr, stasis_message_timestamp(message));
@@ -3166,6 +3224,10 @@ void ast_cdr_format_var(struct ast_cdr *cdr, const char *name, char **ret, char 
 		ast_copy_string(workspace, cdr->uniqueid, workspacelen);
 	} else if (!strcasecmp(name, "linkedid")) {
 		ast_copy_string(workspace, cdr->linkedid, workspacelen);
+	} else if (!strcasecmp(name, "tenantid")) {
+		ast_copy_string(workspace, cdr->tenantid, workspacelen);
+	} else if (!strcasecmp(name, "peertenantid")) {
+		ast_copy_string(workspace, cdr->peertenantid, workspacelen);
 	} else if (!strcasecmp(name, "userfield")) {
 		ast_copy_string(workspace, cdr->userfield, workspacelen);
 	} else if (!strcasecmp(name, "sequence")) {
@@ -3232,6 +3294,7 @@ static const char * const cdr_readonly_vars[] = {
 	"accountcode",
 	"uniqueid",
 	"linkedid",
+	"tenantid",
 	"userfield",
 	"sequence",
 	NULL
@@ -3353,6 +3416,14 @@ static int cdr_object_format_property(struct cdr_object *cdr_obj, const char *na
 		ast_copy_string(value, party_a->base->uniqueid, length);
 	} else if (!strcasecmp(name, "linkedid")) {
 		ast_copy_string(value, cdr_obj->linkedid, length);
+	} else if (!strcasecmp(name, "tenantid")) {
+		ast_copy_string(value, party_a->base->tenantid, length);
+	} else if (!strcasecmp(name, "peertenantid")) {
+		if (party_b) {
+			ast_copy_string(value, party_b->base->tenantid, length);
+		} else {
+			ast_copy_string(value, "", length);
+		}
 	} else if (!strcasecmp(name, "userfield")) {
 		ast_copy_string(value, cdr_obj->party_a.userfield, length);
 	} else if (!strcasecmp(name, "sequence")) {
@@ -4374,7 +4445,7 @@ static void destroy_subscriptions(void)
 }
 
 /*!
- * \brief Create the Stasis subcriptions for CDRs
+ * \brief Create the Stasis subscriptions for CDRs
  */
 static int create_subscriptions(void)
 {

@@ -49,6 +49,9 @@
 
 /*** DOCUMENTATION
 	<function name="MATH" language="en_US">
+		<since>
+			<version>1.2.0</version>
+		</since>
 		<synopsis>
 			Performs Mathematical Functions.
 		</synopsis>
@@ -77,6 +80,9 @@
 		</description>
 	</function>
 	<function name="INC" language="en_US">
+		<since>
+			<version>1.8.0</version>
+		</since>
 		<synopsis>
 			Increments the value of a variable, while returning the updated value to the dialplan
 		</synopsis>
@@ -94,6 +100,9 @@
 		</description>
 	</function>
 	<function name="DEC" language="en_US">
+		<since>
+			<version>1.8.0</version>
+		</since>
 		<synopsis>
 			Decrements the value of a variable, while returning the updated value to the dialplan
 		</synopsis>
@@ -116,7 +125,6 @@
 		<since>
 			<version>16.19.0</version>
 			<version>18.5.0</version>
-			<version>19.0.0</version>
 		</since>
 		<synopsis>
 			Returns the minimum of two numbers.
@@ -136,7 +144,6 @@
 		<since>
 			<version>16.19.0</version>
 			<version>18.5.0</version>
-			<version>19.0.0</version>
 		</since>
 		<synopsis>
 			Returns the maximum of two numbers.
@@ -156,7 +163,6 @@
 		<since>
 			<version>16.19.0</version>
 			<version>18.5.0</version>
-			<version>19.0.0</version>
 		</since>
 		<synopsis>
 			Returns absolute value of a number.

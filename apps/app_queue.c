@@ -126,6 +126,9 @@
 
 /*** DOCUMENTATION
 	<application name="Queue" language="en_US">
+		<since>
+			<version>0.2.0</version>
+		</since>
 		<synopsis>
 			Queue a call for a call queue.
 		</synopsis>
@@ -286,7 +289,7 @@
 			up by another user.</para>
 			<para>This application will return to the dialplan if the queue does not exist, or
 			any of the join options cause the caller to not enter the queue.</para>
-			<para>This application does not automatically answer and should be preceeded
+			<para>This application does not automatically answer and should be preceded
 			by an application such as Answer(), Progress(), or Ringing().</para>
 			<para>This application sets the following channel variables upon completion:</para>
 			<variablelist>
@@ -331,6 +334,9 @@
 		</see-also>
 	</application>
 	<application name="AddQueueMember" language="en_US">
+		<since>
+			<version>0.5.0</version>
+		</since>
 		<synopsis>
 			Dynamically adds queue members.
 		</synopsis>
@@ -338,7 +344,17 @@
 			<parameter name="queuename" required="true" />
 			<parameter name="interface" />
 			<parameter name="penalty" />
-			<parameter name="options" />
+			<parameter name="options">
+				<optionlist>
+					<option name="p">
+						<para>Add queue member in paused state.</para>
+					</option>
+					<option name="r">
+						<argument name="reason" required="true" />
+						<para>Specify a reason why the member is in paused state.</para>
+					</option>
+				</optionlist>
+			</parameter>
 			<parameter name="membername" />
 			<parameter name="stateinterface" />
 			<parameter name="wrapuptime" />
@@ -374,6 +390,9 @@
 		</see-also>
 	</application>
 	<application name="RemoveQueueMember" language="en_US">
+		<since>
+			<version>0.5.0</version>
+		</since>
 		<synopsis>
 			Dynamically removes queue members.
 		</synopsis>
@@ -414,6 +433,9 @@
 		</see-also>
 	</application>
 	<application name="PauseQueueMember" language="en_US">
+		<since>
+			<version>1.2.0</version>
+		</since>
 		<synopsis>
 			Pauses a queue member.
 		</synopsis>
@@ -461,6 +483,9 @@
 		</see-also>
 	</application>
 	<application name="UnpauseQueueMember" language="en_US">
+		<since>
+			<version>1.2.0</version>
+		</since>
 		<synopsis>
 			Unpauses a queue member.
 		</synopsis>
@@ -505,6 +530,9 @@
 		</see-also>
 	</application>
 	<application name="QueueLog" language="en_US">
+		<since>
+			<version>1.4.0</version>
+		</since>
 		<synopsis>
 			Writes to the queue_log file.
 		</synopsis>
@@ -539,6 +567,9 @@
 		</see-also>
 	</application>
 	<application name="QueueUpdate" language="en_US">
+		<since>
+			<version>15.0.0</version>
+		</since>
 		<synopsis>
 			Writes to the queue_log file for outbound calls and updates Realtime Data.
 			Is used at h extension to be able to have all the parameters.
@@ -559,6 +590,9 @@
 		</description>
 	</application>
 	<function name="QUEUE_VARIABLES" language="en_US">
+		<since>
+			<version>1.6.0</version>
+		</since>
 		<synopsis>
 			Return Queue information in variables.
 		</synopsis>
@@ -566,7 +600,7 @@
 			<parameter name="queuename" required="true">
 				<enumlist>
 					<enum name="QUEUEMAX">
-						<para>Maxmimum number of calls allowed.</para>
+						<para>Maximum number of calls allowed.</para>
 					</enum>
 					<enum name="QUEUESTRATEGY">
 						<para>The strategy of the queue.</para>
@@ -614,6 +648,9 @@
 		</see-also>
 	</function>
 	<function name="QUEUE_MEMBER" language="en_US">
+		<since>
+			<version>1.6.0</version>
+		</since>
 		<synopsis>
 			Provides a count of queue members based on the provided criteria, or updates a
 			queue member's settings.
@@ -679,6 +716,9 @@
 		</see-also>
 	</function>
 	<function name="QUEUE_MEMBER_COUNT" language="en_US">
+		<since>
+			<version>1.4.0</version>
+		</since>
 		<synopsis>
 			Count number of members answering a queue.
 		</synopsis>
@@ -707,6 +747,9 @@
 		</see-also>
 	</function>
 	<function name="QUEUE_EXISTS" language="en_US">
+		<since>
+			<version>1.8.0</version>
+		</since>
 		<synopsis>
 			Check if a named queue exists on this server
 		</synopsis>
@@ -734,6 +777,9 @@
 		</see-also>
 	</function>
 	<function name="QUEUE_GET_CHANNEL" language="en_US">
+		<since>
+			<version>14.0.0</version>
+		</since>
 		<synopsis>
 			Return caller at the specified position in a queue.
 		</synopsis>
@@ -762,6 +808,9 @@
 		</see-also>
 	</function>
 	<function name="QUEUE_WAITING_COUNT" language="en_US">
+		<since>
+			<version>1.4.0</version>
+		</since>
 		<synopsis>
 			Count number of calls currently waiting in a queue.
 		</synopsis>
@@ -789,6 +838,9 @@
 		</see-also>
 	</function>
 	<function name="QUEUE_MEMBER_LIST" language="en_US">
+		<since>
+			<version>1.4.0</version>
+		</since>
 		<synopsis>
 			Returns a list of interfaces on a queue.
 		</synopsis>
@@ -816,6 +868,9 @@
 		</see-also>
 	</function>
 	<function name="QUEUE_MEMBER_PENALTY" language="en_US">
+		<since>
+			<version>1.6.0</version>
+		</since>
 		<synopsis>
 			Gets or sets queue members penalty.
 		</synopsis>
@@ -845,6 +900,9 @@
 		</see-also>
 	</function>
 	<manager name="QueueStatus" language="en_US">
+		<since>
+			<version>0.5.0</version>
+		</since>
 		<synopsis>
 			Show queue status.
 		</synopsis>
@@ -862,6 +920,9 @@
 		</description>
 	</manager>
 	<manager name="QueueSummary" language="en_US">
+		<since>
+			<version>1.6.0</version>
+		</since>
 		<synopsis>
 			Show queue summary.
 		</synopsis>
@@ -876,6 +937,9 @@
 		</description>
 	</manager>
 	<manager name="QueueAdd" language="en_US">
+		<since>
+			<version>1.0.0</version>
+		</since>
 		<synopsis>
 			Add interface to queue.
 		</synopsis>
@@ -893,6 +957,9 @@
 			<parameter name="Paused">
 				<para>To pause or not the member initially (true/false or 1/0).</para>
 			</parameter>
+			<parameter name="Reason" required="false">
+				<para>Text description why the member is paused.</para>
+			</parameter>
 			<parameter name="MemberName">
 				<para>Text alias for the interface.</para>
 			</parameter>
@@ -902,6 +969,9 @@
 		</description>
 	</manager>
 	<manager name="QueueRemove" language="en_US">
+		<since>
+			<version>1.0.0</version>
+		</since>
 		<synopsis>
 			Remove interface from queue.
 		</synopsis>
@@ -918,6 +988,9 @@
 		</description>
 	</manager>
 	<manager name="QueuePause" language="en_US">
+		<since>
+			<version>1.2.0</version>
+		</since>
 		<synopsis>
 			Makes a queue member temporarily unavailable.
 		</synopsis>
@@ -929,10 +1002,10 @@
 			<parameter name="Paused" required="true">
 				<para>Pause or unpause the interface. Set to 'true' to pause the member or 'false' to unpause.</para>
 			</parameter>
-			<parameter name="Queue">
+			<parameter name="Queue" required="false">
 				<para>The name of the queue in which to pause or unpause this member. If not specified, the member will be paused or unpaused in all the queues it is a member of.</para>
 			</parameter>
-			<parameter name="Reason">
+			<parameter name="Reason" required="false">
 				<para>Text description, returned in the event QueueMemberPaused.</para>
 			</parameter>
 		</syntax>
@@ -941,6 +1014,9 @@
 		</description>
 	</manager>
 	<manager name="QueueLog" language="en_US">
+		<since>
+			<version>1.6.0</version>
+		</since>
 		<synopsis>
 			Adds custom entry in queue_log.
 		</synopsis>
@@ -956,6 +1032,9 @@
 		</description>
 	</manager>
 	<manager name="QueuePenalty" language="en_US">
+		<since>
+			<version>1.6.0</version>
+		</since>
 		<synopsis>
 			Set the penalty for a queue member.
 		</synopsis>
@@ -976,6 +1055,9 @@
 		</description>
 	</manager>
 	<manager name="QueueMemberRingInUse" language="en_US">
+		<since>
+			<version>11.0.0</version>
+		</since>
 		<synopsis>
 			Set the ringinuse value for a queue member.
 		</synopsis>
@@ -989,6 +1071,9 @@
 		</description>
 	</manager>
 	<manager name="QueueRule" language="en_US">
+		<since>
+			<version>1.6.0</version>
+		</since>
 		<synopsis>
 			Queue Rules.
 		</synopsis>
@@ -1003,6 +1088,9 @@
 		</description>
 	</manager>
 	<manager name="QueueReload" language="en_US">
+		<since>
+			<version>1.6.2.0</version>
+		</since>
 		<synopsis>
 			Reload a queue, queues, or any sub-section of a queue or queues.
 		</synopsis>
@@ -1037,6 +1125,9 @@
 		</description>
 	</manager>
 	<manager name="QueueReset" language="en_US">
+		<since>
+			<version>1.6.2.0</version>
+		</since>
 		<synopsis>
 			Reset queue statistics.
 		</synopsis>
@@ -1051,6 +1142,9 @@
 		</description>
 	</manager>
 	<manager name="QueueChangePriorityCaller" language="en_US">
+		<since>
+			<version>15.0.0</version>
+		</since>
 		<synopsis>
 			Change priority of a caller on queue.
 		</synopsis>
@@ -1074,6 +1168,11 @@
 		</description>
 	</manager>
 	<manager name="QueueWithdrawCaller" language="en_US">
+		<since>
+			<version>19.3.0</version>
+			<version>18.11.0</version>
+			<version>16.25.0</version>
+		</since>
 		<synopsis>
 			Request to withdraw a caller from the queue back to the dialplan.
 		</synopsis>
@@ -1095,6 +1194,11 @@
 
 	<managerEvent language="en_US" name="QueueParams">
 		<managerEventInstance class="EVENT_FLAG_AGENT">
+			<since>
+				<version>16.24.0</version>
+				<version>18.10.0</version>
+				<version>19.2.0</version>
+			</since>
 			<synopsis>Raised in response to the QueueStatus action.</synopsis>
 			<syntax>
 				<parameter name="Max">
@@ -1133,6 +1237,11 @@
 	</managerEvent>
 	<managerEvent language="en_US" name="QueueEntry">
 		<managerEventInstance class="EVENT_FLAG_AGENT">
+			<since>
+				<version>16.24.0</version>
+				<version>18.10.0</version>
+				<version>19.2.0</version>
+			</since>
 			<synopsis>Raised in response to the QueueStatus action.</synopsis>
 			<syntax>
 				<parameter name="Queue">
@@ -1174,6 +1283,9 @@
 	</managerEvent>
 	<managerEvent language="en_US" name="QueueMemberStatus">
 		<managerEventInstance class="EVENT_FLAG_AGENT">
+			<since>
+				<version>12.0.0</version>
+			</since>
 			<synopsis>Raised when a Queue member's status has changed.</synopsis>
 			<syntax>
 				<parameter name="Queue">
@@ -1254,6 +1366,9 @@
 	</managerEvent>
 	<managerEvent language="en_US" name="QueueMemberAdded">
 		<managerEventInstance class="EVENT_FLAG_AGENT">
+			<since>
+				<version>12.0.0</version>
+			</since>
 			<synopsis>Raised when a member is added to the queue.</synopsis>
 			<syntax>
 				<xi:include xpointer="xpointer(/docs/managerEvent[@name='QueueMemberStatus']/managerEventInstance/syntax/parameter)" />
@@ -1266,6 +1381,9 @@
 	</managerEvent>
 	<managerEvent language="en_US" name="QueueMemberRemoved">
 		<managerEventInstance class="EVENT_FLAG_AGENT">
+			<since>
+				<version>12.0.0</version>
+			</since>
 			<synopsis>Raised when a member is removed from the queue.</synopsis>
 			<syntax>
 				<xi:include xpointer="xpointer(/docs/managerEvent[@name='QueueMemberStatus']/managerEventInstance/syntax/parameter)" />
@@ -1278,6 +1396,9 @@
 	</managerEvent>
 	<managerEvent language="en_US" name="QueueMemberPause">
 		<managerEventInstance class="EVENT_FLAG_AGENT">
+			<since>
+				<version>12.2.0</version>
+			</since>
 			<synopsis>Raised when a member is paused/unpaused in the queue.</synopsis>
 			<syntax>
 				<xi:include xpointer="xpointer(/docs/managerEvent[@name='QueueMemberStatus']/managerEventInstance/syntax/parameter)" />
@@ -1290,6 +1411,9 @@
 	</managerEvent>
 	<managerEvent language="en_US" name="QueueMemberPenalty">
 		<managerEventInstance class="EVENT_FLAG_AGENT">
+			<since>
+				<version>12.0.0</version>
+			</since>
 			<synopsis>Raised when a member's penalty is changed.</synopsis>
 			<syntax>
 				<xi:include xpointer="xpointer(/docs/managerEvent[@name='QueueMemberStatus']/managerEventInstance/syntax/parameter)" />
@@ -1301,6 +1425,9 @@
 	</managerEvent>
 	<managerEvent language="en_US" name="QueueMemberRinginuse">
 		<managerEventInstance class="EVENT_FLAG_AGENT">
+			<since>
+				<version>12.0.0</version>
+			</since>
 			<synopsis>Raised when a member's ringinuse setting is changed.</synopsis>
 			<syntax>
 				<xi:include xpointer="xpointer(/docs/managerEvent[@name='QueueMemberStatus']/managerEventInstance/syntax/parameter)" />
@@ -1312,6 +1439,9 @@
 	</managerEvent>
 	<managerEvent language="en_US" name="QueueCallerJoin">
 		<managerEventInstance class="EVENT_FLAG_AGENT">
+			<since>
+				<version>12.0.0</version>
+			</since>
 			<synopsis>Raised when a caller joins a Queue.</synopsis>
 			<syntax>
 				<channel_snapshot/>
@@ -1331,6 +1461,9 @@
 	</managerEvent>
 	<managerEvent language="en_US" name="QueueCallerLeave">
 		<managerEventInstance class="EVENT_FLAG_AGENT">
+			<since>
+				<version>12.0.0</version>
+			</since>
 			<synopsis>Raised when a caller leaves a Queue.</synopsis>
 			<syntax>
 				<channel_snapshot/>
@@ -1345,6 +1478,9 @@
 	</managerEvent>
 	<managerEvent language="en_US" name="QueueCallerAbandon">
 		<managerEventInstance class="EVENT_FLAG_AGENT">
+			<since>
+				<version>12.0.0</version>
+			</since>
 			<synopsis>Raised when a caller abandons the queue.</synopsis>
 			<syntax>
 				<channel_snapshot/>
@@ -1361,6 +1497,9 @@
 	</managerEvent>
 	<managerEvent language="en_US" name="AgentCalled">
 		<managerEventInstance class="EVENT_FLAG_AGENT">
+			<since>
+				<version>12.0.0</version>
+			</since>
 			<synopsis>Raised when an queue member is notified of a caller in the queue.</synopsis>
 			<syntax>
 				<channel_snapshot/>
@@ -1378,6 +1517,9 @@
 	</managerEvent>
 	<managerEvent language="en_US" name="AgentRingNoAnswer">
 		<managerEventInstance class="EVENT_FLAG_AGENT">
+			<since>
+				<version>12.0.0</version>
+			</since>
 			<synopsis>Raised when a queue member is notified of a caller in the queue and fails to answer.</synopsis>
 			<syntax>
 				<channel_snapshot/>
@@ -1396,6 +1538,9 @@
 	</managerEvent>
 	<managerEvent language="en_US" name="AgentComplete">
 		<managerEventInstance class="EVENT_FLAG_AGENT">
+			<since>
+				<version>12.0.0</version>
+			</since>
 			<synopsis>Raised when a queue member has finished servicing a caller in the queue.</synopsis>
 			<syntax>
 				<channel_snapshot/>
@@ -1423,6 +1568,9 @@
 	</managerEvent>
 	<managerEvent language="en_US" name="AgentDump">
 		<managerEventInstance class="EVENT_FLAG_AGENT">
+			<since>
+				<version>12.0.0</version>
+			</since>
 			<synopsis>Raised when a queue member hangs up on a caller in the queue.</synopsis>
 			<syntax>
 				<channel_snapshot/>
@@ -1439,6 +1587,9 @@
 	</managerEvent>
 	<managerEvent language="en_US" name="AgentConnect">
 		<managerEventInstance class="EVENT_FLAG_AGENT">
+			<since>
+				<version>12.0.0</version>
+			</since>
 			<synopsis>Raised when a queue member answers and is bridged to a caller in the queue.</synopsis>
 			<syntax>
 				<channel_snapshot/>
@@ -1516,6 +1667,22 @@ AST_APP_OPTIONS(queue_exec_options, BEGIN_OPTIONS
 	AST_APP_OPTION('w', OPT_CALLEE_AUTOMON),
 	AST_APP_OPTION('W', OPT_CALLER_AUTOMON),
 END_OPTIONS);
+
+
+enum aqm_flags {
+	AQMFLAG_PAUSED = (1 << 1),
+	AQMFLAG_REASON = (1 << 2),
+};
+
+enum aqm_args {
+	AQM_OPT_ARG_PAUSE_REASON = 0,
+	AQM_OPT_ARG_ARRAY_SIZE,	/* Always last element of the enum */
+};
+
+AST_APP_OPTIONS(aqm_opts, {
+	AST_APP_OPTION('p', AQMFLAG_PAUSED),
+	AST_APP_OPTION_ARG('r', AQMFLAG_REASON, AQM_OPT_ARG_PAUSE_REASON),
+});
 
 enum {
 	QUEUE_STRATEGY_RINGALL = 0,
@@ -1630,6 +1797,9 @@ static int log_membername_as_agent;
 
 /*! \brief queues.conf [general] option */
 static int force_longest_waiting_caller;
+
+/*! \brief queues.conf [general] option */
+static int log_caller_id_name; 
 
 /*! \brief name of the ringinuse field in the realtime database */
 static char *realtime_ringinuse_field;
@@ -1872,7 +2042,7 @@ struct call_queue {
 	int periodicannouncestartdelay;     /*!< How long into the queue should the periodic accouncement start */
 	int periodicannouncefrequency;      /*!< How often to play periodic announcement */
 	int numperiodicannounce;            /*!< The number of periodic announcements configured */
-	int randomperiodicannounce;         /*!< Are periodic announcments randomly chosen */
+	int randomperiodicannounce;         /*!< Are periodic announcements randomly chosen */
 	int roundingseconds;                /*!< How many seconds do we round to? */
 	int holdtime;                       /*!< Current avg holdtime, based on an exponential average */
 	int talktime;                       /*!< Current avg talktime, based on the same exponential average */
@@ -1899,6 +2069,8 @@ struct call_queue {
 	int rrpos;                          /*!< Round Robin - position */
 	int memberdelay;                    /*!< Seconds to delay connecting member to caller */
 	int autofill;                       /*!< Ignore the head call status and ring an available agent */
+
+	int log_restricted_caller_id:1;     /*!< Whether log Restricted Caller ID */
 
 	struct ao2_container *members;      /*!< Head of the list of members */
 	struct queue_ent *head;             /*!< Head of the list of callers */
@@ -3012,6 +3184,7 @@ static void init_queue(struct call_queue *q)
 	q->autopauseunavail = 0;
 	q->timeoutpriority = TIMEOUT_PRIORITY_APP;
 	q->autopausedelay = 0;
+	q->log_restricted_caller_id = 1;
 	if (!q->members) {
 		if (q->strategy == QUEUE_STRATEGY_LINEAR || q->strategy == QUEUE_STRATEGY_RRORDERED) {
 			/* linear strategy depends on order, so we have to place all members in a list */
@@ -3543,6 +3716,8 @@ static void queue_set_param(struct call_queue *q, const char *param, const char 
 		} else {
 			q->timeoutpriority = TIMEOUT_PRIORITY_APP;
 		}
+	} else if (!strcasecmp(param, "log-restricted-caller-id")) {
+		q->log_restricted_caller_id = ast_true(val);
 	} else if (failunknown) {
 		if (linenum >= 0) {
 			ast_log(LOG_WARNING, "Unknown keyword in queue '%s': %s at line %d of queues.conf\n",
@@ -8438,7 +8613,7 @@ static int rqm_exec(struct ast_channel *chan, const char *data)
 static int aqm_exec(struct ast_channel *chan, const char *data)
 {
 	int res=-1;
-	char *parse, *tmp, *temppos = NULL;
+	char *parse, *tmp, *temppos = NULL, *reason = NULL;
 	AST_DECLARE_APP_ARGS(args,
 		AST_APP_ARG(queuename);
 		AST_APP_ARG(interface);
@@ -8449,7 +8624,9 @@ static int aqm_exec(struct ast_channel *chan, const char *data)
 		AST_APP_ARG(wrapuptime);
 	);
 	int penalty = 0;
+	int paused = 0;
 	int wrapuptime;
+	struct ast_flags flags = { 0 };
 
 	if (ast_strlen_zero(data)) {
 		ast_log(LOG_WARNING, "AddQueueMember requires an argument (queuename[,interface[,penalty[,options[,membername[,stateinterface][,wrapuptime]]]]])\n");
@@ -8459,6 +8636,17 @@ static int aqm_exec(struct ast_channel *chan, const char *data)
 	parse = ast_strdupa(data);
 
 	AST_STANDARD_APP_ARGS(args, parse);
+
+	if (args.options) {
+		char *opts[AQM_OPT_ARG_ARRAY_SIZE] = { NULL, };
+		ast_app_parse_options(aqm_opts, &flags, opts, args.options);
+		if (ast_test_flag(&flags, AQMFLAG_PAUSED)) {
+			paused = 1;
+			if (ast_test_flag(&flags, AQMFLAG_REASON) && !ast_strlen_zero(opts[AQM_OPT_ARG_PAUSE_REASON])) {
+				reason = ast_strdupa(opts[AQM_OPT_ARG_PAUSE_REASON]);
+			}
+		}
+	}
 
 	if (ast_strlen_zero(args.interface)) {
 		args.interface = ast_strdupa(ast_channel_name(chan));
@@ -8486,12 +8674,12 @@ static int aqm_exec(struct ast_channel *chan, const char *data)
 		wrapuptime = 0;
 	}
 
-	switch (add_to_queue(args.queuename, args.interface, args.membername, penalty, 0, queue_persistent_members, args.state_interface, NULL, wrapuptime)) {
+	switch (add_to_queue(args.queuename, args.interface, args.membername, penalty, paused, queue_persistent_members, args.state_interface, reason, wrapuptime)) {
 	case RES_OKAY:
 		if (ast_strlen_zero(args.membername) || !log_membername_as_agent) {
-			ast_queue_log(args.queuename, ast_channel_uniqueid(chan), args.interface, "ADDMEMBER", "%s", "");
+			ast_queue_log(args.queuename, ast_channel_uniqueid(chan), args.interface, "ADDMEMBER", "%s", paused ? "PAUSED" : "");
 		} else {
-			ast_queue_log(args.queuename, ast_channel_uniqueid(chan), args.membername, "ADDMEMBER", "%s", "");
+			ast_queue_log(args.queuename, ast_channel_uniqueid(chan), args.membername, "ADDMEMBER", "%s", paused ? "PAUSED" : "");
 		}
 		ast_log(LOG_NOTICE, "Added interface '%s' to queue '%s'\n", args.interface, args.queuename);
 		pbx_builtin_setvar_helper(chan, "AQMSTATUS", "ADDED");
@@ -8628,6 +8816,7 @@ static int queue_exec(struct ast_channel *chan, const char *data)
 	struct ast_flags opts = { 0, };
 	char *opt_args[OPT_ARG_ARRAY_SIZE];
 	int max_forwards;
+	int cid_allow;
 
 	if (ast_strlen_zero(data)) {
 		ast_log(LOG_WARNING, "Queue requires an argument: queuename[,options[,URL[,announceoverride[,timeout[,agi[,macro[,gosub[,rule[,position]]]]]]]]]\n");
@@ -8774,11 +8963,35 @@ static int queue_exec(struct ast_channel *chan, const char *data)
 		qe.last_periodic_announce_time -= qe.parent->periodicannouncefrequency;
 	}
 
-	ast_queue_log(args.queuename, ast_channel_uniqueid(chan), "NONE", "ENTERQUEUE", "%s|%s|%d",
-		S_OR(args.url, ""),
-		S_COR(ast_channel_caller(chan)->id.number.valid, ast_channel_caller(chan)->id.number.str, ""),
-		qe.opos);
+	cid_allow = qe.parent->log_restricted_caller_id || ((ast_party_id_presentation(&ast_channel_caller(chan)->id) & AST_PRES_RESTRICTION) == AST_PRES_ALLOWED);
+	
+	if (log_caller_id_name) {
+		char *escaped_cidname = NULL;
+		/* Ensure caller ID name is valid and not NULL before processing */
+		if (cid_allow && ast_channel_caller(chan)->id.name.valid && ast_channel_caller(chan)->id.name.str) {
+			escaped_cidname = ast_strdupa(ast_channel_caller(chan)->id.name.str);
+			/* Only iterate if '|' is found */
+			if (strchr(escaped_cidname, '|')) {
+				for (char *p = escaped_cidname; *p; p++) {
+					if (*p == '|') {
+						*p = '_';
+					}
+				}
+			}
+		}
 
+		ast_queue_log(args.queuename, ast_channel_uniqueid(chan), "NONE", "ENTERQUEUE", "%s|%s|%d|%s",
+			S_OR(args.url, ""),
+			S_COR(cid_allow && ast_channel_caller(chan)->id.number.valid, ast_channel_caller(chan)->id.number.str, ""),
+			qe.opos,
+			S_OR(escaped_cidname, ""));
+	} else {
+ 		ast_queue_log(args.queuename, ast_channel_uniqueid(chan), "NONE", "ENTERQUEUE", "%s|%s|%d",
+ 			S_OR(args.url, ""),
+ 			S_COR(cid_allow && ast_channel_caller(chan)->id.number.valid, ast_channel_caller(chan)->id.number.str, ""),
+ 			qe.opos);
+	}
+	
 	/* PREDIAL: Preprocess any callee gosub arguments. */
 	if (ast_test_flag(&opts, OPT_PREDIAL_CALLEE)
 		&& !ast_strlen_zero(opt_args[OPT_ARG_PREDIAL_CALLEE])) {
@@ -9687,6 +9900,10 @@ static void queue_set_global_params(struct ast_config *cfg)
 	if ((general_val = ast_variable_retrieve(cfg, "general", "force_longest_waiting_caller"))) {
 		force_longest_waiting_caller = ast_true(general_val);
 	}
+	/* Apply log-caller-id-name in the same place as other global settings */
+	if ((general_val = ast_variable_retrieve(cfg, "general", "log-caller-id-name"))) {
+		log_caller_id_name = ast_true(general_val);
+	}
 }
 
 /*! \brief reload information pertaining to a single member
@@ -9706,6 +9923,7 @@ static void reload_single_member(const char *memberdata, struct call_queue *q)
 	int penalty;
 	int ringinuse;
 	int wrapuptime;
+	int paused;
 	AST_DECLARE_APP_ARGS(args,
 		AST_APP_ARG(interface);
 		AST_APP_ARG(penalty);
@@ -9713,6 +9931,7 @@ static void reload_single_member(const char *memberdata, struct call_queue *q)
 		AST_APP_ARG(state_interface);
 		AST_APP_ARG(ringinuse);
 		AST_APP_ARG(wrapuptime);
+		AST_APP_ARG(paused);
 	);
 
 	if (ast_strlen_zero(memberdata)) {
@@ -9778,11 +9997,30 @@ static void reload_single_member(const char *memberdata, struct call_queue *q)
 		wrapuptime = 0;
 	}
 
+	if (!ast_strlen_zero(args.paused)) {
+		tmp = args.paused;
+		ast_strip(tmp);
+		if (ast_true(tmp)) {
+			paused = 1;
+		} else if (ast_false(tmp)) {
+			paused = 0;
+		} else {
+			ast_log(LOG_ERROR, "Member %s has an invalid paused value.\n", membername);
+			paused = 0;
+		}
+	} else {
+		paused = 0;
+	}
+
 	/* Find the old position in the list */
 	ast_copy_string(tmpmem.interface, interface, sizeof(tmpmem.interface));
 	cur = ao2_find(q->members, &tmpmem, OBJ_POINTER);
 
-	if ((newm = create_queue_member(interface, membername, penalty, cur ? cur->paused : 0, state_interface, ringinuse, wrapuptime))) {
+	if (cur) {
+		paused = cur->paused;
+	}
+
+	if ((newm = create_queue_member(interface, membername, penalty, paused, state_interface, ringinuse, wrapuptime))) {
 		newm->wrapuptime = wrapuptime;
 		if (cur) {
 			ao2_lock(q->members);
@@ -10693,13 +10931,14 @@ static int manager_queues_status(struct mansession *s, const struct message *m)
 
 static int manager_add_queue_member(struct mansession *s, const struct message *m)
 {
-	const char *queuename, *interface, *penalty_s, *paused_s, *membername, *state_interface, *wrapuptime_s;
+	const char *queuename, *interface, *penalty_s, *paused_s, *reason, *membername, *state_interface, *wrapuptime_s;
 	int paused, penalty, wrapuptime = 0;
 
 	queuename = astman_get_header(m, "Queue");
 	interface = astman_get_header(m, "Interface");
 	penalty_s = astman_get_header(m, "Penalty");
 	paused_s = astman_get_header(m, "Paused");
+	reason = astman_get_header(m, "Reason");                          /* Optional */
 	membername = astman_get_header(m, "MemberName");
 	state_interface = astman_get_header(m, "StateInterface");
 	wrapuptime_s = astman_get_header(m, "Wrapuptime");
@@ -10732,7 +10971,7 @@ static int manager_add_queue_member(struct mansession *s, const struct message *
 		paused = abs(ast_true(paused_s));
 	}
 
-	switch (add_to_queue(queuename, interface, membername, penalty, paused, queue_persistent_members, state_interface, NULL, wrapuptime)) {
+	switch (add_to_queue(queuename, interface, membername, penalty, paused, queue_persistent_members, state_interface, reason, wrapuptime)) {
 	case RES_OKAY:
 		if (ast_strlen_zero(membername) || !log_membername_as_agent) {
 			ast_queue_log(queuename, "MANAGER", interface, "ADDMEMBER", "%s", paused ? "PAUSED" : "");
@@ -11072,21 +11311,21 @@ static int manager_request_withdraw_caller_from_queue(struct mansession *s, cons
 
 static char *handle_queue_add_member(struct ast_cli_entry *e, int cmd, struct ast_cli_args *a)
 {
-	const char *queuename, *interface, *membername = NULL, *state_interface = NULL;
-	int penalty;
+	const char *queuename, *interface, *membername = NULL, *state_interface = NULL, *reason = NULL;
+	int penalty, paused = 0;
 
 	switch ( cmd ) {
 	case CLI_INIT:
 		e->command = "queue add member";
 		e->usage =
-			"Usage: queue add member <dial string> to <queue> [penalty <penalty> [as <membername> [state_interface <interface>]]]\n"
+			"Usage: queue add member <dial string> to <queue> [penalty <penalty> [as <membername> [state_interface <interface> [paused <reason>]]]]\n"
 			"       Add a dial string (Such as a channel,e.g. SIP/6001) to a queue with optionally:  a penalty, membername and a state_interface\n";
 		return NULL;
 	case CLI_GENERATE:
 		return complete_queue_add_member(a->line, a->word, a->pos, a->n);
 	}
 
-	if ((a->argc != 6) && (a->argc != 8) && (a->argc != 10) && (a->argc != 12)) {
+	if ((a->argc != 6) && (a->argc != 8) && (a->argc != 10) && (a->argc != 12) && (a->argc != 14)) {
 		return CLI_SHOWUSAGE;
 	} else if (strcmp(a->argv[4], "to")) {
 		return CLI_SHOWUSAGE;
@@ -11095,6 +11334,8 @@ static char *handle_queue_add_member(struct ast_cli_entry *e, int cmd, struct as
 	} else if ((a->argc >= 10) && strcmp(a->argv[8], "as")) {
 		return CLI_SHOWUSAGE;
 	} else if ((a->argc == 12) && strcmp(a->argv[10], "state_interface")) {
+		return CLI_SHOWUSAGE;
+	} else if ((a->argc == 14) && strcmp(a->argv[12], "paused")) {
 		return CLI_SHOWUSAGE;
 	}
 
@@ -11122,12 +11363,17 @@ static char *handle_queue_add_member(struct ast_cli_entry *e, int cmd, struct as
 		state_interface = a->argv[11];
 	}
 
-	switch (add_to_queue(queuename, interface, membername, penalty, 0, queue_persistent_members, state_interface, NULL, 0)) {
+	if (a->argc >= 14) {
+		paused = 1;
+		reason = a->argv[13];
+	}
+
+	switch (add_to_queue(queuename, interface, membername, penalty, paused, queue_persistent_members, state_interface, reason, 0)) {
 	case RES_OKAY:
 		if (ast_strlen_zero(membername) || !log_membername_as_agent) {
-			ast_queue_log(queuename, "CLI", interface, "ADDMEMBER", "%s", "");
+			ast_queue_log(queuename, "CLI", interface, "ADDMEMBER", "%s", paused ? "PAUSED" : "");
 		} else {
-			ast_queue_log(queuename, "CLI", membername, "ADDMEMBER", "%s", "");
+			ast_queue_log(queuename, "CLI", membername, "ADDMEMBER", "%s", paused ? "PAUSED" : "");
 		}
 		ast_cli(a->fd, "Added interface '%s' to queue '%s'\n", interface, queuename);
 		return CLI_SUCCESS;

@@ -43,6 +43,9 @@
 
 /*** DOCUMENTATION
 	<function name="DIALGROUP" language="en_US">
+		<since>
+			<version>1.6.0</version>
+		</since>
 		<synopsis>
 			Manages a group of users for dialing.
 		</synopsis>

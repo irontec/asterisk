@@ -1,5 +1,3 @@
-BEGIN;
-
 CREATE TABLE alembic_version (
     version_num VARCHAR(32) NOT NULL, 
     CONSTRAINT alembic_version_pkc PRIMARY KEY (version_num)
@@ -8,8 +6,8 @@ CREATE TABLE alembic_version (
 -- Running upgrade  -> 4105ee839f58
 
 CREATE TABLE queue_log (
-    id BIGSERIAL NOT NULL, 
-    time TIMESTAMP WITHOUT TIME ZONE, 
+    id BIGINT NOT NULL AUTO_INCREMENT, 
+    time DATETIME, 
     callid VARCHAR(80), 
     queuename VARCHAR(256), 
     agent VARCHAR(80), 
@@ -24,6 +22,4 @@ CREATE TABLE queue_log (
 );
 
 INSERT INTO alembic_version (version_num) VALUES ('4105ee839f58');
-
-COMMIT;
 

@@ -76,6 +76,9 @@
 
 /*** DOCUMENTATION
 	<function name="DUNDILOOKUP" language="en_US">
+		<since>
+			<version>1.8.0</version>
+		</since>
 		<synopsis>
 			Do a DUNDi lookup of a phone number.
 		</synopsis>
@@ -101,6 +104,9 @@
 
 
 	<function name="DUNDIQUERY" language="en_US">
+		<since>
+			<version>1.8.0</version>
+		</since>
 		<synopsis>
 			Initiate a DUNDi query.
 		</synopsis>
@@ -125,6 +131,9 @@
 	</function>
 
 	<function name="DUNDIRESULT" language="en_US">
+		<since>
+			<version>1.8.0</version>
+		</since>
 		<synopsis>
 			Retrieve results from a DUNDIQUERY.
 		</synopsis>

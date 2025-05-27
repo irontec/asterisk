@@ -39,6 +39,9 @@
 
 /*** DOCUMENTATION
 	<function name="ENV" language="en_US">
+		<since>
+			<version>1.2.0</version>
+		</since>
 		<synopsis>
 			Gets or sets the environment variable specified.
 		</synopsis>
@@ -101,6 +104,9 @@
 		</description>
 	</function>
 	<function name="STAT" language="en_US">
+		<since>
+			<version>1.4.0</version>
+		</since>
 		<synopsis>
 			Does a check on the specified file.
 		</synopsis>
@@ -127,6 +133,9 @@
 		</description>
 	</function>
 	<function name="FILE" language="en_US">
+		<since>
+			<version>1.6.0</version>
+		</since>
 		<synopsis>
 			Read or write text file.
 		</synopsis>
@@ -245,6 +254,9 @@
 		</see-also>
 	</function>
 	<function name="FILE_COUNT_LINE" language="en_US">
+		<since>
+			<version>1.8.0</version>
+		</since>
 		<synopsis>
 			Obtains the number of lines of a text file.
 		</synopsis>
@@ -280,6 +292,9 @@
 		</see-also>
 	</function>
 	<function name="FILE_FORMAT" language="en_US">
+		<since>
+			<version>1.8.0</version>
+		</since>
 		<synopsis>
 			Return the newline format of a text file.
 		</synopsis>
@@ -307,7 +322,6 @@
 		<since>
 			<version>16.21.0</version>
 			<version>18.7.0</version>
-			<version>19.0.0</version>
 		</since>
 		<synopsis>
 			Return the name of a file.
@@ -330,7 +344,6 @@
 		<since>
 			<version>16.21.0</version>
 			<version>18.7.0</version>
-			<version>19.0.0</version>
 		</since>
 		<synopsis>
 			Return the directory of a file.

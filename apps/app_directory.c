@@ -43,6 +43,9 @@
 
 /*** DOCUMENTATION
 	<application name="Directory" language="en_US">
+		<since>
+			<version>0.1.0</version>
+		</since>
 		<synopsis>
 			Provide directory of voicemail extensions.
 		</synopsis>

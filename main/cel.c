@@ -63,20 +63,35 @@
 	<configInfo name="cel" language="en_US">
 		<configFile name="cel.conf">
 			<configObject name="general">
+				<since>
+					<version>12.0.0</version>
+				</since>
 				<synopsis>Options that apply globally to Channel Event Logging (CEL)</synopsis>
 				<configOption name="enable">
+					<since>
+						<version>12.0.0</version>
+					</since>
 					<synopsis>Determines whether CEL is enabled</synopsis>
 				</configOption>
 				<configOption name="dateformat">
+					<since>
+						<version>12.0.0</version>
+					</since>
 					<synopsis>The format to be used for dates when logging</synopsis>
 				</configOption>
 				<configOption name="apps">
+					<since>
+						<version>12.0.0</version>
+					</since>
 					<synopsis>List of apps for CEL to track</synopsis>
 					<description><para>A case-insensitive, comma-separated list of applications
 					to track when one or both of APP_START and APP_END events are flagged for
 					tracking</para></description>
 				</configOption>
 				<configOption name="events">
+					<since>
+						<version>12.0.0</version>
+					</since>
 					<synopsis>List of events for CEL to track</synopsis>
 					<description><para>A case-sensitive, comma-separated list of event names
 					to track. These event names do not include the leading <literal>AST_CEL</literal>.
@@ -554,6 +569,7 @@ struct ast_event *ast_cel_create_event_with_time(struct ast_channel_snapshot *sn
 		AST_EVENT_IE_CEL_PEERACCT, AST_EVENT_IE_PLTYPE_STR, snapshot->peer->account,
 		AST_EVENT_IE_CEL_UNIQUEID, AST_EVENT_IE_PLTYPE_STR, snapshot->base->uniqueid,
 		AST_EVENT_IE_CEL_LINKEDID, AST_EVENT_IE_PLTYPE_STR, snapshot->peer->linkedid,
+		AST_EVENT_IE_CEL_TENANTID, AST_EVENT_IE_PLTYPE_STR, snapshot->base->tenantid,
 		AST_EVENT_IE_CEL_USERFIELD, AST_EVENT_IE_PLTYPE_STR, snapshot->base->userfield,
 		AST_EVENT_IE_CEL_EXTRA, AST_EVENT_IE_PLTYPE_STR, S_OR(extra_txt, ""),
 		AST_EVENT_IE_CEL_PEER, AST_EVENT_IE_PLTYPE_STR, S_OR(peer, ""),
@@ -853,6 +869,7 @@ int ast_cel_fill_record(const struct ast_event *e, struct ast_cel_event_record *
 	r->peer_account     = S_OR(ast_event_get_ie_str(e, AST_EVENT_IE_CEL_PEERACCT), "");
 	r->unique_id        = S_OR(ast_event_get_ie_str(e, AST_EVENT_IE_CEL_UNIQUEID), "");
 	r->linked_id        = S_OR(ast_event_get_ie_str(e, AST_EVENT_IE_CEL_LINKEDID), "");
+	r->tenant_id        = S_OR(ast_event_get_ie_str(e, AST_EVENT_IE_CEL_TENANTID), "");
 	r->amaflag          = ast_event_get_ie_uint(e, AST_EVENT_IE_CEL_AMAFLAGS);
 	r->user_field       = S_OR(ast_event_get_ie_str(e, AST_EVENT_IE_CEL_USERFIELD), "");
 	r->peer             = S_OR(ast_event_get_ie_str(e, AST_EVENT_IE_CEL_PEER), "");

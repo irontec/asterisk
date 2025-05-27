@@ -1641,8 +1641,6 @@ UPDATE alembic_version SET version_num='74dc751dfe8e' WHERE alembic_version.vers
 
 ALTER TABLE ps_transports ADD COLUMN tcp_keepalive_enable BOOL;
 
-ALTER TABLE ps_transports ADD CHECK (tcp_keepalive_enable IN (0, 1));
-
 ALTER TABLE ps_transports ADD COLUMN tcp_keepalive_idle_time INTEGER;
 
 ALTER TABLE ps_transports ADD COLUMN tcp_keepalive_interval_time INTEGER;
@@ -1682,4 +1680,56 @@ ALTER TABLE ps_outbound_publishes MODIFY id VARCHAR(255) NOT NULL;
 ALTER TABLE ps_registrations MODIFY id VARCHAR(255) NOT NULL;
 
 UPDATE alembic_version SET version_num='6c475a93f48a' WHERE alembic_version.version_num = 'd5122576cca8';
+
+-- Running upgrade 6c475a93f48a -> bd9c5159c7ea
+
+ALTER TABLE ps_endpoint_id_ips DROP COLUMN transport;
+
+UPDATE alembic_version SET version_num='bd9c5159c7ea' WHERE alembic_version.version_num = '6c475a93f48a';
+
+-- Running upgrade bd9c5159c7ea -> 2b7c507d7d12
+
+ALTER TABLE queues ADD COLUMN log_restricted_caller_id ENUM('0','1','off','on','false','true','no','yes');
+
+UPDATE alembic_version SET version_num='2b7c507d7d12' WHERE alembic_version.version_num = 'bd9c5159c7ea';
+
+-- Running upgrade 2b7c507d7d12 -> 655054a68ad5
+
+ALTER TABLE ps_endpoints ADD COLUMN tenantid VARCHAR(80);
+
+UPDATE alembic_version SET version_num='655054a68ad5' WHERE alembic_version.version_num = '2b7c507d7d12';
+
+-- Running upgrade 655054a68ad5 -> 801b9fced8b7
+
+ALTER TABLE ps_subscription_persistence ADD COLUMN generator_data TEXT;
+
+UPDATE alembic_version SET version_num='801b9fced8b7' WHERE alembic_version.version_num = '655054a68ad5';
+
+-- Running upgrade 801b9fced8b7 -> 4f91fc18c979
+
+ALTER TABLE ps_endpoints ADD COLUMN suppress_moh_on_sendonly ENUM('0','1','off','on','false','true','no','yes');
+
+UPDATE alembic_version SET version_num='4f91fc18c979' WHERE alembic_version.version_num = '801b9fced8b7';
+
+-- Running upgrade 4f91fc18c979 -> 44bd6dd914fa
+
+ALTER TABLE ps_aors ADD COLUMN qualify_2xx_only ENUM('0','1','off','on','false','true','no','yes');
+
+ALTER TABLE ps_contacts ADD COLUMN qualify_2xx_only ENUM('0','1','off','on','false','true','no','yes');
+
+UPDATE alembic_version SET version_num='44bd6dd914fa' WHERE alembic_version.version_num = '4f91fc18c979';
+
+-- Running upgrade 44bd6dd914fa -> abdc9ede147d
+
+ALTER TABLE ps_auths ADD COLUMN password_digest VARCHAR(1024);
+
+ALTER TABLE ps_auths ADD COLUMN supported_algorithms_uas VARCHAR(1024);
+
+ALTER TABLE ps_auths ADD COLUMN supported_algorithms_uac VARCHAR(1024);
+
+ALTER TABLE ps_globals ADD COLUMN default_auth_algorithms_uas VARCHAR(1024);
+
+ALTER TABLE ps_globals ADD COLUMN default_auth_algorithms_uac VARCHAR(1024);
+
+UPDATE alembic_version SET version_num='abdc9ede147d' WHERE alembic_version.version_num = '44bd6dd914fa';
 

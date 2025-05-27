@@ -531,6 +531,9 @@
 		</description>
 	</function>
 	<manager name="SIPpeers" language="en_US">
+		<since>
+			<version>1.2.0</version>
+		</since>
 		<synopsis>
 			List SIP peers (text format).
 		</synopsis>
@@ -544,6 +547,9 @@
 		</description>
 	</manager>
 	<manager name="SIPshowpeer" language="en_US">
+		<since>
+			<version>1.2.0</version>
+		</since>
 		<synopsis>
 			show SIP peer (text format).
 		</synopsis>
@@ -558,6 +564,9 @@
 		</description>
 	</manager>
 	<manager name="SIPqualifypeer" language="en_US">
+		<since>
+			<version>1.6.1.0</version>
+		</since>
 		<synopsis>
 			Qualify SIP peers.
 		</synopsis>
@@ -575,6 +584,9 @@
 		</see-also>
 	</manager>
 	<manager name="SIPshowregistry" language="en_US">
+		<since>
+			<version>1.6.0</version>
+		</since>
 		<synopsis>
 			Show SIP registrations (text format).
 		</synopsis>
@@ -587,6 +599,9 @@
 		</description>
 	</manager>
 	<manager name="SIPnotify" language="en_US">
+		<since>
+			<version>1.6.1.0</version>
+		</since>
 		<synopsis>
 			Send a SIP notify.
 		</synopsis>
@@ -610,6 +625,9 @@
 		</description>
 	</manager>
 	<manager name="SIPpeerstatus" language="en_US">
+		<since>
+			<version>11.0.0</version>
+		</since>
 		<synopsis>
 			Show the status of one or all of the sip peers.
 		</synopsis>
@@ -1203,7 +1221,7 @@ static int get_address_family_filter(unsigned int transport);
 /*--- Transmitting responses and requests */
 static int sipsock_read(int *id, int fd, short events, void *ignore);
 static int __sip_xmit(struct sip_pvt *p, struct ast_str *data);
-static int __sip_reliable_xmit(struct sip_pvt *p, uint32_t seqno, int resp, struct ast_str *data, int fatal, int sipmethod);
+static enum sip_result __sip_reliable_xmit(struct sip_pvt *p, uint32_t seqno, int resp, struct ast_str *data, int fatal, int sipmethod);
 static void add_cc_call_info_to_response(struct sip_pvt *p, struct sip_request *resp);
 static int __transmit_response(struct sip_pvt *p, const char *msg, const struct sip_request *req, enum xmittype reliable);
 static int retrans_pkt(const void *data);

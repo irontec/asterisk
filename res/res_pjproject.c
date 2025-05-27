@@ -67,6 +67,9 @@
 				</configOption>
 			</configObject>
 			<configObject name="log_mappings">
+				<since>
+					<version>13.8.0</version>
+				</since>
 				<synopsis>PJPROJECT to Asterisk Log Level Mapping</synopsis>
 				<description><para>Warnings and errors in the pjproject libraries are generally handled
 					by Asterisk.  In many cases, Asterisk wouldn't even consider them to
@@ -78,24 +81,46 @@
 					'log_mappings' or it won't be found.</para></note>
 				</description>
 				<configOption name="type">
+					<since>
+						<version>13.8.0</version>
+					</since>
 					<synopsis>Must be of type 'log_mappings'.</synopsis>
 				</configOption>
 				<configOption name="asterisk_error" default="0,1">
+					<since>
+						<version>13.8.0</version>
+					</since>
 					<synopsis>A comma separated list of pjproject log levels to map to Asterisk LOG_ERROR.</synopsis>
 				</configOption>
 				<configOption name="asterisk_warning" default="2">
+					<since>
+						<version>13.8.0</version>
+					</since>
 					<synopsis>A comma separated list of pjproject log levels to map to Asterisk LOG_WARNING.</synopsis>
 				</configOption>
 				<configOption name="asterisk_notice" default="">
+					<since>
+						<version>13.8.0</version>
+					</since>
 					<synopsis>A comma separated list of pjproject log levels to map to Asterisk LOG_NOTICE.</synopsis>
 				</configOption>
 				<configOption name="asterisk_verbose" default="">
+					<since>
+						<version>13.8.0</version>
+					</since>
 					<synopsis>A comma separated list of pjproject log levels to map to Asterisk LOG_VERBOSE.</synopsis>
 				</configOption>
 				<configOption name="asterisk_debug" default="3,4">
+					<since>
+						<version>13.8.0</version>
+					</since>
 					<synopsis>A comma separated list of pjproject log levels to map to Asterisk LOG_DEBUG.</synopsis>
 				</configOption>
 				<configOption name="asterisk_trace" default="5,6">
+					<since>
+						<version>16.21.0</version>
+						<version>18.7.0</version>
+					</since>
 					<synopsis>A comma separated list of pjproject log levels to map to Asterisk LOG_TRACE.</synopsis>
 				</configOption>
 			</configObject>
@@ -315,6 +340,26 @@ static char *handle_pjproject_show_buildopts(struct ast_cli_entry *e, int cmd, s
 		ast_cli(a->fd, "%s\n", AST_VECTOR_GET(&buildopts, i));
 	}
 
+#ifdef HAVE_PJSIP_AUTH_NEW_DIGESTS
+	{
+		struct ast_str *buf = ast_str_alloca(256);
+		for (i = PJSIP_AUTH_ALGORITHM_NOT_SET + 1; i < PJSIP_AUTH_ALGORITHM_COUNT; i++) {
+			const pjsip_auth_algorithm *algorithm = pjsip_auth_get_algorithm_by_type(i);
+			if (!ast_strlen_zero(algorithm->openssl_name)) {
+				if (pjsip_auth_is_algorithm_supported(i)) {
+					ast_str_append(&buf, 0, "%.*s/%s, ", (int)algorithm->iana_name.slen,
+						algorithm->iana_name.ptr, algorithm->openssl_name);
+				}
+			}
+		}
+		/* Trim off the trailing ", " */
+		ast_str_truncate(buf, -2);
+		ast_cli(a->fd, "Supported Digest Algorithms (IANA name/OpenSSL name): %s\n", ast_str_buffer(buf));
+	}
+#else
+	ast_cli(a->fd, "Supported Digest Algorithms (IANA name/OpenSSL name): MD5/MD5\n");
+#endif
+
 	return CLI_SUCCESS;
 }
 
@@ -515,6 +560,9 @@ int ast_sockaddr_from_pj_sockaddr(struct ast_sockaddr *addr, const pj_sockaddr *
 {
 	if (pjaddr->addr.sa_family == pj_AF_INET()) {
 		struct sockaddr_in *sin = (struct sockaddr_in *) &addr->ss;
+#if defined(HAVE_STRUCT_SOCKADDR_IN_SIN_LEN)
+		sin->sin_len = sizeof(struct sockaddr_in);
+#endif
 		sin->sin_family = AF_INET;
 #if defined(HAVE_PJPROJECT_BUNDLED) && !defined(HAVE_PJPROJECT_BUNDLED_OOT)
 		sin->sin_addr = pjaddr->ipv4.sin_addr;
@@ -526,6 +574,9 @@ int ast_sockaddr_from_pj_sockaddr(struct ast_sockaddr *addr, const pj_sockaddr *
 		addr->len = sizeof(struct sockaddr_in);
 	} else if (pjaddr->addr.sa_family == pj_AF_INET6()) {
 		struct sockaddr_in6 *sin = (struct sockaddr_in6 *) &addr->ss;
+#if defined(HAVE_STRUCT_SOCKADDR_IN6_SIN6_LEN)
+		sin->sin6_len = sizeof(struct sockaddr_in6);
+#endif
 		sin->sin6_family   = AF_INET6;
 		sin->sin6_port     = pjaddr->ipv6.sin6_port;
 		sin->sin6_flowinfo = pjaddr->ipv6.sin6_flowinfo;

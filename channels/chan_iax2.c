@@ -125,6 +125,9 @@
 
 /*** DOCUMENTATION
 	<application name="IAX2Provision" language="en_US">
+		<since>
+			<version>1.6.1.0</version>
+		</since>
 		<synopsis>
 			Provision a calling IAXy with a given template.
 		</synopsis>
@@ -140,6 +143,9 @@
 		</description>
 	</application>
 	<function name="IAXPEER" language="en_US">
+		<since>
+			<version>1.2.0</version>
+		</since>
 		<synopsis>
 			Gets IAX peer information.
 		</synopsis>
@@ -194,6 +200,9 @@
 		</description>
 	</function>
 	<function name="IAXVAR" language="en_US">
+		<since>
+			<version>1.6.0</version>
+		</since>
 		<synopsis>
 			Sets or retrieves a remote variable.
 		</synopsis>
@@ -225,7 +234,10 @@
 	</info>
 	<info name="Dial_Resource" language="en_US" tech="IAX2">
 		<para>The general syntax is:</para>
-		<para><literal>Dial(IAX2/[username[:password]@]peer[:port][/exten[@context]][/options]</literal></para>
+		<para><literal>Dial(IAX2/[username[:password[:pubkey]]@]peer[:port][/exten[@context]][/options]</literal></para>
+		<para>The IAX username is optionally followed by either the secret or name of the keypair to use for RSA
+		authentication (within square brakcets). If both need to be provided (such as for encrypted calls that
+		are RSA authenticated), both may be specified in either order.</para>
 		<para>IAX2 optionally allows modifiers to be specified after the extension.</para>
 		<enumlist>
 			<enum name="a">
@@ -234,6 +246,9 @@
 		</enumlist>
 	</info>
 	<manager name="IAXpeers" language="en_US">
+		<since>
+			<version>0.3.0</version>
+		</since>
 		<synopsis>
 			List IAX peers.
 		</synopsis>
@@ -244,6 +259,9 @@
 		</description>
 	</manager>
 	<manager name="IAXpeerlist" language="en_US">
+		<since>
+			<version>1.6.0</version>
+		</since>
 		<synopsis>
 			List IAX Peers.
 		</synopsis>
@@ -255,6 +273,9 @@
 		</description>
 	</manager>
 	<manager name="IAXnetstats" language="en_US">
+		<since>
+			<version>1.2.0</version>
+		</since>
 		<synopsis>
 			Show IAX Netstats.
 		</synopsis>
@@ -264,6 +285,9 @@
 		</description>
 	</manager>
 	<manager name="IAXregistry" language="en_US">
+		<since>
+			<version>1.6.2.0</version>
+		</since>
 		<synopsis>
 			Show IAX registrations.
 		</synopsis>
@@ -786,7 +810,8 @@ struct chan_iax2_pvt {
 	unsigned short peercallno;
 	/*! Negotiated format, this is only used to remember what format was
 	    chosen for an unauthenticated call so that the channel can get
-	    created later using the right format */
+	    created later using the right format. We also use it for
+		authenticated calls to check the format from __get_from_jb. */
 	iax2_format chosenformat;
 	/*! Peer selected format */
 	iax2_format peerformat;
@@ -991,7 +1016,7 @@ static time_t max_calltoken_delay = 10;
  * However, to maintain old behavior for Asterisk 1.4, these are set to
  * 1 by default.  When using multiple buckets, search order through these
  * containers is considered random, so you will not be able to depend on
- * the order the entires are specified in iax.conf for matching order. */
+ * the order the entries are specified in iax.conf for matching order. */
 #ifdef LOW_MEMORY
 #define MAX_PEER_BUCKETS 17
 #else
@@ -1213,7 +1238,7 @@ static ast_mutex_t iaxsl[ARRAY_LEN(iaxs)];
 /*!
  * \brief Another container of iax2_pvt structures
  *
- * Active IAX2 pvt structs used during transfering a call are stored here.
+ * Active IAX2 pvt structs used during transferring a call are stored here.
  */
 static struct ao2_container *iax_transfercallno_pvts;
 
@@ -2050,7 +2075,7 @@ static int user_cmp_cb(void *obj, void *arg, int flags)
 }
 
 /*!
- * \note This funtion calls realtime_peer -> reg_source_db -> iax2_poke_peer -> find_callno,
+ * \note This function calls realtime_peer -> reg_source_db -> iax2_poke_peer -> find_callno,
  *       so do not call it with a pvt lock held.
  */
 static struct iax2_peer *find_peer(const char *name, int realtime)
@@ -3173,7 +3198,7 @@ static int __find_callno(unsigned short callno, unsigned short dcallno, struct a
 			};
 
 			ast_sockaddr_copy(&tmp_pvt.addr, addr);
-			/* this works for finding normal call numbers not involving transfering */
+			/* this works for finding normal call numbers not involving transferring */
 			if ((pvt = ao2_find(iax_peercallno_pvts, &tmp_pvt, OBJ_POINTER))) {
 				if (return_locked) {
 					ast_mutex_lock(&iaxsl[pvt->callno]);
@@ -4205,10 +4230,24 @@ static void __get_from_jb(const void *p)
 			 * In this case, fall back to using the format negotiated during call setup,
 			 * so we don't stall the jitterbuffer completely. */
 			voicefmt = ast_format_compatibility_bitfield2format(pvt->peerformat);
+			if (!voicefmt) {
+				/* As a last resort, we can use pvt->chosenformat.
+				 * This is set when we receive a call (either authenticated or unauthenticated),
+				 * so even if we haven't received any voice frames yet, we can still use the
+				 * right format.
+				 *
+				 * If we have to do this, in most cases, we aren't even processing voice frames
+				 * anyways, it's likely a non-voice frame. In that case, the format doesn't
+				 * really matter so much, because we could just pass 20 to jb_get instead
+				 * of calling ast_format_get_default_ms. However, until jb_get returns,
+				 * we don't actually know what kind of frame it is for sure, so use
+				 * the right format just to be safe. */
+				voicefmt = ast_format_compatibility_bitfield2format(pvt->chosenformat);
+			}
 		}
 		if (!voicefmt) {
-			/* Really shouldn't happen, but if it does, should be looked into */
-			ast_log(LOG_WARNING, "No voice format and no peer format available on %s, backlogging frame\n", ast_channel_name(pvt->owner));
+			/* This should never happen, since we should always be able to have an acceptable format to use. */
+			ast_log(LOG_ERROR, "No voice, peer, or chosen format available on %s, backlogging frame\n", ast_channel_name(pvt->owner));
 			goto cleanup; /* Don't crash if there's no voice format */
 		}
 		ret = jb_get(pvt->jb, &frame, ms, ast_format_get_default_ms(voicefmt));
@@ -6261,7 +6300,7 @@ static unsigned int calc_timestamp(struct chan_iax2_pvt *p, unsigned int ts, str
 			if ( (unsigned int)ms < p->lastsent )
 				ms = p->lastsent;
 		} else {
-			/* On a dataframe, use last value + 3 (to accomodate jitter buffer shrinking) if appropriate unless
+			/* On a dataframe, use last value + 3 (to accommodate jitter buffer shrinking) if appropriate unless
 			   it's a genuine frame */
 			adjust = (ms - p->lastsent);
 			if (genuine) {
@@ -8821,7 +8860,7 @@ static int complete_transfer(int callno, struct iax_ies *ies)
 		remove_by_peercallno(pvt);
 	}
 	pvt->peercallno = peercallno;
-	/*this is where the transfering call switches hash tables */
+	/*this is where the transferring call switches hash tables */
 	store_by_peercallno(pvt);
 	pvt->transferring = TRANSFER_NONE;
 	pvt->svoiceformat = -1;
@@ -10345,7 +10384,9 @@ static int socket_process_helper(struct iax2_thread *thread)
 		if (f.datalen) {
 			if (f.frametype == AST_FRAME_IAX) {
 				if (iax_parse_ies(&ies, thread->buf + sizeof(struct ast_iax2_full_hdr), f.datalen)) {
-					ast_log(LOG_WARNING, "Undecodable frame received from '%s'\n", ast_sockaddr_stringify(&addr));
+					char subclass[40];
+					iax_frame_subclass2str(f.subclass.integer, subclass, sizeof(subclass));
+					ast_log(LOG_WARNING, "Undecodable %s frame received from '%s'\n", subclass, ast_sockaddr_stringify(&addr));
 					ast_variables_destroy(ies.vars);
 					return 1;
 				}
@@ -10373,7 +10414,7 @@ static int socket_process_helper(struct iax2_thread *thread)
 			if (ies.calltoken && ies.calltokendata) {
 				/* if we've gotten this far, and the calltoken ie data exists,
 				 * then calltoken validation _MUST_ have taken place.  If calltoken
-				 * data is provided, it is always validated reguardless of any
+				 * data is provided, it is always validated regardless of any
 				 * calltokenoptional or requirecalltoken options */
 				new = NEW_ALLOW_CALLTOKEN_VALIDATED;
 			} else {
@@ -10403,10 +10444,13 @@ static int socket_process_helper(struct iax2_thread *thread)
 		}
 
 		if (!(fr->callno = find_callno(ntohs(mh->callno) & ~IAX_FLAG_FULL, dcallno, &addr, new, fd, check_dcallno))) {
+			ast_debug(1, "Received frame without existent call number (%d)\n", ntohs(mh->callno) & ~IAX_FLAG_FULL);
 			if (f.frametype == AST_FRAME_IAX && f.subclass.integer == IAX_COMMAND_NEW) {
 				send_apathetic_reply(1, ntohs(fh->scallno), &addr, IAX_COMMAND_REJECT, ntohl(fh->ts), fh->iseqno + 1, fd, NULL);
 			} else if (f.frametype == AST_FRAME_IAX && (f.subclass.integer == IAX_COMMAND_REGREQ || f.subclass.integer == IAX_COMMAND_REGREL)) {
 				send_apathetic_reply(1, ntohs(fh->scallno), &addr, IAX_COMMAND_REGREJ, ntohl(fh->ts), fh->iseqno + 1, fd, NULL);
+			} else {
+				ast_log(LOG_WARNING, "Silently dropping frame without existent call number: %d\n", ntohs(mh->callno) & ~IAX_FLAG_FULL);
 			}
 			ast_variables_destroy(ies.vars);
 			return 1;
@@ -11553,6 +11597,11 @@ static int socket_process_helper(struct iax2_thread *thread)
 											host_pref_buf,
 											VERBOSE_PREFIX_4,
 											using_prefs);
+
+							/* Unlike unauthenticated calls, we don't need to store
+							 * the chosen format for channel creation.
+							 * However, this is helpful for __get_from_jb. */
+							iaxs[fr->callno]->chosenformat = format;
 
 							ast_set_flag(&iaxs[fr->callno]->state, IAX_STATE_STARTED);
 							c = ast_iax2_new(fr->callno, AST_STATE_RING, format,

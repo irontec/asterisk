@@ -47,6 +47,9 @@ static const char app[] = "ChanIsAvail";
 
 /*** DOCUMENTATION
 	<application name="ChanIsAvail" language="en_US">
+		<since>
+			<version>0.4.0</version>
+		</since>
 		<synopsis>
 			Check channel availability
 		</synopsis>

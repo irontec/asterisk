@@ -724,6 +724,7 @@ static int parse_uri_cb(void *data)
 int pjsip_acf_parse_uri_read(struct ast_channel *chan, const char *cmd, char *data, char *buf, size_t buflen)
 {
 	struct parse_uri_args func_args = { 0, };
+	int reading_uri_from_var;
 
 	AST_DECLARE_APP_ARGS(args,
 		AST_APP_ARG(uri_str);
@@ -732,8 +733,29 @@ int pjsip_acf_parse_uri_read(struct ast_channel *chan, const char *cmd, char *da
 
 	AST_STANDARD_APP_ARGS(args, data);
 
+	reading_uri_from_var = !strcasecmp(cmd, "PJSIP_PARSE_URI_FROM");
+
+	if (reading_uri_from_var) {
+		const char *var;
+
+		if (ast_strlen_zero(args.uri_str)) {
+			ast_log(LOG_WARNING, "The name of a variable containing a URI must be specified when using the '%s' dialplan function\n", cmd);
+			return -1;
+		}
+
+		ast_channel_lock(chan);
+		if ((var = pbx_builtin_getvar_helper(chan, args.uri_str))) {
+			args.uri_str = ast_strdupa(var);
+		}
+		ast_channel_unlock(chan);
+	}
+
 	if (ast_strlen_zero(args.uri_str)) {
-		ast_log(LOG_WARNING, "An URI must be specified when using the '%s' dialplan function\n", cmd);
+		if (reading_uri_from_var) {
+			ast_log(LOG_WARNING, "The variable provided to the '%s' dialplan function must contain a URI\n", cmd);
+		} else {
+			ast_log(LOG_WARNING, "A URI must be specified when using the '%s' dialplan function\n", cmd);
+		}
 		return -1;
 	}
 
@@ -1345,4 +1367,37 @@ int pjsip_action_hangup(struct mansession *s, const struct message *m)
 {
 	return ast_manager_hangup_helper(s, m,
 		pjsip_app_hangup_handler, response_code_validator);
+}
+
+int pjsip_transfer_handling_write(struct ast_channel *chan, const char *cmd, char *data, const char *value)
+{
+	struct ast_sip_channel_pvt *channel;
+	int ret = 0;
+
+	if (!chan) {
+		ast_log(LOG_WARNING, "No channel was provided to %s function.\n", cmd);
+		return -1;
+	}
+
+	ast_channel_lock(chan);
+	if (strcmp(ast_channel_tech(chan)->type, "PJSIP")) {
+		ast_log(LOG_WARNING, "Cannot call %s on a non-PJSIP channel %s\n", cmd, ast_channel_name(chan));
+		ast_channel_unlock(chan);
+		return -1;
+	}
+
+	channel = ast_channel_tech_pvt(chan);
+
+	if (ast_strlen_zero(value) || !strcmp(value, "core")) {
+		channel->session->transferhandling_ari = 0;
+	} else if (!strcmp(value, "ari-only")) {
+		channel->session->transferhandling_ari = 1;
+	} else {
+		ast_log(AST_LOG_WARNING, "Cannot set unknown transfer handling '%s' on channel '%s', transfer handling will remain unchanged.",
+			value, ast_channel_name(chan));
+		ret = -1;
+	}
+
+	ast_channel_unlock(chan);
+	return ret;
 }

@@ -69,6 +69,9 @@
 
 /*** DOCUMENTATION
 	<application name="Festival" language="en_US">
+		<since>
+			<version>0.2.0</version>
+		</since>
 		<synopsis>
 			Say text to the user.
 		</synopsis>

@@ -1,7 +1,7 @@
 /*
  * Asterisk -- An open source telephony toolkit.
  *
- * Copyright (C) 1999 - 2018, Digium, Inc.
+ * Copyright (C) 1999 - 2025, Sangoma Technologies Corporation
  *
  * Mark Spencer <markster@digium.com>
  *
@@ -53,7 +53,7 @@
  *
  * \section copyright Copyright and Author
  *
- * Copyright (C) 1999 - 2021, Sangoma Technologies Corporation.
+ * Copyright (C) 1999 - 2025, Sangoma Technologies Corporation.
  * Asterisk is a <a href="https://cdn.sangoma.com/wp-content/uploads/Sangoma-Trademark-Policy.pdf">registered trademark</a>
  * of <a rel="nofollow" href="http://www.sangoma.com">Sangoma Technologies Corporation</a>.
  *
@@ -249,6 +249,9 @@ int daemon(int, int);  /* defined in libresolv of all places */
 /*** DOCUMENTATION
 	<managerEvent language="en_US" name="FullyBooted">
 		<managerEventInstance class="EVENT_FLAG_SYSTEM">
+			<since>
+				<version>12.0.0</version>
+			</since>
 			<synopsis>Raised when all Asterisk initialization procedures have finished.</synopsis>
 			<syntax>
 				<parameter name="Status">
@@ -265,6 +268,9 @@ int daemon(int, int);  /* defined in libresolv of all places */
 	</managerEvent>
 	<managerEvent language="en_US" name="Shutdown">
 		<managerEventInstance class="EVENT_FLAG_SYSTEM">
+			<since>
+				<version>12.0.0</version>
+			</since>
 			<synopsis>Raised when Asterisk is shutdown or restarted.</synopsis>
 			<syntax>
 				<parameter name="Shutdown">
@@ -297,7 +303,7 @@ int daemon(int, int);  /* defined in libresolv of all places */
 #define NUM_MSGS 64
 
 /*! Displayed copyright tag */
-#define COPYRIGHT_TAG "Copyright (C) 1999 - 2022, Sangoma Technologies Corporation and others."
+#define COPYRIGHT_TAG "Copyright (C) 1999 - 2025, Sangoma Technologies Corporation and others."
 
 /*! \brief Welcome message when starting a CLI interface */
 #define WELCOME_MESSAGE \
@@ -596,6 +602,7 @@ static char *handle_show_settings(struct ast_cli_entry *e, int cmd, struct ast_c
 	ast_cli(a->fd, "  ASTDB:                       %s\n", ast_config_AST_DB);
 	ast_cli(a->fd, "  IAX2 Keys directory:         %s\n", ast_config_AST_KEY_DIR);
 	ast_cli(a->fd, "  AGI Scripts directory:       %s\n", ast_config_AST_AGI_DIR);
+	ast_cli(a->fd, "  Cache directory:             %s\n", ast_config_AST_CACHE_DIR);
 	ast_cli(a->fd, "\n\n");
 	return CLI_SUCCESS;
 }
@@ -1117,6 +1124,10 @@ void ast_unreplace_sigchld(void)
 	unsigned int level;
 
 	ast_mutex_lock(&safe_system_lock);
+
+	/* Wrapping around here is an error */
+	ast_assert(safe_system_level > 0);
+
 	level = --safe_system_level;
 
 	/* only restore the handler if we are the last one */
@@ -3182,7 +3193,12 @@ static int ast_el_read_history(const char *filename)
 		ast_el_initialize();
 	}
 
-	return history(el_hist, &ev, H_LOAD, filename);
+	if (access(filename, F_OK) == 0) {
+		return history(el_hist, &ev, H_LOAD, filename);
+	}
+
+	/* If the history file doesn't exist, failing to read it is unremarkable. */
+	return 0;
 }
 
 static void process_histfile(int (*readwrite)(const char *filename))
@@ -3512,8 +3528,20 @@ static void canary_exit(void)
 	}
 }
 
+enum startup_commands_phase {
+	STARTUP_COMMANDS_PRE_INIT = 0,
+	STARTUP_COMMANDS_PRE_MODULE,
+	STARTUP_COMMANDS_FULLY_BOOTED
+};
+
+static const char *startup_commands_phase_str[] = {
+	"pre-init",
+	"pre-module",
+	"fully-booted,yes,true,y,t,1,on"
+};
+
 /* Execute CLI commands on startup.  Run by main() thread. */
-static void run_startup_commands(void)
+static void run_startup_commands(enum startup_commands_phase phase)
 {
 	int fd;
 	struct ast_config *cfg;
@@ -3533,8 +3561,10 @@ static void run_startup_commands(void)
 	}
 
 	for (v = ast_variable_browse(cfg, "startup_commands"); v; v = v->next) {
-		if (ast_true(v->value))
+		char *value = ast_str_to_lower(ast_strdupa(v->value));
+		if (ast_in_delimited_string(value, startup_commands_phase_str[phase], ',')) {
 			ast_cli_command(fd, v->name);
+		}
 	}
 
 	close(fd);
@@ -4253,6 +4283,8 @@ static void asterisk_daemon(int isroot, const char *runuser, const char *rungrou
 	threadstorage_init();
 
 	check_init(init_logger(), "Logger");
+	run_startup_commands(STARTUP_COMMANDS_PRE_INIT);
+
 	check_init(ast_rtp_engine_init(), "RTP Engine");
 
 	ast_autoservice_init();
@@ -4286,6 +4318,8 @@ static void asterisk_daemon(int isroot, const char *runuser, const char *rungrou
 	check_init(load_pbx_hangup_handler(), "PBX Hangup Handler Support");
 	check_init(ast_local_init(), "Local Proxy Channel Driver");
 	check_init(ast_refer_init(), "Refer API");
+
+	run_startup_commands(STARTUP_COMMANDS_PRE_MODULE);
 
 	/* We should avoid most config loads before this point as they can't use realtime. */
 	check_init(load_modules(), "Module");
@@ -4324,7 +4358,7 @@ static void asterisk_daemon(int isroot, const char *runuser, const char *rungrou
 	ast_cli_register_multiple(cli_asterisk, ARRAY_LEN(cli_asterisk));
 	ast_register_cleanup(main_atexit);
 
-	run_startup_commands();
+	run_startup_commands(STARTUP_COMMANDS_FULLY_BOOTED);
 	ast_sd_notify("READY=1");
 
 	ast_verb(0, COLORIZE_FMT "\n", COLORIZE(COLOR_BRGREEN, 0, "Asterisk Ready."));
@@ -4334,7 +4368,7 @@ static void asterisk_daemon(int isroot, const char *runuser, const char *rungrou
 	if (ast_opt_console) {
 		/* Console stuff now... */
 		/* Register our quit function */
-		char title[256];
+		char title[296];
 		char hostname[MAXHOSTNAMELEN] = "";
 
 		if (gethostname(hostname, sizeof(hostname) - 1)) {

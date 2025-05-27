@@ -38,6 +38,9 @@
 
 /*** DOCUMENTATION
 	<function name="VERSION" language="en_US">
+		<since>
+			<version>1.6.0</version>
+		</since>
 		<synopsis>
 			Return the Version info for this Asterisk.
 		</synopsis>

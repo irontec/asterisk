@@ -240,6 +240,25 @@ fi
 AC_PROG_CXX
 AC_PROG_CPP
 AC_PROG_CXXCPP
+
+# Do we want to force the C++ compiler to use the latest standard it supports?
+AC_ARG_ENABLE([latest-cxx-std],
+	[AS_HELP_STRING([--enable-latest-cxx-std],
+		[Force C++ compiler to use the latest standard it supports])],
+	[case "${enableval}" in
+		y|ye|yes) ENABLE_LATEST_CXX_STD=yes ;;
+		n|no)  ENABLE_LATEST_CXX_STD=no ;;
+		*) AC_MSG_ERROR(bad value ${enableval} for --enable-latest-cxx-std)  ;;
+	esac], [ENABLE_LATEST_CXX_STD=no])
+
+# Check to see if the C++ compiler supports STDC++11,14,17,20,23
+# These MUST be in ascending order.
+AST_CXX_CHECK_STD([11], [${ENABLE_LATEST_CXX_STD}])
+AST_CXX_CHECK_STD([14], [${ENABLE_LATEST_CXX_STD}])
+AST_CXX_CHECK_STD([17], [${ENABLE_LATEST_CXX_STD}])
+AST_CXX_CHECK_STD([20], [${ENABLE_LATEST_CXX_STD}])
+AST_CXX_CHECK_STD([23], [${ENABLE_LATEST_CXX_STD}])
+
 # This macro is just copied into our local acinclude.m4 from libtool.m4 so that
 # the developers regenerating the configure script don't have to install libtool.
 AST_PROG_LD	# note, does not work on FreeBSD
@@ -603,6 +622,7 @@ AST_EXT_LIB_SETUP_OPTIONAL([PJSIP_ENDPOINT_COMPACT_FORM], [PJSIP Compact Form Su
 AST_EXT_LIB_SETUP_OPTIONAL([PJSIP_TRANSPORT_DISABLE_CONNECTION_REUSE], [PJSIP Transport Connection Reuse Disabling], [PJPROJECT], [pjsip])
 AST_EXT_LIB_SETUP_OPTIONAL([PJSIP_OAUTH_AUTHENTICATION], [PJSIP OAuth Authentication Support], [PJPROJECT], [pjsip])
 AST_EXT_LIB_SETUP_OPTIONAL([PJSIP_TLS_TRANSPORT_RESTART], [PJSIP TLS Transport Restart Support], [PJPROJECT], [pjsip])
+AST_EXT_LIB_SETUP_OPTIONAL([PJSIP_AUTH_NEW_DIGESTS], [PJSIP Auth new digests like SHA-256 and SHA-512-256], [PJPROJECT], [pjsip])
 fi
 
 AST_EXT_LIB_SETUP([POPT], [popt], [popt])
@@ -748,7 +768,7 @@ else
 	PBX_JANSSON=1
 fi
 
-source ./third-party/versions.mak
+. ./third-party/versions.mak
 # Find required JWT support if bundled is not enabled.
 if test "$LIBJWT_BUNDLED" = "no" ; then
 	AST_PKG_CONFIG_CHECK([LIBJWT], [libjwt >= $LIBJWT_VERSION])
@@ -835,6 +855,7 @@ AC_C_VOLATILE
 AC_CHECK_TYPES([ptrdiff_t])
 stat_nsec_found=no
 AC_CHECK_MEMBERS([struct stat.st_mtim, struct stat.st_mtimensec, struct stat.st_mtimespec], [stat_nsec_found=yes], [], [[#include <sys/stat.h>]])
+AC_CHECK_MEMBERS([struct sockaddr_in6.sin6_len, struct sockaddr_in.sin_len], [], [], [[#include <netinet/in.h>]])
 
 if test "${stat_nsec_found}" != yes; then
 	AC_MSG_WARN(Cannot determine nanosecond field of struct stat)
@@ -846,7 +867,7 @@ AC_FUNC_CLOSEDIR_VOID
 AC_FUNC_ERROR_AT_LINE
 AST_FUNC_FORK
 AC_FUNC_FSEEKO
-AC_PROG_GCC_TRADITIONAL
+# AC_PROG_GCC_TRADITIONAL Obsolete
 # XXX: these are commented out until we determine whether it matters if our malloc()
 # acts exactly like glibc's or not
 # AC_FUNC_MALLOC
@@ -2531,6 +2552,7 @@ if test "$USE_PJPROJECT" != "no" ; then
          AST_EXT_LIB_CHECK([PJSIP_AUTH_CLT_DEINIT], [pjsip], [pjsip_auth_clt_deinit], [pjsip.h], [$PJPROJECT_LIB], [$PJPROJECT_CFLAGS])
          AST_EXT_LIB_CHECK([PJSIP_TSX_LAYER_FIND_TSX2], [pjsip], [pjsip_tsx_layer_find_tsx2], [pjsip.h], [$PJPROJECT_LIB], [$PJPROJECT_CFLAGS])
          AST_EXT_LIB_CHECK([PJSIP_TLS_TRANSPORT_RESTART], [pjsip], [pjsip_tls_transport_restart], [pjsip.h], [$PJPROJECT_LIB], [$PJPROJECT_CFLAGS])
+         AST_EXT_LIB_CHECK([PJSIP_AUTH_NEW_DIGESTS], [pjsip], [pjsip_auth_get_algorithm_by_type], [pjsip.h], [$PJPROJECT_LIB], [$PJPROJECT_CFLAGS])
       fi
    fi
 

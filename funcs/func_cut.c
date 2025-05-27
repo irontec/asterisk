@@ -38,6 +38,9 @@
 
 /*** DOCUMENTATION
 	<function name="SORT" language="en_US">
+		<since>
+			<version>1.2.0</version>
+		</since>
 		<synopsis>
 			Sorts a list of key/vals into a list of keys, based upon the vals.
 		</synopsis>
@@ -58,6 +61,9 @@
 		</description>
 	</function>
 	<function name="CUT" language="en_US">
+		<since>
+			<version>1.2.0</version>
+		</since>
 		<synopsis>
 			Slices and dices strings, based upon a named delimiter.
 		</synopsis>

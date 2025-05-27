@@ -629,7 +629,7 @@ static int xmldoc_has_specialtags(struct ast_xml_node *fixnode)
  * \param rootname Name of the application, function, option, etc. to build the syntax.
  * \param childname The name of each parameter node.
  * \param printparenthesis Boolean if we must print parenthesis if not parameters are found in the rootnode.
- * \param printrootname Boolean if we must print the rootname before the syntax and parenthesis at the begining/end.
+ * \param printrootname Boolean if we must print the rootname before the syntax and parenthesis at the beginning/end.
  *
  * \retval NULL on error.
  * \retval An ast_malloc'ed string with the syntax generated.
@@ -757,7 +757,7 @@ static char *xmldoc_get_syntax_fun(struct ast_xml_node *rootnode, const char *ro
 				paramname = xmldoc_get_syntax_fun(node, argname, "argument", prnparenthesis, prnparenthesis);
 				ast_xml_free_attr(argname);
 			} else {
-				/* Malformed XML, print **UNKOWN** */
+				/* Malformed XML, print **UNKNOWN** */
 				paramname = ast_strdup("**unknown**");
 			}
 		} else {
@@ -923,7 +923,7 @@ static char *xmldoc_parse_cmd_enumlist(struct ast_xml_node *fixnode)
  *
  * \param fixnode The \<syntax\> node pointer.
  * \param name The name of the 'command'.
- * \param printname Print the name of the command before the paramters?
+ * \param printname Print the name of the command before the parameters?
  *
  * \return On error, return just 'name'.
  * \return On success return the generated syntax.
@@ -1441,7 +1441,7 @@ static int xmldoc_parse_specialtags(struct ast_xml_node *fixnode, const char *ta
 
 		/* parse <para> elements inside special tags. */
 		for (node = ast_xml_node_get_children(node); node; node = ast_xml_node_get_next(node)) {
-			/* first <para> just print it without tabs at the begining. */
+			/* first <para> just print it without tabs at the beginning. */
 			if ((xmldoc_parse_para(node, "", posttabs, buffer) == 2)
 				|| (xmldoc_parse_info(node, "", posttabs, buffer) == 2)) {
 				ret = 2;
@@ -1509,7 +1509,7 @@ static int xmldoc_parse_argument(struct ast_xml_node *fixnode, int insideparamet
  * \brief Parse a \<variable\> node inside a \<variablelist\> node.
  *
  * \param node The variable node to parse.
- * \param tabs A string to be appended at the begining of the output that will be stored
+ * \param tabs A string to be appended at the beginning of the output that will be stored
  *        in buffer.
  * \param buffer This must be an already created ast_str. It will be used
  *        to store the result (if already has something it will be appended to the current
@@ -1541,7 +1541,7 @@ static int xmldoc_parse_variable(struct ast_xml_node *node, const char *tabs, st
 			ast_str_append(buffer, 0, "\n");
 			printedpara = 1;
 		}
-		/* Parse each <value name='valuename'>desciption</value> */
+		/* Parse each <value name='valuename'>description</value> */
 		valname = ast_xml_get_attribute(tmp, "name");
 		if (valname) {
 			ret = 1;
@@ -1570,7 +1570,7 @@ static int xmldoc_parse_variable(struct ast_xml_node *node, const char *tabs, st
  * \brief Parse a \<variablelist\> node and put all the output inside 'buffer'.
  *
  * \param node The variablelist node pointer.
- * \param tabs A string to be appended at the begining of the output that will be stored
+ * \param tabs A string to be appended at the beginning of the output that will be stored
  *        in buffer.
  * \param buffer This must be an already created ast_str. It will be used
  *        to store the result (if already has something it will be appended to the current
@@ -1653,7 +1653,7 @@ static char *_ast_xmldoc_build_seealso(struct ast_xml_node *node)
 	}
 
 	if (!node || !ast_xml_node_get_children(node)) {
-		/* we couldnt find a <see-also> node. */
+		/* we couldn't find a <see-also> node. */
 		return NULL;
 	}
 
@@ -1717,6 +1717,91 @@ char *ast_xmldoc_build_seealso(const char *type, const char *name, const char *m
 	}
 
 	output = _ast_xmldoc_build_seealso(node);
+	AST_RWLIST_UNLOCK(&xmldoc_tree);
+
+	return output;
+}
+
+/*!
+ * \internal
+ * \brief Build since information for an item
+ *
+ * \param node	The since node to parse
+ *
+ * \note This method exists for when you already have the node.  This
+ * prevents having to lock the documentation tree twice
+ *
+ * \retval A malloc'd character pointer to the since information of the item
+ * \retval NULL on failure
+ *
+ * \since 22
+ */
+static char *_ast_xmldoc_build_since(struct ast_xml_node *node)
+{
+	char *output;
+	struct ast_str *outputstr;
+	const char *content;
+	int first = 1;
+
+	/* Find the <since> node. */
+	for (node = ast_xml_node_get_children(node); node; node = ast_xml_node_get_next(node)) {
+		if (!strcasecmp(ast_xml_node_get_name(node), "since")) {
+			break;
+		}
+	}
+
+	if (!node || !ast_xml_node_get_children(node)) {
+		/* we couldn't find a <since> node. */
+		return NULL;
+	}
+
+	/* prepare the output string. */
+	outputstr = ast_str_create(128);
+	if (!outputstr) {
+		return NULL;
+	}
+
+	/* get into the <since> node. */
+	for (node = ast_xml_node_get_children(node); node; node = ast_xml_node_get_next(node)) {
+		if (strcasecmp(ast_xml_node_get_name(node), "version")) {
+			continue;
+		}
+
+		content = ast_xml_get_text(node);
+		if (!content) {
+			continue;
+		}
+
+		ast_str_append(&outputstr, 0, "%s%s", (first ? "" : ", "), content);
+
+		first = 0;
+		ast_xml_free_text(content);
+	}
+
+	output = ast_strdup(ast_str_buffer(outputstr));
+	ast_free(outputstr);
+
+	return output;
+}
+
+char *ast_xmldoc_build_since(const char *type, const char *name, const char *module)
+{
+	char *output;
+	struct ast_xml_node *node;
+
+	if (ast_strlen_zero(type) || ast_strlen_zero(name)) {
+		return NULL;
+	}
+
+	/* get the application/function root node. */
+	AST_RWLIST_RDLOCK(&xmldoc_tree);
+	node = xmldoc_get_node(type, name, module, documentation_language);
+	if (!node || !ast_xml_node_get_children(node)) {
+		AST_RWLIST_UNLOCK(&xmldoc_tree);
+		return NULL;
+	}
+
+	output = _ast_xmldoc_build_since(node);
 	AST_RWLIST_UNLOCK(&xmldoc_tree);
 
 	return output;
@@ -1800,7 +1885,7 @@ static int xmldoc_parse_enumlist(struct ast_xml_node *fixnode, const char *tabs,
  * \brief Parse an \<option\> node.
  *
  * \param fixnode An ast_xml pointer to the \<option\> node.
- * \param tabs A string to be appended at the begining of each line being added to the
+ * \param tabs A string to be appended at the beginning of each line being added to the
  *             buffer string.
  * \param buffer The output buffer.
  *
@@ -1847,7 +1932,7 @@ static int xmldoc_parse_option(struct ast_xml_node *fixnode, const char *tabs, s
  * \brief Parse an \<optionlist\> element from the xml documentation.
  *
  * \param fixnode Pointer to the optionlist xml node.
- * \param tabs A string to be appended at the begining of each line being added to the
+ * \param tabs A string to be appended at the beginning of each line being added to the
  *             buffer string.
  * \param buffer Output buffer to put what is inside the optionlist tag.
  */
@@ -2252,7 +2337,7 @@ char *ast_xmldoc_build_synopsis(const char *type, const char *name, const char *
 
 /*!
  * \internal
- * \brief Build the descripton for an item
+ * \brief Build the description for an item
  *
  * \param node	The description node to parse
  *
@@ -2286,11 +2371,12 @@ static void ast_xml_doc_item_destructor(void *obj)
 		return;
 	}
 
-	ast_free(doc->syntax);
-	ast_free(doc->seealso);
-	ast_free(doc->arguments);
 	ast_free(doc->synopsis);
+	ast_free(doc->since);
 	ast_free(doc->description);
+	ast_free(doc->syntax);
+	ast_free(doc->arguments);
+	ast_free(doc->seealso);
 	ast_string_field_free_memory(doc);
 
 	if (AST_LIST_NEXT(doc, next)) {
@@ -2318,11 +2404,13 @@ static struct ast_xml_doc_item *ast_xml_doc_item_alloc(const char *name, const c
 		return NULL;
 	}
 
-	if (   !(item->syntax = ast_str_create(128))
-		|| !(item->seealso = ast_str_create(128))
+	if (   !(item->synopsis = ast_str_create(128))
+		|| !(item->since = ast_str_create(128))
+		|| !(item->description = ast_str_create(128))
+		|| !(item->syntax = ast_str_create(128))
 		|| !(item->arguments = ast_str_create(128))
-		|| !(item->synopsis = ast_str_create(128))
-		|| !(item->description = ast_str_create(128))) {
+		|| !(item->seealso = ast_str_create(128))
+		) {
 		ast_log(AST_LOG_ERROR, "Failed to allocate strings for ast_xml_doc_item instance\n");
 		goto ast_xml_doc_item_failure;
 	}
@@ -2381,44 +2469,50 @@ static int ast_xml_doc_item_cmp(void *obj, void *arg, int flags)
 static struct ast_xml_doc_item *xmldoc_build_documentation_item(struct ast_xml_node *node, const char *name, const char *type)
 {
 	struct ast_xml_doc_item *item;
-	char *syntax;
-	char *seealso;
-	char *arguments;
 	char *synopsis;
+	char *since;
 	char *description;
+	char *syntax;
+	char *arguments;
+	char *seealso;
 
 	if (!(item = ast_xml_doc_item_alloc(name, type))) {
 		return NULL;
 	}
 	item->node = node;
 
-	syntax = _ast_xmldoc_build_syntax(node, type, name);
-	seealso = _ast_xmldoc_build_seealso(node);
-	arguments = _ast_xmldoc_build_arguments(node);
 	synopsis = _ast_xmldoc_build_synopsis(node);
+	since = _ast_xmldoc_build_since(node);
 	description = _ast_xmldoc_build_description(node);
+	syntax = _ast_xmldoc_build_syntax(node, type, name);
+	arguments = _ast_xmldoc_build_arguments(node);
+	seealso = _ast_xmldoc_build_seealso(node);
 
-	if (syntax) {
-		ast_str_set(&item->syntax, 0, "%s", syntax);
-	}
-	if (seealso) {
-		ast_str_set(&item->seealso, 0, "%s", seealso);
-	}
-	if (arguments) {
-		ast_str_set(&item->arguments, 0, "%s", arguments);
-	}
 	if (synopsis) {
 		ast_str_set(&item->synopsis, 0, "%s", synopsis);
+	}
+	if (since) {
+		ast_str_set(&item->since, 0, "%s", since);
 	}
 	if (description) {
 		ast_str_set(&item->description, 0, "%s", description);
 	}
+	if (syntax) {
+		ast_str_set(&item->syntax, 0, "%s", syntax);
+	}
+	if (arguments) {
+		ast_str_set(&item->arguments, 0, "%s", arguments);
+	}
+	if (seealso) {
+		ast_str_set(&item->seealso, 0, "%s", seealso);
+	}
 
-	ast_free(syntax);
-	ast_free(seealso);
-	ast_free(arguments);
 	ast_free(synopsis);
+	ast_free(since);
 	ast_free(description);
+	ast_free(syntax);
+	ast_free(arguments);
+	ast_free(seealso);
 
 	return item;
 }

@@ -1,7 +1,12 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE docs SYSTEM "appdocsxml.dtd">
-<docs>
+<docs xmlns:xi="http://www.w3.org/2001/XInclude">
 	<application name="PJSIPHangup" language="en_US">
+		<since>
+			<version>18.21.0</version>
+			<version>20.6.0</version>
+			<version>21.1.0</version>
+		</since>
 		<synopsis>
 			Hangup an incoming PJSIP channel with a SIP response code
 		</synopsis>
@@ -55,7 +60,57 @@
 		</description>
 	</application>
 
+	<application name="PJSIPNotify" language="en_US">
+		<since>
+			<version>18.25.0</version>
+			<version>20.10.0</version>
+			<version>21.5.0</version>
+		</since>
+		<synopsis>
+			Send a NOTIFY to either an arbitrary URI, or inside a SIP dialog.
+		</synopsis>
+		<syntax>
+			<parameter name="to" required="false">
+				<para>Arbitrary URI to which to send the NOTIFY.  If none is specified, send inside
+				the SIP dialog for the current channel.</para>
+			</parameter>
+			<parameter name="content" required="true">
+				<para>Either an option pre-configured in pjsip_notify.conf or a list of headers and body content to send in the NOTIFY.</para>
+			</parameter>
+		</syntax>
+		<description>
+			<para>
+			Sends a NOTIFY to a specified URI, or if none provided, within the current SIP dialog for the
+			current channel.  The content can either be set to either an entry configured in pjsip_notify.conf
+			or specified as a list of key value pairs.
+			</para>
+			<warning><para>
+			To send a NOTIFY to a specified URI, a default_outbound_endpoint must be configured.  This
+			endpoint determines the message contact.
+			</para></warning>
+			<para>
+			</para>
+			<example title="Send a NOTIFY with Event and X-Data headers in current dialog">
+			same = n,PJSIPNotify(,&amp;Event=Test&amp;X-Data=Fun)
+			</example>
+			<example title="Send a preconfigured NOTIFY force-answer defined in pjsip_notify.conf in current dialog">
+			same = n,PJSIPNotify(,force-answer)
+			</example>
+			<example title="Send a NOTIFY to &lt;sip:bob@127.0.0.1:5260&gt; with Test Event and X-Data headers">
+			same = n,PJSIPNotify(&lt;sip:bob@127.0.0.1:5260&gt;,&amp;Event=Test&amp;X-Data=Fun)
+			</example>
+			<example title="Send a NOTIFY to &lt;sip:bob@127.0.0.1:5260&gt; with Custom Event and message body">
+			same = n,PJSIPNotify(&lt;sip:bob@127.0.0.1:5260&gt;,&amp;Event=Custom&amp;Content-type=application&#47;voicemail&amp;Content=check-messages&amp;Content=)
+			</example>
+		</description>
+	</application>
+
 	<manager name="PJSIPHangup" language="en_US">
+		<since>
+			<version>21.1.0</version>
+			<version>20.6.0</version>
+			<version>18.21.0</version>
+		</since>
 		<synopsis>
 			Hangup an incoming PJSIP channel with a SIP response code
 		</synopsis>
@@ -102,6 +157,9 @@
 	</manager>
 
 	<function name="PJSIP_DIAL_CONTACTS" language="en_US">
+		<since>
+			<version>12.0.0</version>
+		</since>
 		<synopsis>
 			Return a dial string for dialing all contacts on an AOR.
 		</synopsis>
@@ -121,12 +179,23 @@
 		</description>
 	</function>
 	<function name="PJSIP_MEDIA_OFFER" language="en_US">
+		<since>
+			<version>12.0.0</version>
+		</since>
 		<synopsis>
 			Media and codec offerings to be set on an outbound SIP channel prior to dialing.
 		</synopsis>
 		<syntax>
 			<parameter name="media" required="true">
-				<para>types of media offered</para>
+				<para>The type of media offered</para>
+				<enumlist>
+					<enum name="audio">
+						<para>Audio codecs to offer</para>
+					</enum>
+					<enum name="video">
+						<para>Video codecs to offer</para>
+					</enum>
+				</enumlist>
 			</parameter>
 		</syntax>
 		<description>
@@ -144,7 +213,6 @@
 			<version>13.18.0</version>
 			<version>14.7.0</version>
 			<version>15.1.0</version>
-			<version>16.0.0</version>
 		</since>
 		<synopsis>
 			Get or change the DTMF mode for a SIP call.
@@ -158,6 +226,11 @@
 		</description>
 	</function>
 	<function name="PJSIP_MOH_PASSTHROUGH" language="en_US">
+		<since>
+			<version>13.30.0</version>
+			<version>16.7.0</version>
+			<version>17.1.0</version>
+		</since>
 		<synopsis>
 			Get or change the on-hold behavior for a SIP call.
 		</synopsis>
@@ -174,7 +247,6 @@
 		<since>
 			<version>13.12.0</version>
 			<version>14.1.0</version>
-			<version>15.0.0</version>
 		</since>
 		<synopsis>
 			W/O: Initiate a session refresh via an UPDATE or re-INVITE on an established media session
@@ -220,10 +292,9 @@
 		<since>
 			<version>13.24.0</version>
 			<version>16.1.0</version>
-			<version>17.0.0</version>
 		</since>
 		<synopsis>
-			Parse an uri and return a type part of the URI.
+			Parse a URI and return a type part of the URI.
 		</synopsis>
 		<syntax>
 			<parameter name="uri" required="true">
@@ -272,7 +343,92 @@
 			</parameter>
 		</syntax>
 		<description>
-			<para>Parse an URI and return a specified part of the URI.</para>
+			<para>Parse a URI and return a specified part of the URI.</para>
+		</description>
+	</function>
+	<function name="PJSIP_PARSE_URI_FROM" language="en_US">
+		<since>
+			<version>18.24.0</version>
+			<version>20.9.0</version>
+			<version>21.4.0</version>
+		</since>
+		<synopsis>
+			Parse the contents of a variable as a URI and return a type part of the URI.
+		</synopsis>
+		<syntax>
+			<parameter name="uri" required="true">
+				<para>Name of a variable that contains a URI to parse</para>
+			</parameter>
+			<parameter name="type" required="true">
+				<para>The <literal>type</literal> parameter specifies which URI part to read</para>
+				<enumlist>
+					<enum name="display">
+						<para>Display name.</para>
+					</enum>
+					<enum name="scheme">
+						<para>URI scheme.</para>
+					</enum>
+					<enum name="user">
+						<para>User part.</para>
+					</enum>
+					<enum name="passwd">
+						<para>Password part.</para>
+					</enum>
+					<enum name="host">
+						<para>Host part.</para>
+					</enum>
+					<enum name="port">
+						<para>Port number, or zero.</para>
+					</enum>
+					<enum name="user_param">
+						<para>User parameter.</para>
+					</enum>
+					<enum name="method_param">
+						<para>Method parameter.</para>
+					</enum>
+					<enum name="transport_param">
+						<para>Transport parameter.</para>
+					</enum>
+					<enum name="ttl_param">
+						<para>TTL param, or -1.</para>
+					</enum>
+					<enum name="lr_param">
+						<para>Loose routing param, or zero.</para>
+					</enum>
+					<enum name="maddr_param">
+						<para>Maddr param.</para>
+					</enum>
+				</enumlist>
+			</parameter>
+		</syntax>
+		<description>
+			<para>Parse the contents of the provided variable as a URI and return a specified part of the URI.</para>
+		</description>
+	</function>
+	<function name="PJSIP_TRANSFER_HANDLING" language="en_US">
+		<since>
+			<version>22.3.0</version>
+			<version>21.8.0</version>
+			<version>20.13.0</version>
+		</since>
+		<synopsis>
+			Set how transfers are handled for a PJSIP channel.
+		</synopsis>
+		<syntax>
+			<parameter name="mode" required="false">
+				<para>How transfers are handled for a PJSIP channel. Default is <literal>core</literal>.</para>
+				<enumlist>
+					<enum name="core">
+						<para>Asterisk will handle attended and blind transfers.</para>
+					</enum>
+					<enum name="ari-only">
+						<para>Asterisk will generate ARI events on incoming SIP REFER.</para>
+					</enum>
+				</enumlist>
+			</parameter>
+		</syntax>
+		<description>
+			<para>When written, sets the transferhandling behavior</para>
 		</description>
 	</function>
 

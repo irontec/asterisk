@@ -15,9 +15,13 @@
  * the GNU General Public License Version 2. See the LICENSE file
  * at the top of the source tree.
  */
+
+#define _TRACE_PREFIX_ "ac",__LINE__, ""
+
 #include "asterisk.h"
 
 #include "asterisk/cli.h"
+#include "asterisk/logger.h"
 #include "asterisk/sorcery.h"
 #include "asterisk/paths.h"
 
@@ -31,6 +35,7 @@
 #define DEFAULT_private_key_file NULL
 #define DEFAULT_public_cert_url NULL
 #define DEFAULT_attest_level attest_level_NOT_SET
+#define DEFAULT_unknown_tn_attest_level attest_level_NOT_SET
 #define DEFAULT_send_mky send_mky_NO
 
 static struct attestation_cfg *empty_cfg = NULL;
@@ -56,6 +61,9 @@ int as_is_config_loaded(void)
 }
 
 generate_acfg_common_sorcery_handlers(attestation_cfg);
+
+generate_sorcery_enum_from_str_ex(attestation_cfg,,unknown_tn_attest_level, attest_level, UNKNOWN);
+generate_sorcery_enum_to_str_ex(attestation_cfg,,unknown_tn_attest_level, attest_level);
 
 void acfg_cleanup(struct attestation_cfg_common *acfg_common)
 {
@@ -245,6 +253,11 @@ static char *attestation_show(struct ast_cli_entry *e, int cmd, struct ast_cli_a
 		return CLI_SHOWUSAGE;
 	}
 
+	if (!as_is_config_loaded()) {
+		ast_log(LOG_WARNING,"Stir/Shaken attestation service disabled.  Either there were errors in the 'attestation' object in stir_shaken.conf or it was missing altogether.\n");
+		return CLI_FAILURE;
+	}
+
 	cfg = as_get_cfg();
 	config_object_cli_show(cfg, a, &data, 0);
 	ao2_cleanup(cfg);
@@ -303,6 +316,9 @@ int as_config_load(void)
 	ast_sorcery_object_field_register(sorcery, CONFIG_TYPE, "global_disable",
 		DEFAULT_global_disable ? "yes" : "no",
 		OPT_YESNO_T, 1, FLDSET(struct attestation_cfg, global_disable));
+
+	enum_option_register_ex(sorcery, CONFIG_TYPE, unknown_tn_attest_level,
+		unknown_tn_attest_level, attest_level,);
 
 	register_common_attestation_fields(sorcery, attestation_cfg, CONFIG_TYPE,);
 

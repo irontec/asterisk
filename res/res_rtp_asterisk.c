@@ -138,7 +138,6 @@
 #define RTCP_PT_PSFB    AST_RTP_RTCP_PSFB
 
 #define RTP_MTU		1200
-#define DTMF_SAMPLE_RATE_MS    8 /*!< DTMF samples per millisecond */
 
 #define DEFAULT_DTMF_TIMEOUT (150 * (8000 / 1000))	/*!< samples */
 
@@ -434,6 +433,7 @@ struct ast_rtp {
 	unsigned int dtmf_timeout;        /*!< When this timestamp is reached we consider END frame lost and forcibly abort digit */
 	unsigned int dtmfsamples;
 	enum ast_rtp_dtmf_mode dtmfmode;  /*!< The current DTMF mode of the RTP stream */
+	unsigned int dtmf_samplerate_ms;  /*!< The sample rate of the current RTP stream in ms (sample rate / 1000) */
 	/* DTMF Transmission Variables */
 	unsigned int lastdigitts;
 	char sending_digit;	/*!< boolean - are we sending digits */
@@ -495,11 +495,11 @@ struct ast_rtp {
 
 	struct ast_rtp_ioqueue_thread *ioqueue; /*!< The ioqueue thread handling us */
 
-	char remote_ufrag[256];  /*!< The remote ICE username */
-	char remote_passwd[256]; /*!< The remote ICE password */
+	char remote_ufrag[257];  /*!< The remote ICE username */
+	char remote_passwd[257]; /*!< The remote ICE password */
 
-	char local_ufrag[256];  /*!< The local ICE username */
-	char local_passwd[256]; /*!< The local ICE password */
+	char local_ufrag[257];  /*!< The local ICE username */
+	char local_passwd[257]; /*!< The local ICE password */
 
 	struct ao2_container *ice_local_candidates;           /*!< The local ICE candidates */
 	struct ao2_container *ice_active_remote_candidates;   /*!< The remote ICE candidates */
@@ -623,7 +623,6 @@ struct rtp_red {
 	unsigned char len[AST_RED_MAX_GENERATION]; /*!< length of each generation */
 	int num_gen; /*!< Number of generations */
 	int schedid; /*!< Timer id */
-	int ti; /*!< How long to buffer data before send */
 	unsigned char t140red_data[64000];
 	unsigned char buf_data[64000]; /*!< buffered primary data */
 	int hdrlen;
@@ -2861,76 +2860,137 @@ static inline int rtcp_debug_test_addr(struct ast_sockaddr *addr)
 }
 
 #if defined(HAVE_OPENSSL) && (OPENSSL_VERSION_NUMBER >= 0x10001000L) && !defined(OPENSSL_NO_SRTP)
-/*! \pre instance is locked */
-static int dtls_srtp_handle_timeout(struct ast_rtp_instance *instance, int rtcp)
+/*!
+ * \brief Handles DTLS timer expiration
+ *
+ * \param instance
+ * \param timeout
+ * \param rtcp
+ *
+ * If DTLSv1_get_timeout() returns 0, it's an error or no timeout was set.
+ * We need to unref instance and stop the timer in this case.  Otherwise,
+ * new timeout may be a number of milliseconds or 0.  If it's 0, OpenSSL
+ * is telling us to call DTLSv1_handle_timeout() immediately so we'll set
+ * timeout to 1ms so we get rescheduled almost immediately.
+ *
+ * \retval  0 - success
+ * \retval -1 - failure
+ */
+static int dtls_srtp_handle_timeout(struct ast_rtp_instance *instance, int *timeout, int rtcp)
 {
 	struct ast_rtp *rtp = ast_rtp_instance_get_data(instance);
 	struct dtls_details *dtls = !rtcp ? &rtp->dtls : &rtp->rtcp->dtls;
 	struct timeval dtls_timeout;
+	int res = 0;
 
-	ast_debug_dtls(3, "(%p) DTLS srtp - handle timeout - rtcp=%d\n", instance, rtcp);
-	DTLSv1_handle_timeout(dtls->ssl);
+	res = DTLSv1_handle_timeout(dtls->ssl);
+	ast_debug_dtls(3, "(%p) DTLS srtp - handle timeout - rtcp=%d result: %d\n", instance, rtcp, res);
 
 	/* If a timeout can't be retrieved then this recurring scheduled item must stop */
-	if (!DTLSv1_get_timeout(dtls->ssl, &dtls_timeout)) {
+	res = DTLSv1_get_timeout(dtls->ssl, &dtls_timeout);
+	if (!res) {
+		/* Make sure we don't try to stop the timer later if it's already been stopped */
 		dtls->timeout_timer = -1;
-		return 0;
+		ao2_ref(instance, -1);
+		*timeout = 0;
+		ast_debug_dtls(3, "(%p) DTLS srtp - handle timeout - rtcp=%d get timeout failure\n", instance, rtcp);
+		return -1;
 	}
+	*timeout = dtls_timeout.tv_sec * 1000 + dtls_timeout.tv_usec / 1000;
+	if (*timeout == 0) {
+		/*
+		 * If DTLSv1_get_timeout() succeeded with a timeout of 0, OpenSSL
+		 * is telling us to call DTLSv1_handle_timeout() again now HOWEVER...
+		 * Do NOT be tempted to call DTLSv1_handle_timeout() and
+		 * DTLSv1_get_timeout() in a loop while the timeout is 0.  There is only
+		 * 1 thread running the scheduler for all PJSIP related RTP instances
+		 * so we don't want to delay here any more than necessary.  It's also
+		 * possible that an OpenSSL bug or change in behavior could cause
+		 * DTLSv1_get_timeout() to return 0 forever.  If that happens, we'll
+		 * be stuck here and no other RTP instances will get serviced.
+		 * This RTP instance is also locked while this callback runs so we
+		 * don't want to delay other threads that may need to lock this
+		 * RTP instance for their own purpose.
+		 *
+		 * Just set the timeout to 1ms and let the scheduler reschedule us
+		 * as quickly as possible.
+		 */
+		*timeout = 1;
+	}
+	ast_debug_dtls(3, "(%p) DTLS srtp - handle timeout - rtcp=%d timeout=%d\n", instance, rtcp, *timeout);
 
-	return dtls_timeout.tv_sec * 1000 + dtls_timeout.tv_usec / 1000;
+	return 0;
 }
 
 /* Scheduler callback */
 static int dtls_srtp_handle_rtp_timeout(const void *data)
 {
 	struct ast_rtp_instance *instance = (struct ast_rtp_instance *)data;
-	int reschedule;
+	int timeout = 0;
+	int res = 0;
 
 	ao2_lock(instance);
-	reschedule = dtls_srtp_handle_timeout(instance, 0);
+	res = dtls_srtp_handle_timeout(instance, &timeout, 0);
 	ao2_unlock(instance);
-	if (!reschedule) {
-		ao2_ref(instance, -1);
+	if (res < 0) {
+		/* Tells the scheduler to stop rescheduling */
+		return 0;
 	}
 
-	return reschedule;
+	/* Reschedule based on the timeout value */
+	return timeout;
 }
 
 /* Scheduler callback */
 static int dtls_srtp_handle_rtcp_timeout(const void *data)
 {
 	struct ast_rtp_instance *instance = (struct ast_rtp_instance *)data;
-	int reschedule;
+	int timeout = 0;
+	int res = 0;
 
 	ao2_lock(instance);
-	reschedule = dtls_srtp_handle_timeout(instance, 1);
+	res = dtls_srtp_handle_timeout(instance, &timeout, 1);
 	ao2_unlock(instance);
-	if (!reschedule) {
-		ao2_ref(instance, -1);
+	if (res < 0) {
+		/* Tells the scheduler to stop rescheduling */
+		return 0;
 	}
 
-	return reschedule;
+	/* Reschedule based on the timeout value */
+	return timeout;
 }
 
 static void dtls_srtp_start_timeout_timer(struct ast_rtp_instance *instance, struct ast_rtp *rtp, int rtcp)
 {
 	struct dtls_details *dtls = !rtcp ? &rtp->dtls : &rtp->rtcp->dtls;
+	ast_sched_cb cb = !rtcp ? dtls_srtp_handle_rtp_timeout : dtls_srtp_handle_rtcp_timeout;
 	struct timeval dtls_timeout;
+	int res = 0;
+	int timeout = 0;
 
-	if (DTLSv1_get_timeout(dtls->ssl, &dtls_timeout)) {
-		int timeout = dtls_timeout.tv_sec * 1000 + dtls_timeout.tv_usec / 1000;
+	ast_assert(dtls->timeout_timer == -1);
 
-		ast_assert(dtls->timeout_timer == -1);
+	res = DTLSv1_get_timeout(dtls->ssl, &dtls_timeout);
+	if (res == 0) {
+		ast_debug_dtls(3, "(%p) DTLS srtp - DTLSv1_get_timeout return an error or there was no timeout set for %s\n",
+			instance, rtcp ? "RTCP" : "RTP");
+		return;
+	}
 
-		ao2_ref(instance, +1);
-		if ((dtls->timeout_timer = ast_sched_add(rtp->sched, timeout,
-			!rtcp ? dtls_srtp_handle_rtp_timeout : dtls_srtp_handle_rtcp_timeout, instance)) < 0) {
-			ao2_ref(instance, -1);
-			ast_log(LOG_WARNING, "Scheduling '%s' DTLS retransmission for RTP instance [%p] failed.\n",
-				!rtcp ? "RTP" : "RTCP", instance);
-		} else {
-			ast_debug_dtls(3, "(%p) DTLS srtp - scheduled timeout timer for '%d'\n", instance, timeout);
-		}
+	timeout = dtls_timeout.tv_sec * 1000 + dtls_timeout.tv_usec / 1000;
+
+	ao2_ref(instance, +1);
+	/*
+	 * We want the timer to fire again based on calling DTLSv1_get_timeout()
+	 * inside the callback, not at a fixed interval.
+	 */
+	if ((dtls->timeout_timer = ast_sched_add_variable(rtp->sched, timeout, cb, instance, 1)) < 0) {
+		ao2_ref(instance, -1);
+		ast_log(LOG_WARNING, "Scheduling '%s' DTLS retransmission for RTP instance [%p] failed.\n",
+			!rtcp ? "RTP" : "RTCP", instance);
+	} else {
+		ast_debug_dtls(3, "(%p) DTLS srtp - scheduled timeout timer for '%d' %s\n",
+			instance, timeout, rtcp ? "RTCP" : "RTP");
 	}
 }
 
@@ -4150,7 +4210,7 @@ static int ast_rtp_new(struct ast_rtp_instance *instance,
 	/* Set default parameters on the newly created RTP structure */
 	rtp->ssrc = ast_random();
 	ast_uuid_generate_str(rtp->cname, sizeof(rtp->cname));
-	rtp->seqno = ast_random() & 0x7fff;
+	rtp->seqno = ast_random() & 0xffff;
 	rtp->expectedrxseqno = -1;
 	rtp->expectedseqno = -1;
 	rtp->rxstart = -1;
@@ -4283,9 +4343,10 @@ static int ast_rtp_dtmf_begin(struct ast_rtp_instance *instance, char digit)
 {
 	struct ast_rtp *rtp = ast_rtp_instance_get_data(instance);
 	struct ast_sockaddr remote_address = { {0,} };
-	int hdrlen = 12, res = 0, i = 0, payload = 101;
+	int hdrlen = 12, res = 0, i = 0, payload = -1, sample_rate = -1;
 	char data[256];
 	unsigned int *rtpheader = (unsigned int*)data;
+	RAII_VAR(struct ast_format *, payload_format, NULL, ao2_cleanup);
 
 	ast_rtp_instance_get_remote_address(instance, &remote_address);
 
@@ -4310,12 +4371,48 @@ static int ast_rtp_dtmf_begin(struct ast_rtp_instance *instance, char digit)
 		return -1;
 	}
 
-	/* Grab the payload that they expect the RFC2833 packet to be received in */
-	payload = ast_rtp_codecs_payload_code_tx(ast_rtp_instance_get_codecs(instance), 0, NULL, AST_RTP_DTMF);
+	if (rtp->lasttxformat == ast_format_none) {
+		/* No audio frames have been written yet so we have to lookup both the preferred payload type and bitrate. */
+		payload_format = ast_rtp_codecs_get_preferred_format(ast_rtp_instance_get_codecs(instance));
+		if (payload_format) {
+			/* If we have a preferred type, use that. Otherwise default to 8K. */
+			sample_rate = ast_format_get_sample_rate(payload_format);
+		}
+	} else {
+		sample_rate = ast_format_get_sample_rate(rtp->lasttxformat);
+	}
+
+	if (sample_rate != -1) {
+		payload = ast_rtp_codecs_payload_code_tx_sample_rate(ast_rtp_instance_get_codecs(instance), 0, NULL, AST_RTP_DTMF, sample_rate);
+	}
+
+	if (payload == -1 ||
+		!ast_rtp_payload_mapping_tx_is_present(
+			ast_rtp_instance_get_codecs(instance), ast_rtp_codecs_get_payload(ast_rtp_instance_get_codecs(instance), payload))) {
+		/* Fall back to the preferred DTMF payload type and sample rate as either we couldn't find an audio codec to try and match
+		   sample rates with or we could, but a telephone-event matching that audio codec's sample rate was not included in the
+		   sdp negotiated by the far end. */
+		payload = ast_rtp_codecs_get_preferred_dtmf_format_pt(ast_rtp_instance_get_codecs(instance));
+		sample_rate = ast_rtp_codecs_get_preferred_dtmf_format_rate(ast_rtp_instance_get_codecs(instance));
+	}
+
+	/* The sdp negotiation has not yeilded a usable RFC 2833/4733 format. Try a default-rate one as a last resort. */
+	if (payload == -1 || sample_rate == -1) {
+		sample_rate = DEFAULT_DTMF_SAMPLE_RATE_MS;
+		payload = ast_rtp_codecs_payload_code_tx(ast_rtp_instance_get_codecs(instance), 0, NULL, AST_RTP_DTMF);
+	}
+	/* Even trying a default payload has failed. We are trying to send a digit outside of what was negotiated for. */
+	if (payload == -1) {
+		return -1;
+	}
+
+	ast_test_suite_event_notify("DTMF_BEGIN", "Digit: %d\r\nPayload: %d\r\nRate: %d\r\n", digit, payload, sample_rate);
+	ast_debug(1, "Sending digit '%d' at rate %d with payload %d\n", digit, sample_rate, payload);
 
 	rtp->dtmfmute = ast_tvadd(ast_tvnow(), ast_tv(0, 500000));
 	rtp->send_duration = 160;
-	rtp->lastts += calc_txstamp(rtp, NULL) * DTMF_SAMPLE_RATE_MS;
+	rtp->dtmf_samplerate_ms = (sample_rate / 1000);
+	rtp->lastts += calc_txstamp(rtp, NULL) * rtp->dtmf_samplerate_ms;
 	rtp->lastdigitts = rtp->lastts + rtp->send_duration;
 
 	/* Create the actual packet that we will be sending */
@@ -4394,7 +4491,7 @@ static int ast_rtp_dtmf_continuation(struct ast_rtp_instance *instance)
 	/* And now we increment some values for the next time we swing by */
 	rtp->seqno++;
 	rtp->send_duration += 160;
-	rtp->lastts += calc_txstamp(rtp, NULL) * DTMF_SAMPLE_RATE_MS;
+	rtp->lastts += calc_txstamp(rtp, NULL) * rtp->dtmf_samplerate_ms;
 
 	return 0;
 }
@@ -4472,7 +4569,7 @@ static int ast_rtp_dtmf_end_with_duration(struct ast_rtp_instance *instance, cha
 	res = 0;
 
 	/* Oh and we can't forget to turn off the stuff that says we are sending DTMF */
-	rtp->lastts += calc_txstamp(rtp, NULL) * DTMF_SAMPLE_RATE_MS;
+	rtp->lastts += calc_txstamp(rtp, NULL) * rtp->dtmf_samplerate_ms;
 
 	/* Reset the smoother as the delivery time stored in it is now out of date */
 	if (rtp->smoother) {
@@ -7142,8 +7239,8 @@ static int bridge_p2p_rtp_write(struct ast_rtp_instance *instance,
 	}
 
 	/* Otherwise adjust bridged payload to match */
-	bridged_payload = ast_rtp_codecs_payload_code_tx(ast_rtp_instance_get_codecs(instance1),
-		payload_type->asterisk_format, payload_type->format, payload_type->rtp_code);
+	bridged_payload = ast_rtp_codecs_payload_code_tx_sample_rate(ast_rtp_instance_get_codecs(instance1),
+		payload_type->asterisk_format, payload_type->format, payload_type->rtp_code, payload_type->sample_rate);
 
 	/* If no codec could be matched between instance and instance1, then somehow things were made incompatible while we were still bridged.  Bail. */
 	if (bridged_payload < 0) {
@@ -9068,7 +9165,6 @@ static int rtp_red_init(struct ast_rtp_instance *instance, int buffer_time, int 
 	rtp->red->t140red = rtp->red->t140;
 	rtp->red->t140red.data.ptr = &rtp->red->t140red_data;
 
-	rtp->red->ti = buffer_time;
 	rtp->red->num_gen = generations;
 	rtp->red->hdrlen = generations * 4 + 1;
 
@@ -9078,7 +9174,7 @@ static int rtp_red_init(struct ast_rtp_instance *instance, int buffer_time, int 
 		rtp->red->t140red_data[x*4] = rtp->red->pt[x];
 	}
 	rtp->red->t140red_data[x*4] = rtp->red->pt[x] = payloads[x]; /* primary pt */
-	rtp->red->schedid = ast_sched_add(rtp->sched, generations, red_write, instance);
+	rtp->red->schedid = ast_sched_add(rtp->sched, buffer_time, red_write, instance);
 
 	return 0;
 }

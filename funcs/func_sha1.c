@@ -35,6 +35,9 @@
 
 /*** DOCUMENTATION
 	<function name="SHA1" language="en_US">
+		<since>
+			<version>1.4.0</version>
+		</since>
 		<synopsis>
 			Computes a SHA1 digest.
 		</synopsis>

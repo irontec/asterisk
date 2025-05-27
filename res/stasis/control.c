@@ -27,6 +27,7 @@
 
 #include "asterisk/stasis_channels.h"
 #include "asterisk/stasis_app.h"
+#include "asterisk/causes.h"
 
 #include "command.h"
 #include "control.h"
@@ -95,10 +96,6 @@ struct stasis_app_control {
 	 */
 	char *next_app;
 	/*!
-	 * The thread currently blocking on the channel.
-	 */
-	pthread_t control_thread;
-	/*!
 	 * The list of arguments to pass to StasisStart when moving to another app.
 	 */
 	AST_VECTOR(, char *) next_app_args;
@@ -106,6 +103,11 @@ struct stasis_app_control {
 	 * When set, /c app_stasis should exit and continue in the dialplan.
 	 */
 	unsigned int is_done:1;
+	/*!
+	 * When set, /c app_stasis should exit indicating failure and continue
+	 * in the dialplan.
+	 */
+	unsigned int failed:1;
 };
 
 static void control_dtor(void *obj)
@@ -162,8 +164,6 @@ struct stasis_app_control *control_create(struct ast_channel *channel, struct st
 	control->next_app = NULL;
 	AST_VECTOR_INIT(&control->next_app_args, 0);
 
-	control_set_thread(control, AST_PTHREADT_NULL);
-
 	return control;
 }
 
@@ -190,13 +190,6 @@ static void app_control_unregister_rule(
 		}
 	}
 	AST_RWLIST_TRAVERSE_SAFE_END;
-	ao2_unlock(control->command_queue);
-}
-
-void control_set_thread(struct stasis_app_control *control, pthread_t threadid)
-{
-	ao2_lock(control->command_queue);
-	control->control_thread = threadid;
 	ao2_unlock(control->command_queue);
 }
 
@@ -309,10 +302,10 @@ static struct stasis_app_command *exec_command_on_condition(
 	ao2_link_flags(control->command_queue, command, OBJ_NOLOCK);
 	ast_cond_signal(&control->wait_cond);
 
-	if (control->control_thread != AST_PTHREADT_NULL) {
-		/* if the control thread is waiting on the channel, send the SIGURG
-		   to let it know there is a new command */
-		pthread_kill(control->control_thread, SIGURG);
+	if (control->channel) {
+		/* Queue a null frame so that if and when the channel is waited on,
+		   return immediately to process the new command */
+		ast_queue_frame(control->channel, &ast_null_frame);
 	}
 
 	ao2_unlock(control->command_queue);
@@ -380,6 +373,17 @@ void control_mark_done(struct stasis_app_control *control)
 	control->is_done = 1;
 	ao2_unlock(control->command_queue);
 }
+
+void stasis_app_control_mark_failed(struct stasis_app_control *control)
+{
+	control->failed = 1;
+}
+
+int stasis_app_control_is_failed(const struct stasis_app_control *control)
+{
+	return control->failed;
+}
+
 
 struct stasis_app_control_continue_data {
 	char context[AST_MAX_CONTEXT];
@@ -1218,6 +1222,10 @@ struct ast_datastore_info timeout_datastore = {
 static int hangup_channel(struct stasis_app_control *control,
 	struct ast_channel *chan, void *data)
 {
+	/* Set cause code to No Answer to be consistent with other dial timeout operations */
+	ast_channel_lock(chan);
+	ast_channel_hangupcause_set(chan, AST_CAUSE_NO_ANSWER);
+	ast_channel_unlock(chan);
 	ast_softhangup(chan, AST_SOFTHANGUP_EXPLICIT);
 	return 0;
 }

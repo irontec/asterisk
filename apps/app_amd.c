@@ -54,6 +54,9 @@
 
 /*** DOCUMENTATION
 	<application name="AMD" language="en_US">
+		<since>
+			<version>1.4.0</version>
+		</since>
 		<synopsis>
 			Attempt to detect answering machines.
 		</synopsis>
