@@ -1,0 +1,65 @@
+Report the endpoint that picked up a call in the CANCEL sent to the ringing
+channel, as a pickedup-by parameter of the "Call completed elsewhere" Reason.
+
+--- a/main/pickup.c
++++ b/main/pickup.c
+@@ -376,6 +376,10 @@
+ 		goto pickup_failed;
+ 	}
+ 
++	/* chan now holds the ringing channel: tell it who picked it up, so the
++	 * channel driver can report it when cancelling the call */
++	pbx_builtin_setvar_helper(chan, "PICKEDUPBY", chan_name);
++
+ 	/* target points to the channel that did the pickup at this point, so use that channel's topic instead of chan */
+ 	send_call_pickup_stasis_message(target, chan_snapshot, target_snapshot);
+ 
+--- a/res/res_pjsip_rfc3326.c
++++ b/res/res_pjsip_rfc3326.c
+@@ -32,6 +32,7 @@
+ #include "asterisk/res_pjsip_session.h"
+ #include "asterisk/module.h"
+ #include "asterisk/causes.h"
++#include "asterisk/pbx.h"
+ #include "asterisk/threadpool.h"
+ 
+ static void rfc3326_use_reason_header(struct ast_sip_session *session, struct pjsip_rx_data *rdata)
+@@ -90,12 +91,37 @@
+ 	rfc3326_use_reason_header(session, rdata);
+ }
+ 
++static void rfc3326_add_answered_elsewhere_header(struct ast_sip_session *session, struct pjsip_tx_data *tdata)
++{
++	char reason[256];
++	char endpoint[AST_MAX_EXTENSION];
++	const char *picker;
++	char *dash;
++
++	ast_channel_lock(session->channel);
++	picker = pbx_builtin_getvar_helper(session->channel, "PICKEDUPBY");
++	ast_copy_string(endpoint, S_OR(picker, ""), sizeof(endpoint));
++	ast_channel_unlock(session->channel);
++
++	/* PJSIP/<endpoint>-<sequence> */
++	if (strncmp(endpoint, "PJSIP/", 6) || !(dash = strrchr(endpoint, '-'))) {
++		ast_sip_add_header(tdata, "Reason", "SIP;cause=200;text=\"Call completed elsewhere\"");
++		return;
++	}
++	*dash = '\0';
++
++	/* Endpoint ids may not be SIP tokens: always send it quoted */
++	snprintf(reason, sizeof(reason),
++		"SIP;cause=200;text=\"Call completed elsewhere\";pickedup-by=\"%s\"", endpoint + 6);
++	ast_sip_add_header(tdata, "Reason", reason);
++}
++
+ static void rfc3326_add_reason_header(struct ast_sip_session *session, struct pjsip_tx_data *tdata)
+ {
+ 	char buf[20];
+ 
+ 	if (ast_channel_hangupcause(session->channel) == AST_CAUSE_ANSWERED_ELSEWHERE) {
+-		ast_sip_add_header(tdata, "Reason", "SIP;cause=200;text=\"Call completed elsewhere\"");
++		rfc3326_add_answered_elsewhere_header(session, tdata);
+ 	}
+ 
+ 	if (session->endpoint && session->endpoint->suppress_q850_reason_headers) {
